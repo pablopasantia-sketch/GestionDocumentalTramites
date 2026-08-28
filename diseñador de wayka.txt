@@ -1,0 +1,566 @@
+Manual funcional Diseñador de wayka 
+1. INTRODUCCIÓN 
+"La oficina de la tercera ola no se parecerá a la oficina de hoy. Un ingrediente fundamental 
+del trabajo de oficina el papel será sustancialmente (aunque no totalmente) reemplazado. 
+(...) Los archivadores desaparecerán. El movimiento secuencial de papeles a lo largo de 
+muchas mesas Alvin Toffler, La Tercera Ola. 
+1.1 ¿Qué es Workflow? 
+Es el denominativo técnico, en inglés, que se da a los flujos de trabajo. 
+Es la automatización de los procesos institucionales, estos son comúnmente conocidos 
+como "trámites". 
+Es un medio que facilita el control de una amplia gama de procesos dentro de una 
+organización: datos, documentos, información o tareas, que son pasados de un Individuo a 
+otro para interactuar entre ellos y alcanzar un objetivo en común. Dentro de un conjunto de 
+reglas. 
+1.2 ¿Qué significa Wayka? 
+WAYKA es una palabra que viene del Aymara y significa "reunirse comunitariamente para 
+atacar el trabajo eminentemente agrícola". 
+1.3 Sistema Workflow Wayka 
+Es una herramienta para modelar procesos de negocio en forma electrónica y, permite 
+diseñar, ejecutar, supervisar y coordinar los flujos de trabajo en la organización, además, 
+poder integrar y potenciar todos los sistemas de una institución. 
+2. DESCRIPCIÓN GLOBAL DEL SISTEMA 
+Este sector del manual está destinado a los usuarios que deseen tener una visión general 
+del sistema y su alcance. 
+2.1 Objetivos 
+Dotar de una ingeniería flexible y ágil. 
+Reducir la burocracia, sin perder el control. 
+Implantar una reingeniería de los procesos. 
+Brindar a las organizaciones herramientas para dar seguimiento y monitoreo a sus 
+procesos. 
+2.2¿Qué nos permite? 
+La automatización de la secuencia de acciones, actividades o tareas, de nuestro flujo de 
+trabajo. 
+Monitorear el estado de las acciones, flujos y cargas de trabajo de los funcionarios. 
+Realizar el análisis y la explotación de la información, de acuerdo a nuestros 
+requerimientos. 
+Los clientes pueden consultar, en cualquier momento, el estado de sus 
+trámites/correspondencias, como también dónde se encuentran, quién es el responsable y 
+cuánto tardó en cada actividad. 
+3. CONSIDERACIONES GENERALES DE LOS USUARIOS 
+Wayka es una plataforma que presenta los siguientes usuarios básicos e iniciales para la 
+administración del sistema. 
+Rol 
+Administrador de Sistema 
+Detalle 
+Es el usuario al que se le ha asignado las opciones necesarias y suficientes para 
+administrar el sistema, como por ejemplo el registro de personas, usuarios, enlaces, 
+asignación de roles y menús, y sobre todo administración de ABM de nuevas tablas. 
+Administrador de Wayka 
+Es el usuario que tiene asignado opciones necesarias para la administración de 
+trámites/correspondencias, como por ejemplo Anular un trámite, habilitar una 
+correspondencia, redireccionar procesos de un usuario a otro. 
+Diseñador de Wayka 
+Es el usuario que tiene las opciones para el diseño de nuevos procesos trámites entre las 
+que podemos mencionar, la creación áreas, procesos, actividades, formularios, dominios, 
+informes. 
+Ventanilla Única 
+Es el usuario el cual puede hacer uso del diseño de un proceso ya creado. Este usuario 
+tiene acceso a su escritorio virtual para crear e iniciar un proceso, ver sus 
+trámites/correspondencias pendientes, recepcionar correspondencia, analizar y explotar 
+datos de los procesos, ver reportes, realizar búsquedas como bloquear y desbloquear 
+procesos observados. 
+Atención 
+de Es 
+trámites/correspondencias 
+el usuario al que le llegan los trámites/correspondencias que debe atender. Asimismo tiene 
+posibilidad de realizar búsquedas y reportes del movimiento de los 
+trámites/correspondencias. 
+5. FUNCIONALIDADES 
+De este cubo de información se pueden obtener reportes en diferentes dimensiones que 
+permitan la toma de decisiones. 
+5.1. Tipos de Flujos 
+El sistema soporta dos tipos de definición de flujos: 
+1. Flujo definido, donde se pueden diseñar todo tipo de trámites. 
+2. Flujos no definidos, donde están las correspondencias. 
+5.2. Actividades 
+La ejecución de las actividades puede darse de la siguiente forma: 
+1. Lineal. 
+2. Saltos. 
+3. Bifurcaciones. 
+La digitalización de actividades de un trámite/correspondencia involucra desde la 
+planificación, control y evaluación, como: 
+a. Registro/Transcripción. 
+b. Documentación. 
+c. Análisis/Revisión / Evaluación. 
+d. Autorización / Validación. 
+e. Archivo. 
+Se tiene la posibilidad de anexar documentos a cada actividad o paso de un 
+trámite/correspondencia, como también llevar un registro de los proveídos. 
+Se puede realizar impresiones de uno o más tipos de informes en las actividades que se 
+consideren necesarias y de acuerdo a los formatos de la institución. 
+5.3. Campos 
+Los campos son el conjunto de valores que están en forma ordenada, y que al ser 
+diseñados permiten ser visualizados para el usuario final en sus escritorios virtuales. 
+Los tipos de componentes que soporta el sistema son: 
+1. Caja de texto alfanumérico, numérico, alfabético (Text box). 
+2. Área de texto (Text area). 
+3. Selección simple: 
+Campo desplegable (Combo). 
+Caja de verificación (Check) 
+4. Selección múltiple: 
+Caja de verificación múltiple (Múltiple check). 
+5. Fecha. 
+6. Tabla. 
+7. Dominio, es un campo con datos creados específicamente a necesidad. 
+5.4. Dominios 
+Los dominios son un conjunto de datos que definen propiedades de los campos, en el 
+sistema tenemos los siguientes: 
+1. Predefinidos (Ej. Países, Facultades, Marcas de autos). 
+2. Alimentados por otros trámites 
+3. Creados a necesidad. 
+5.5. Permisos 
+El sistema le permite asignar permisos a los campos de un formulario de acuerdo a: 
+Cada uno de los USUARIOS funcionarios. 
+En cada campo de un formulario. 
+En cada una de las actividades. 
+5.6. Estados de los procesos de negocios 
+Los procesos de negocio pueden estar en diferentes estados, los cuales se describen con 
+iconos los mismos que describimos a continuación: -Indica que el proceso de negocio está siendo atendido en una oficina. -Indica que un proceso de negocio ya fue atendido y está listo para despacharlo. 
+Indica que un proceso de negocio está en tránsito, es decir, que digitalmente ya se envió a 
+una oficina, pero físicamente el documento aún no le llegó. -Indica que el proceso de negocio ha concluido. 
+Indica que el proceso de negocio está bloqueado. 
+Indica que el proceso de negocio fue despachado al siguiente usuario del sistema, pero que 
+todavía no está siendo atendido por el mismo. -Indica que el proceso de negocio fue despachado al siguiente usuario del sistema, y el 
+trámite está siendo atendido por el mismo. -Indica que el proceso de negocio fue eliminado / anulado. 
+6. REQUERIMIENTOS BÁSICOS 
+El sistema Workflow Wayka para su implementación y funcionamiento necesita: 
+6.1. Equipo Servidor 
+Se debe tener un equipo servidor los mismos que deben tener conexión a Internet o una red 
+interna con las suficientes capacidades para atender los servicios internos de la institución, 
+una característica básica es un Pentium IV. 
+6.2. Conectividad 
+Se debe contar con una infraestructura de red suficiente a través de Internet o una red 
+interna, pueden ser a través de red física con cables o también pueden ser conexiones 
+inalámbricas con wireless 
+6.3. Clientes 
+Los clientes requieren acceso a la red de computadoras, y tener instalado en su equipo un 
+navegador Internet como el IExplorer, Mozilla Firefox, Opera u otro. 
+7. COMO INGRESAR AL SISTEMA 
+En primera instancia, seleccionamos un navegador (programa que permite acceder a 
+Internet), es recomendable usar Mozilla Firefox. 
+Después de ingresar a la dirección de la página principal del sistema "Wayka", se 
+desplegará la pantalla principal del sistema (Ver figura1). 
+8. PÁGINA PRINCIPAL 
+Al ingresar al sistema, se mostrará la siguiente información: 
+WAYKA 
+INGRESAR AL SISTEMA 
+Figura 2 
+En la parte central de la pantalla está la opción para ingresar al sistema con usuario y clave. 
+Y en la parte inferior central se encuentran las opciones de búsqueda de procesos de 
+negocio y los reportes globales de los procesos de negocio. (Ver Figura 2). 
+8.1. Búsqueda de procesos de negocio 
+En la pantalla principal esta opción tenemos la posibilidad de hacer búsquedas de procesos 
+de negocio y obtener toda la información del mismo de la siguiente manera. (Ver Figura 3) 
+Una vez seleccionado el enlace se abrirá una pantalla en la cual se debe ingresar la Gestión 
+en la que se inició trámite/correspondencia que esta buscando y posteriormente e número 
+de hoja de ruta que se le asignó. (Ver figura 4). 
+El resultado de la búsqueda mostrará la siguiente pantalla los siguientes datos: 
+En la parte superior los datos generales como el número de proceso, las referencias 
+registradas para ser visualizadas, y la fecha de ingreso del proceso 
+En la parte central nos muestra el flujo del proceso en forma gráfica donde los iconos en 
+color azul representa las actividades concluidas y los iconos en color naranja indican las 
+actividades que faltan 
+En la parte inferior se muestra un detalle histórico del proceso de negocio donde se indica 
+las actividades y el estado actual en la cual se encuentra el proceso, los responsables que 
+atendieron dichas actividades, el tiempo estimado y transcurrido que se tomo en atender, 
+los proveídos registrados por los usuarios en cada actividad, y los documentos que se 
+subieron al sistema. (Ver Figura 5) 
+8.2. Reporte global de procesos de negocio 
+Al seleccionar esta opción tenemos la posibilidad de hacer búsquedas de nuestros procesos 
+de negocio, por áreas y en un periodo de fechas determinado, de la siguiente manera. (Ver 
+Figura 6). 
+Una vez seleccionado el enlace se abrirá una pantalla en la cual se debe ingresar la Gestión 
+en la cual se esta trabajando y el número de proceso que se esta buscando. (Ver figura 7). 
+Eiresultado de la búsqueda es un listado de 
+. Los procesos iniciados y cuantos fueron iniciados. 
+De aquellos que están en flujo (Movidos) y cuántos son. 
+También de los procesos que fueron concluidos y la cantidad de los mismos. (Ver Figura 8). 
+Al seleccionar un determinado proceso nos permitirá ver listado de los procesos que se 
+encuentran en ese grupo - Iniciados, en flujo, concluidos-. (Ver Figura 9). 
+Para ver el detalle de un proceso - trámite/correspondencia - debe hacer clic sobre el tipo de 
+proceso como se muestra en la figura 9. 
+El resultado de la búsqueda mostrará la siguiente pantalla los siguientes datos: 
+En la parte superior los datos generales como el número de proceso, las referencias 
+registradas para ser visualizadas, y la fecha de ingreso del proceso. 
+En la parte central nos muestra el flujo del proceso en forma gráfica donde los iconos en 
+color azul representa las actividades concluidas y los iconos en color naranja indican las 
+actividades que faltan. 
+En la parte inferior se muestra un detalle histórico del proceso de negocio donde se indica 
+las actividades y el estado actual en la cual se encuentra el proceso, los responsables que 
+atendieron dichas actividades, el tiempo estimado y transcurrido que se tomo en atender, 
+los proveídos registrados por los usuarios en cada actividad, y los documentos que se 
+subieron al sistema. (Ver Figura 10). 
+9. INGRESO AL SISTEMA 
+Fundación AUTAPO 
+En la parte central de la página principal del sistema se debe introducir su nombre de 
+usuario y su clave (PIN) de acceso al sistema. (Ver figura 11). 
+Al conectarse al sistema muestra la siguiente información: 
+El usuario y el rol del usuario que se conectó al sistema. 
+Un listado de las Categorías asignadas al usuario conectado. 
+Al seleccionar una categoría se lista un submenú de opciones conocidos como Enlaces. 
+(Ver Figura 12). 
+10. ACCESOS 
+10.1. Cambio de clave 
+Al seleccionar la Categoría ACCESOS, se lista el enlace Cambio de clave el cual nos 
+permite modificar a una nueva clave del usuario diseñador para ingresar al sistema. (Ver. 
+Figura 13) 
+A continuación se desplegará la siguiente pantalla en la cual debe registrarse la actual clave 
+de acceso al sistema que el usuario tiene asignado. (Ver Figura 14) 
+En caso que el registro de la clave no sea la correcta, le aparecerá el siguiente mensaje de 
+error, en esta caso debe volver a la anterior pantalla para registrar nuevamente su clave. 
+(Ver figura 15). 
+Si el registro de la clave es la adecuada el sistema le desplegará la pantalla siguiente donde 
+se lista cuatro recomendaciones necesarias para que el usuario tome en cuenta para el 
+cambio de clave. (Ver Figura 16) 
+Si continúa con el proceso el usuario tendrá la posibilidad de: 
+Registrar una nueva clave de acceso al sistema tomando en cuenta las recomendaciones 
+anteriormente citadas. 
+Posteriormente debe volver a registrar la nueva clave para confirmar el cambio. 
+(Ver Figura 17). 
+Si el cambio se realizó correctamente le saldrá el siguiente mensaje de confirmación. (Ver 
+figura 18). 
+Al modificar la clave y si no coincide con la confirmación, se mostrará el siguiente mensaje 
+de error donde indica que los datos no coinciden. (Ver Figura 19). 
+¡Error! 
+La confirmación de la clave no coincide 
+Figura 19 
+También le mostrará el siguiente mensaje de error en caso de que la nueva clave es menor 
+a los seis dígitos de la siguiente forma. (Ver Figura 20). 
+¡Error! 
+La nueva clave debe tener un mínimo de 6 caracteres 
+y un máximo de 10 
+Figura 20 
+11. DISEÑO 
+La Categoría Diseño se tiene las opciones que permiten al diseñador de Wavka crear los 
+procesos de acuerdo al flujo, el formulario, los campos, las impresiones y permisos 
+definidos por la institución 
+11.1. ADMINISTRAR ÁREAS 
+El primer enlace a seleccionar son las Áreas o el organigrama de la institución donde se 
+relacionan los usuarios y procesos que intervendrán en el sistema. (Ver figura 21). 
+Al seleccionar el enlace Admin. Áreas se despliega una nueva pantalla con la siguiente 
+Información: 
+Un listado de las áreas por niveles 
+La opción para adicionar un nuevo registro 
+La opción para modificar un registro 
+La opción para eliminar áreas (Ver Figura 22). 
+11.1.1 Registrar nueva área 
+Al presionar sobre el enlace Nere ingresamos a una nueva pantalla en la cual nos permite 
+realizar los siguientes registros: 
+Seleccionar un Área o una Ubicación Orgánica padre. 
+Registrar el Tipo de Calificación, esta información esta relacionada con el sistema 
+financiero, puede ser 1 si es Transaccional, 2 si es no Transaccional. 
+Registrar la Apertura Programática, este dato también esta relacionado con el sistema 
+financiero y es de tipo numérico. 
+Introducir el Código que es de tipo texto para identificar a una determinada área. 
+Registrar la nueva área. 
+El nivel del área, no es un dato obligatorio, si se lo registra permite crear niveles como una 
+estructura de padre, hijos, nietos, etc. (Ver Figura 23). 
+En caso que no desee realizar ningún registro, presione sobre el enlace 
+Volver 
+Al presionar el botón Siguiente posteriormente le mostrará una pantalla para confirmar la 
+creación del área (Ver Figura 24) 
+11.1.2 Modificar área 
+Al presionar sobre el enlace Modificar, podrá realizar cambios a los datos registrados de una 
+determinada área (Ver Figura 25). 
+En caso que no desee realizar ninguna modificación presione sobre el enlace 
+Volver 
+A continuación de presionar el botón "Siguiente" le aparecerá otra pantalla para confirmar 
+los datos para modificar el área (Ver Figura 26). 
+11.1.3 Eliminar área 
+Al presionar sobre el enlace Eliminar le apareceré la siguiente pantalla, donde podrá 
+confirmar el borrado lógico de la base de datos de cualquier área (Ver Figura 27). 
+11.2. ADMINISTRAR PROCESOS DE NEGOCIO 
+En segundo enlace a seleccionar es la administración de los Procesos de Negocio o los que 
+se conoce como trámites/correspondencias dentro del sistema. (Ver figura 28) 
+Diseño 
+Gateway 
+Administración -Admin. Areas 
+Admin. Procesos de negocie 
+Admin. Actividades 
+Admin. Formularios 
+Admin. Daminios 
+Admin. Informes 
+Admin. ACLS 
+Figura 28 
+Al seleccionar el enlace Admin. Procesos de Negocio se despliega una nueva pantalla con 
+la siguiente información: 
+Un listado donde se describen las áreas, el tipo de proceso que en esta caso son trámites, 
+el nombre del proceso, su respectivo código y el número del correlativo. 
+La opción para adicionar un nuevo registro 
+La opción para modificar un registro 
+La opción para eliminar un proceso de negocio (Ver Figura 29). 
+11.2.1. Registrar nuevo proceso de negocio 
+Al presionar sobre el enlace, ingresamos a una nueva pantalla en la cual nos permite 
+realizar los siguientes registros: 
+Seleccionar un Área o una Ubicación Orgánica. 
+Seleccionar un tipo de proceso que en este caso será un Trámite 
+Registrar en nombre del Proceso de Negocio el cual será visible en otras pantallas del 
+sistema 
+Registrar un código que se relacione al proceso creado (Ver Figura 30). 
+En caso que no desee realizar ningún registro, presione sobre el enlace Volver 
+Al presionar el botón Siguiente posteriormente le mostrará una pantalla para confirmar la 
+creación del Proceso de Negocio (Ver Figura 31). 
+11.2.2. Modificar proceso de negocio 
+Al presionar sobre el enlace Medicar, podrá realizar cambios a los datos registrados de una 
+determinada área (Ver Figura 32). 
+Una vez modificados los datos se despliega la siguiente pantalla de confirmar. (Ver Figura 
+33). 
+11.2.3. Eliminar proceso de negocio 
+Al presionar sobre el enlace Eliminar le apareceré la siguiente pantalla, donde podrá 
+confirmar el borrado lógico del proceso de negocio seleccionado (Ver Figura 37). 
+11.3. ADMINISTRAR ACTIVIDADES 
+El tercer enlace a seleccionar es la administración de las Actividades o la determinación de 
+los pasos que forman el flujo de un proceso. (Ver figura 38). 
+Al seleccionar el enlace Admin. Actividades se despliega una nueva pantalla donde se debe 
+seleccionar un determinado proceso en el cual se debe registrar sus actividades. (Ver figura 
+39). 
+A continuación se despliega la siguiente pantalla donde se despliega la siguiente 
+información: 
+Un listado donde se describen las Actividades que son parte del flujo. 
+El Rol del usuario que es parte de cada una de las Actividades. 
+El área que esta a cargo de atender las Actividades. 
+El tiempo en días, horas o minutos en que serán atendidas dichas Actividades 
+El orden de cada una de las Actividades, preferentemente registrar de 10 en 10. 
+Tipo actuación que se refiere a la forma que tendrá el flujo. 
+Determinación si es fin o no de flujo. 
+La opción para adicionar una nueva Actividad. 
+La opción para modificar un registro 
+La opción para eliminar una nueva Actividad (Ver Figura 40). 
+11.3.1. Registrar nueva actividad 
+Al presionar sobre el enlace, ingresamos a una nueva pantalla en la cual nos permite 
+realizar los siguientes registros: 
+Seleccionar una Actividad. 
+Seleccionar un Área o Ubicación Orgánica. 
+Seleccionar un Rol del usuario que va atender determinado paso. 
+Introducir tiempo de duración en días, horas, minutos. 
+Seleccionar el tipo de actuación; es decir lineal, salto, bifurcación. 
+Registrar el orden de cada uno de los pasos del flujo, preferentemente registrar de 10 en 10 
+La opción alerta es en caso que se necesite poner en el flujo un aviso de que tiene 
+pendiente un trámite en su escritorio. 
+En Puente, tenemos dos opciones NO si no es una actividad que requiera de programación 
+especializada, Sl en caso que se necesite programar algo especifico. 
+En caso que hay elegido SI, la opción Ruta es donde se debe registrar el directorio en el 
+cual se encuentra el código del programa especializado 
+Fin de flujo no permite determinar la opción "SI", los pasos que son parte del proceso, "NO" 
+si llego al final del flujo (Ver Figura 41). 
+En caso que no desee realizar ningún registro, presione sobre el enlace Volver 
+Al presionar el botón Siguiente posteriormente le mostrará una pantalla para confirmar la 
+creación de una Actividad (Ver Figura 42) 
+11.3.2. Modificar actividades 
+Al presionar sobre el enlace Medica, en esta opción podrá realizar los cambios a los datos 
+registrados en una determinada Actividad (Ver Figura 43). 
+Para confirmar la modificación realizada se despliega la siguiente pantalla, en la cual debe 
+revisar si los datos son los correctos (Ver Figura 44). 
+11.3.3. Eliminar actividades 
+Al presionar sobre el enlace Eliminar le apareceré la siguiente pantalla, donde podrá 
+confirmar la opción de borrar en forma lógica de la base de datos de una actividad 
+seleccionada (Ver Figura 45). 
+11.4. ADMINISTRAR FORMULARIOS 
+El cuarto enlace a seleccionar es la administración de Formularios o la determinación de los 
+pasos que forman el flujo de un proceso. (Ver figura 46) 
+Al seleccionar este enlace se lista la siguiente pantalla muestra un listado donde se 
+despliega la siguiente información: 
+El área al que pertenece el proceso. 
+El proceso de negocio 
+El Formulario correspondiente al proceso de negocio seleccionado 
+La opción para adicionar un nuevo Formulario 
+La opción para modificar un registro 
+La opción para eliminar un Formulario (Ver Figura 47). 
+11.4.1. Registrar nuevo formulario 
+Al presionar sobre el enlace Neve, esta opción nos permite crear un nuevo formulario de la 
+siguiente manera: 
+Seleccione el proceso de negocio en el cual se va crear el formulario correspondiente. 
+Registre el nombre del Formulario a crear (Ver Figura 48). 
+A continuación se despliega otra pantalla donde le permite confirmar la grabación del nuevo 
+formulario. (Ver Figura 49) 
+11.4.2. Modificar formulario 
+Al presionar sobre el enlace modificar, podrá realizar cambios a los datos registrados de un 
+determinado formulario (Ver Figura 50) 
+Después de realizar la modificación de los datos se despliega otra pantalla donde se realiza 
+la confirmación de los datos. (Ver Figura 51) 
+11.4.3. Eliminar formulario 
+Al presionar sobre el enlace Eliminar le apareceré la siguiente pantalla, donde podrá 
+confirmar el borrado lógico la base de datos de cualquier formulario (Ver Figura 52). 
+11.5. ADMINISTRAR CAMPOS DEL FORMULARIO 
+Para administrar Campos de un Formulario se debe hacer clic sobre el nombre de un 
+Formulario. A continuación le parecerá una pantalla en la cual tendremos un listado de los 
+campos que pueden ser de los siguientes tipos: 
+1. Caja de texto alfanumérico, numérico, alfabético (Text box). 
+2. Área de texto (Text area). 
+3. Selección simple: Campo desplegable (Combo). Caja de verificación (Check) 
+4. Selección múltiple: Caja de verificación múltiple (Múltiple check). 
+5. Fecha. 
+6. Tabla. 
+7. Dominio, es un campo con datos creados específicamente a necesidad. 
+En la misma pantalla donde se despliega un listado de los campos creados y además: 
+La opción para adicionar un nuevo Campo 
+La opción para modificar un registro 
+La opción para eliminar un Campo (Ver Figura 53). 
+11.5.1. Registrar un nuevo campo 
+Al presionar sobre el enlace Tu esta opción nos permite crear un nuevo campo para el 
+formulario, de la siguiente manera. 
+El ID, que es un número identificador que pertenece a cada campo. 
+El Campo, el nombre que identifica al nuevo dato que representa un campo. 
+Dominio, es el tipo o características que identifican al campo. 
+COL x FIL, identifica el tamaño del campo creado. 
+MAX, representa el máximo de caracteres del campo. 
+REFS, significa si el campo a ser creado va ser visualizado en otras opciones como el 
+buscar un proceso por ejemplo. 
+Validación, es dar un valor al campo de tipo numérico, alfanumérico, numérico, ninguno. 
+X, Y; es la posición en la pantalla en la cual se va determinar un campo. 
+OPES; es la opción para los campos que requieren operaciones de cálculos. 
+Formula; es donde se coloca la formula matemática básicas como sumas, restas, 
+multiplicación, división. 
+Obligatorio, es la opción que determina si el campo es obligatorio o no, (Ver Figura 54. 
+11.5.2. Modificar un campo 
+11.5.3. Eliminar un campo 
+11.6. ADMINISTRAR DOMINIOS 
+El quinto enlace a seleccionar es la administración de Dominios o la determinación de los 
+pasos que forman el flujo de un proceso. (Ver figura 59) 
+El enlace Admin. Dominios muestra un listado de los dominios existentes y permite 
+adicionar, modificar y eliminar (Ver Figura 60). 
+11.6.1. Registra un nuevo dominio 
+Al presionar sobre el enlace esta opción nos permite crear un nuevo domino para el campo, 
+de la siguiente manera: 
+Seleccione el Área o Ubicación Orgánica 
+Si corresponde seleccionar un Dominio padre 
+Seleccionar el tipo de dominio, si es Normal, Formulario, o tipo Tabla. 
+Si es Normal colocar directamente el nombre del Dominio. 
+Si es Formulario seleccione el Campo, registre el nuevo Dominio. 
+Si es de tipo Tabla, seleccione la variable primaria, registre el Campo, y el Dominio. 
+Determinar si el dominio es de tipo privado o no (Ver Figura 61). 
+11.6.2. Modificar un dominio 
+11.6.3. Eliminar un dominio 
+11.7. ADMINISTRAR TUPLAS 
+Para la administración de Tuplas, se inicia en la pantalla del listado de dominios, donde se 
+encuentran los nombres de los mismos, presionar sobre uno determinado al cual necesita 
+adicionar valores que en este caso vienen a ser las Tuplas (Ver Figura 64) 
+Administración de dominios 
+Figura 64 
+Una vez seleccionado el dominio le aparecerá la siguiente pantalla donde se lista los 
+valores de un determinado Dominio. En la pantalla se muestra lo siguiente: 
+El nombre de la Tupla. 
+Padre, nos indica si la Tupla tiene una dependencia de otra que viene a ser padre 
+Obligatorio, determina si el valor es obligatorio o no. 
+Registrar un nuevo Valor 
+Modificar un valor existente 
+Eliminar un registro (Ver Figura 65). 
+11.7.1. Registrar nueva tupla 
+Al presionar sobre el enlace esta opción nos permite realizar las siguientes opciones: 
+Seleccionar si una tupla es Padre o dependiente de otra. 
+Registrar el valor o Tuplas de un determinado dominio. 
+Registrar si una Tupla es obligatorio o no. (Ver Figura 66) 
+Después de llenar los datos y presionar sobre el botón Siguiente, se despliega la ventana 
+de confirmación para grabar los datos. (Ver Figura 67) 
+11.7.2. Modificar tupla 
+11.7.3. Eliminar tupla 
+11.8. ADMINISTRAR INFORMES 
+El sexto enlace que corresponde a admin. Informes se refiere a la opción que permite 
+construir reportes a medida para cada Actividad y de acuerdo a los campos registrados 
+anteriormente. 
+A continuación le aparecerá la siguiente pantalla en la cual debe seleccionar el Tipo de 
+Proceso (Ver figura 71). 
+Este módulo nos permite crear informes, para cada actividad, de los diferentes tipos de 
+procesos. (Ver Figura 72) 
+Si presiono sobre el nombre del informe, que es un enlace en el cual se puede ver en la 
+siguiente pantalla la forma en que quedo el diseño realizado. 
+11.8.1. Registrar nuevo informe 
+Al presionar sobre el enlace nos aparece la siguiente opción que nos permite crear un 
+nuevo registro de la siguiente manera: 
+Seleccione la Actividad 
+Registre el nombre del informe a realizar 
+Registre una descripción que describa el Informe. 
+Con el uso de un editor de texto podemos diseñar el Informe colocando el nombre de los 
+datos en forma estática, pero el valor de los mismos que se requiere sean impresos en 
+forma dinámica se los registra de la siguiente forma: 
+Necesitamos verificar el valor del ID que se guarda en Admin. Campos, por ejemplo 
+Programa es un campo y su ID tiene como número 14. 
+Con ese dato registramos en los informes entre dos caracteres por ejemplo ##14## y lo que 
+se visualizará será su valor (Ver Figura 73). 
+Adicionalmente en el sistema existen datos predefinidos y que se los puede usar de la 
+siguiente manera: 
+##tipo proceso##: Desplegará el nombre del proceso. 
+##fecha iniciof##: Fecha de inicio del proceso en el siguiente formato: 
+13 de Septiembre de 2008 
+##hora inicio##: Hora de inicio del trámite/correspondencia. 
+##fechainicio##: Fecha de inicio del proceso en el formato: 13/09/2008 
+##correlativo##: Muestra el correlativo del proceso. 
+##gestion##: Muestra la gestión en la que se inició el proceso. 
+##fecha_actual##: Muestra la fecha actual. 
+##hora_actual##: Muestra la hora actual. 
+##dia##: Muestra el día actual. 
+##mes##: Muestra el mes actual 
+##anio##: Muestra el año actual. 
+##nombre_usuario##: Muestra el nombre del usuario que esta atendiendo el proceso. 
+##unidad##: Muestra la unidad del usuario que esta atendiendo el proceso. 
+##proveido##: Muestra el último proveído registrado. 
+##destinatario##: Muestra el nombre del destinatario que recibirá el proceso. 
+##unidad_destino##: Muestra la unidad del destinatario que recibirá el proceso. 
+##cargo_destino##: Muestra el cargo del destinatario que recibirá el proceso. 
+##unidad_remitente##: Muestra la unidad del remitente que envía el proceso. 
+##cargo_remitente##: Muestra el cargo del remitente que envía el proceso. 
+11.8.2. Modificar informes 
+11.8.3. Eliminar informes 
+11.9 ADMINISTRAR ACL's 
+El séptimo enlace Admin. ACL es una Lista de Control de Acceso, en este enlace permite a 
+un determinado Campo darle un determinado permiso ya sea de Escritura, Lectura, Fecha, 
+Combo, Check, Tabla (Ver figura 76). 
+A continuación de elegir el enlace aparecerá la siguiente pantalla en la cual se puede 
+agregar o eliminar un permiso de la siguiente forma: 
+Seleccione un proceso 
+Seleccione una Actividad 
+Seleccione un Tipo de Permiso que puede ser de Escritura, Lectura, Combo, Check para 
+seleccionar, Fecha. 
+Determinar si el campo es será habilitado o no. 
+En la parte inferior izquierda se listan los Campos del Formulario. Si seleccionamos varios 
+campos y presionamos el botón Agregar, aparecerán los Campos en la parte derecha de la 
+pantalla con sus respectivos permisos y si están o no habilitados. 
+Para eliminar seleccionamos los Campos que están a la derecha y presionamos sobre el 
+botón Eliminar, aparecerán en la parte izquierda de la pantalla nuevamente para ser 
+autorizados en caso que sea necesario (Ver figura 77). 
+12. GATEWAY 
+12.1. ADMINISTRAR GATEWAY 
+Este enlace nos permite administrar las variables para relacionar: 
+1. Los procesos que son de tipo definidos. 
+2. Con módulos especializados que necesitan sean programados (Ver figura 78). 
+Al seleccionar este enlace aparecerá la siguiente pantalla en la cual se lista la siguiente 
+información: 
+Registrar nueva etiqueta 
+Modificar Etiqueta 
+Eliminar Etiqueta (Ver figura 79). 
+12.1.1. Registrar una nueva relación 
+Al presionar sobre el enlacenos aparecerá la siguiente opción que nos permite crear un 
+nuevo registro de la siguiente manera: 
+Seleccionar el Proceso 
+Seleccionar el Formulario 
+Seleccionar el Campo del formulario 
+Registrar la Etiqueta del Campo seleccionado (Ver figura 80). 
+A continuación aparecerá la siguiente pantalla donde nos permite confirmar la grabación de 
+los datos (Ver figura 81) 
+12.1.2. Modificar GW - Relaciones 
+12.1.3. Eliminar GW - Relaciones 
+13. ADMINISTRACIÓN 
+13.1. ACTIVIDADES POR ROLES 
+El primer enlace Actividades por Roles nos permite obtener un reporte sobre el flujo de 
+proceso por Actividades Roles y por Tipo de Actuación (Ver figura 84). 
+Al seleccionar esta opción le aparecerá otra pantalla donde debe elegir el Tipo de Proceso. 
+(Ver Figura 85) 
+Una vez seleccionado el proceso, el sistema despliega la siguiente pantalla donde se lista el 
+Tipo de Actuación, es decir si es lineal, salto, bifurcación por Actividades y Actores en el 
+sistema. (Ver Figura 86). 
+13.2. CAMPOS POR ACTIVIDADES 
+El segundo enlace Campo por Actividades es un reporte del flujo de Proceso que nos 
+permite ver los permisos de los Campos por Actividades (Ver figura 87). 
+Al seleccionar esta opción se desplaza una pantalla en la cual se debe seleccionar el Tipo 
+de Proceso. (Ver Figura 88) 
+Una vez seleccionado el proceso, el sistema muestra el reporte de los Campos por 
+Actividades y sus respectivos permisos ya sean de lectura, escritura, combo, fecha (Ver 
+Figura 89) 
+14. ¿CÓMO SALIR DEL SISTEMA? 
+Desde cualquier pantalla en la que se encuentre trabajando con el sistema se tiene la 
+opción para salir del mismo de la siguiente manera: 
+En la parte superior derecha existe la siguiente opción al presionar sobre esta opción se 
+saldrá automáticamente de su sesión en la cual se encuentra conectado (Ver figura 90). 
+La siguiente pantalla que se desplazará será la principal del sistema como se muestra a 
+continuación (Ver figura 91). 

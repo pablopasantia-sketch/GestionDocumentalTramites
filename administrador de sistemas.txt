@@ -1,0 +1,4069 @@
+============================================================
+PÁGINA 1 de 146
+============================================================
+
+MANUAL FUNCIONAL
+ADMINISTRADOR DEL SISTEMA
+ÍNDICE DE CONTENIDO
+1. INTRODUCCION ... 1
+1.1 ¿QUÉ WORKFLOW? ... 1
+: ¿QUÉ SIGNIFICA WAYKAD cssonncsrosscrarcncicracicrnesoranccraccnioconanerrnionsrnriorriororenecrdaciernccaircrinriacrnciccnoed 1
+1.3 SISTEMA WORKFLOW WAYKA mirra anna ... 1
+DESCRIPCIÓN GLOBAL DEL SISTEMA 2
+2.1 O O A Z
+2.2 ¿QUÉ PERMITE Doococcoconconoconccncnnntencenconennconerencnnccoononcecn ccnnocnncronoconrnrncoanccsnco:n ... 2
+CONSIDERACIONES GENERALES DE LOS USUARIOS 3
+4.1 [...] ... 5
+4.2 € E ... 5
+4.3 BARRA DE DIRECCIONES
+4.4 MENU ... 5
+4.5 CATEGORÍA ¡00 circoadirrt iria A A A iAA ... 6
+4.6 ENLACE ra a At ... 6
+4.7 CAVE NANA ... 6
+4.8 CUADRODE DIÁLOGO <span ... 6
+4.9 CERRAR SESIÓN ... 7
+REQUERIMIENTOS BASICOS 8
+5.1. EQUIPO, SERVIDOR <scscaccenoorme cceicci aornceio en ecinneronsriomreieen ... 8
+52. CONECTIVIDAD ... 8
+5.3. CLIENTES ... 8
+INGRESO AL SISTEMA 9
+6.1. ¿CÓMO INGRESAR AL SISTEMA? cocnconcrientenoer nrencconr csarnen rn nne acrre nnan nn ne cran ranea carr nnennes ... 9
+ENLACE ACCESOS 11
+7.1. ADMINISTRAR ROLES: cocoa ... 11
+7.1. ¿CÓMO Ingresar? coococicnicnnnRnaRnnAnn R RnARAn n ncannna narno ... 11
+7.1.3. Modificar TOn noncinnniciAnRnAiNnAn nAnRAN ARcAN Annnanr arcenas re nrnanarness ... 15
+72. ADMINISTRAR USUARIOS ... 18
+7.2.1. ¿CÓMO Ingresar? cocooiccioniccnanocincornnrnnrrrrirn RARA nn arena nn mann ananaa ... 18
+7.2.3. Modificar UN USUARIO ... 22
+7.2.4. Eliminar UN USUARIO .ooooinoninnicinicinn Reena eran ... 24
+4.3.1 ¿CÓMO Ingresar? coomicinRAinRAn nRRicAn iicn ne naria n nannre ... 25
+4.3.2 Asignar un rol a UN USUARIO ... 26
+4.3.3 Modificar datos de la asignación del rol a un USUARIO ... 28
+4.3.4 Eliminar una asignación de un rol a UN USUARIO ... 29
+4.4 CAMBIO DE CLAVE (IDO ... 31
+
+============================================================
+PÁGINA 2 de 146
+============================================================
+
+4.4.2 Cambiarla clave ... 32
+5 ENLACE MENU oscars ion ICRA e. ... 34
+6.1 ADMINISTRAR ENLACES oocinnconnororinocsonnccocannoon nnonoe rnaneo nennsa ranr ron noor nn rn rrne nc rrae rnon anerno rcanrasn sancann ... 34
+6.1.1. ¿CÓMO Ingresar? vniiininnuiniviciccn cerrar ... 34
+6.1.2 Registrar un nuevo ENLACE ¿oniniiiiinicnin ici rs ... 35
+6.1.3 Modificar UN ENLACE ocio crees ... 37
+6.1.4 Eliminar un enlace
+62 ADMINISTRAR MENÚS ... 40
+6.2.1. ¿CÓMO ingresar? cviiiinoniinmsicican ns ... 40
+6.2.2 Registrar Un NUEVO civic ... 41
+6.2.3 Modificar UN MOM. .onininininnnncinc crees ... 43
+6.2.4 Eliminar UN niiinnnivvnncccc errar ... 44
+7 ENLACE PERSONAS m7 ” ... 46
+7.1 ADMINISTRAR ESTADOS CIVILES ... 46
+PAL ¿CÓMO INGRESAR? ninnicninon neraerre 46
+7.1.2. Registrar un nuevo estado CiVilcooonnicninininmmmrmrrrrrerrerrerrererrerrrreros ... 47
+7.1.3. Modificar un estado CiVil «oc.rro ... 49
+72 ADMINISTRAR SEXOS o.cconcccnonnnonccnonnnonennaso ooro oconn on innoneo rno rren rroa roc nos acne ocn rroesrsonaonc eanrnn ronceso roccrnreornonss ... 51
+7.2.1. ¿CÓMO INGRESAR? mniiiinnononinici ... 51
+7.2.3 Modificar UN SOXO coviiniinniinininnicenrirceii creince ... 53
+7.3 ADMINISTRAR EMPRESAS TELEFÓNICAS ... 56
+7.3.1 ¿CÓMO Ingresar? cininicininninic een ... 56
+7.3.3 Modificar una empresa telefónica ... 59
+7.4 ADMINISTRAR: PERSONAS. ... 62
+TA] ¿CÓMO Ingresar? coniniinninnicn invierno 62
+7.4.2 Registrar una NUEVA PERSONA cominorerrernaanes ... 82
+TAS DIARIO AROS TE WRBPTINA www criada 87
+8 ENLACE PERSONAL ... 89
+8.1.1 ¿CÓMO ingresar? ... 89
+IN IA ERA 90
+8.2 ADMINISTRAR ITEMS ociosa ARENAS ... 94
+8.2.1 ¿CÓMO Ingresar? conciciccconiornrican nracrner ... 94
+8.2.2 Registrar Un NUEVO ITEM ... 5
+8.2.3 Modificar Un ÑO coccioaerenas aaroanasanasss ... 97
+9.1 ADMINISTRAR INSTITUCIONES socio iio eric ... 100
+9.1.1. ¿CÓMO Ingresar? cioiiiniicinnin ... 100
+9.1.2 Registrar una institución ociosasnose ... 102
+9.1.3 — Modificar una institución.rre.eraar.nesss ... 105
+10 ENLACE SISTEMA s. . «109
+
+============================================================
+PÁGINA 3 de 146
+============================================================
+
+10.1. ADMINISTRAR BASE DEDATOS esmero ... 109
+10.1.1 ¿CÓMO Ingresar? inniiiniininninnin rrrenos ... 109
+10.1.3 Modificar una base de datos ... 112
+10.1.4 Eliminar una base de datos ... 13
+10.2 ADMINISTRAR TABLAS ... 115
+10.2.1 ¿CÓMO Ingresar? miminiiininn rr ... 115
+10.2.2 Registrar Una TABLA ... 116
+10.3 ADMINISTRAR CAMPOS onmiiinsiiiiinnRenrRrRns ... 121
+10.3.1 ¿CÓMO Ingresar? mnniniiinini as 12]
+10.3.2 Registrar UN CAMPO ... 23
+10.3.3 Modificar UN CAMPO.n.s. ... 125
+10.3.4 Eliminar UN CAMPO ... 127
+10.4.1 ¿CÓMO Ingresar inniciiniicninicnin errors ... 128
+10.4.2 Registrar una llave foránea ... 129
+10.4.3 Modificar una llave foránea ... 131
+10.4.4 Eliminar una llave foránea ... 133
+10.5 ADMINISTRAR CAMPOS POR ENLACES o ... 134
+10.5.1 ¿CÓMO Ingresar? inci. ninia, ... 134
+10.5.3 Modificar un CAMPO ENLACE ... 137
+10.5.4 Eliminar un CAMPO POr ENLACE ... 139
+10.6 ADMINISTRAR LLAVES PRIMARIAS ... 140
+10.6.1 ¿CÓMO Ingresar? inicias ... 140
+10.6.2 Registrar una llave primaria ... 141
+10.7 ADMINISTRAR PARÁMETROS ocios, ... 146
+10.7.1 ¿CÓMO Ingresar? comicicicnion inRRAi rin ... 146
+10.7.2 Registrar Un PARÁMETRO ... 147
+10.7.3 Modificar UN parámetro ... 149
+10.8 ADMINISTRAR POR USUARIO ... 152
+10.8.1 ¿CÓMO ÍNBresOr? ciomiicicicninnRiinRin inercrorrcs ... 152
+10.8.2 Registrar un ¡p para UN USUARIO ... 153
+10.8.3 Modificar un ip para Un USUARIO ... 155
+199 — ADMINISTRAR ESTADOS ... 158
+10.9.1 E A ... 158
+10.9.2 A A ... 159
+10.9.3 riaans ... 161
+10.9.4 rra AREA ... 162
+11 ENLACE UBICACIONES ... 164
+A AOSTA AIIO o orita 164
+11.1.1 O ... 164
+11.1.4 A ... 168
+112 ADMINISTRAR DEPARTAMENTOD cis0rnor000:0sorcroonoonooroccrrosianinónanonoanacenaneanonnrcrinacononacancariosarnononsss ... 170
+11.2.1 A O ... 170
+11.22 Registrar un departamento ... 171
+11.2.3 Modificar un departamento ... 173
+
+============================================================
+PÁGINA 4 de 146
+============================================================
+
+11.2.4 ELIMINAR UN. DEPARTAMENTO ¿cocoia ... 174
+11.3 ADMINISTRAR PROVINCIAS ie ... 176
+11.3.1 CÓMO INGRESAR TAAAA ASAA 17 ... 6
+11.3.2 REGISTRAR PROVINCIA iiare ... 177
+11.3.3 MODIFICAR iddi bicis ... 179
+11.3.4 A ... 181
+11.4 ADMINISTRAR LOCALIDADES 00a ... 182
+11.4.1 INGRESAR ... 182
+11.4.2 MAa tad La 277111702 20 00 OPREOEOROOÓÓO0ÓU0ÓUPP ... 183
+11.4.3 MODIFICAR LOCALIDAD ESEA AAAA Sta tendi ... 185
+11.4.4 Eliminar una localidad
+
+============================================================
+PÁGINA 5 de 146
+============================================================
+
+— Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+MANUAL FUNCIONAL
+ROL: ADMINISTRADOR DEL SISTEMA
+INTRODUCCION
+"La oficina de la tercera ola no se parecerá ya a la oficina de hoy. Un ingrediente fundamental
+del trabajo de oficina -el papel- será sustancialmente (aunque no totalmente) reemplazado, (...)
+Los archivadores desaparecerán, El movimiento secuencial de papel alo ago de muchas
+mesas” Alvin Toffler, La Tercera Ola.
+módulos son datos creados a los efectos de brindar mayor información de las
+, pantallas capturadas,
+1.1 ¿Qué es Workflow?
+» Esel denominativo técnico, en inglés, que se da a los flujos de trabajo.
+» Es la automatización de los procesos institucionales, estos son comúnmente conocidos
+como “trámites”.
+» Es un medio que facilita el control de una amplía gama de procesos dentro de una
+organización: datos, documentos, información o tareas, que son pasados de un individuo a
+otro para interactuar entre ellos y alcanzar un objetivo en común. Dentro de un conjunto de
+reglas,
+1.2 ¿Qué significa Wayka?
+WAYKA es una palabra que viene del Aímara y significa "reunirse comunitariamente para
+atacar el trabajo eminentemente agrícola”.
+1.3 Sistema Workflow Wayka
+Es una herramienta para modelar procesos de negocio en forma electrónica y, permite diseñar,
+ejecutar, supervisar y coordinar los flujos de trabajo en la organización, además, poder integrar
+y potenciar todos los sistemas de una institución.
+
+============================================================
+PÁGINA 6 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+2. DESCRIPCIÓN GLOBAL DEL SISTEMA
+Este sector del manual esta destinado a los usuarios que deseen tener una visión general del
+sistema y su alcance.
+2.1 Objetivos
++ Dotar de una ingeniería flexible y ágil.
+e Reducir la burocracia, sin perder el control.
++ Implantar una reingeniería de los procesos.
+o Brindar a las organizaciones herramientas para dar seguimiento y monitoreo a sus
+procesos.
+2.2 ¿Qué nos permite?
++ La automatización de la secuencia de acciones, actividades o tareas, de nuestro flujo de
+trabajo.
++ Monitorear el estado de las acciones, flujos y cargas de trabajo de los funcionarios.
+eo Realizar el análisis y la explotación de la información, de acuerdo a nuestros
+requerimientos.
+e Los clientes pueden consultar, en cualquier momento, el estado de sus
+trámites/correspondencias, como también dónde se encuentran, quién es el responsable
+y cuánto tardó en cada actividad.
+
+============================================================
+PÁGINA 7 de 146
+============================================================
+
+( Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+3. CONSIDERACIONES GENERALES DE LOS USUARIOS
+Wayka es una plataforma que presenta los siguientes usuarios básicos e iniciales para la
+administración del sistema.
+Rol Detalle
+Administrador de Sistema Es el usuario al que se le ha asignado las opciones
+necesarias y suficientes para administrar el sistema, como
+por ejemplo el registro de personas, usuarios, enlaces,
+asignación de roles y menús, y sobre todo administración
+de ABM de nuevas tablas.
+Administrador de Wayka Es el usuario que tiene asignado opciones necesarias para
+la administración de trámites/correspondencias, como por
+ejemplo Anular un trámite, habilitar una correspondencia,
+redireccionar procesos de un usuario a otro.
+Diseñador de Wayka Es el usuario que tiene las opciones para el diseño de
+nuevos procesos — trámites — entre las que podemos
+mencionar, la creación áreas, procesos, actividades,
+formularios, dominios, informes.
+Ventanilla Única Es el usuario el cual puede hacer uso del diseño de un
+proceso ya creado. Este usuario tiene acceso a su escritorio
+virtual para crear e iniciar un proceso, ver sus
+trámites/correspondencias pendientes, recepcionar
+correspondencia, analizar y explotar datos de los procesos,
+ver reportes, realizar búsquedas como bloquear y
+desbloquear procesos observados.
+Atención de | Es el usuario al que le llegan los trámites/correspondencias
+trámites/correspondericias que debe atender. Asimismo tiene posibilidad de realizar
+búsquedas y reportes del movimiento de los
+trámites/correspondencias.
+
+============================================================
+PÁGINA 8 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+4. TÉRMINOS
+En el siguiente manual se utilizaran con frecuencia los siguientes términos de los cuales es
+necesario describir su significado, para la mejor comprensión del usuario
+4.1 Internet
+Red informática mundial, descentralizada, formada por la conexión directa entre
+computadoras u ordenadores mediante un protocolo especial de comunicación, permitiéndonos
+comunicamos, buscar y transferir información sin grandes requerimientos tecnológicos ni
+económicos relativos para el usuario.
+4.2 Navegador
+Es una aplicación o programa de soporte lógico de un computador, yg vawegadores
+que instalado en un computador permite al usuario recuperar y “Ya a
+visualizar documentos de hipertexto, acceder a documentos Ne
+alojados en servidores web de todo el mundo.
+4.3 Barra de direcciones
+Es la parte superior de una ventana de un navegador, donde se debe especificar la dirección
+electrónica para acceder al sistema.
+23 FUNDACION EDUCACION /PARA El DESARROLLO AUTAPO - Mozilla Firz
+Archivo Editar Ver Historial Marcadores Herramientas Ayuda
+see L-— E
+4.4 Menú
+Es la lista de opciones que en este caso son las Categorías y Enlaces que se despliegan para el
+uso de los usuarios registrados en el sistema.
+Accesos |f ros | Administración Grupos de trabajo
+¿PE Param. Wayka >
+. + ¡ER Admin. Tipos Hilos
+ÍR Admin, Tipos Segmentos
+IR Admin, Tipos Tableros
+IR Admin. Tipos Avisos
+
+============================================================
+PÁGINA 9 de 146
+============================================================
+
+Fundación AUTAPO
+Manual Funcional
+Sistema Workflow Wayka Educación para el Desarrollo
+4.5 Categoría
+Una Categoría es la referencia a los elementos de clasificación de los enlaces, se encuentran en
+el menú principal del sistema,
+menú | Personas Personal Ubicaciones Organización Sisterna Y)
+Accesos
+TR Admin. Enlaces A
+IR Admin. Menúes
+1. Categorías
+4.6 Enlace
+Un enlace o link es una referencia a un texto o imágenes en un sitio web que un usuario puede
+pinchar para tener acceso O conectar con otro documento. Los enlaces son como la tecnología
+que conecta dos sitios web o dos páginas web. En el navegador se ven como palabras
+subrayadas.
+Accesos | Menú Personas
+1. Enlaces
+ER Admin. Niveles de Acceso
+IR Admin. Roles
+IR Admin. Usuarios
+IR Admin. Usuarios-Roles a
+he Cambio de clave(PIN)
+4.7 Clave o PIN
+Es un conjunto de caracteres que solamente es conocido por el usuario, los cuales son
+necesarios para acceder al sistema, dicha clave se encuentra encriptada u oculta para la
+seguridad de la misma.
+4.8 Cuadro de Diálogo
+Viabilizar la comunicación entre el usuario y el programa, permitiendo al usuario insertar la
+información, mediante la cual el programa despliega una serie de alternativas.
+
+============================================================
+PÁGINA 10 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Accesos Menú Ventas Personas Personal Instituciones Parámetros Docentes Curriculum docente Sistema Ubicaciones
+Agregando Admin. Facultades
+O vaver
+INTRODUZCA LOS DATOS
+« Anterior Siguiente »
+A sición
+de datos en los ió L ——=>
+campos Teldlero = TOS 3]
+solicitados. El AAA
+Fedce Cireracaión = [2 ——A
+Correo =| da
+D) Siguiente
+PLes campos canl (*) son obligal ep
+Y mediante avisos como por ejemplo:
+A Por favor, ingrese todos los campos obligatorios
+Aceptar
+4.9 Cerrar sesión
+Finalizar la sesión en el centro de control. Por razones de seguridad, es recomendable
+SIEMPRE cerrar la sesión al finalizar. Para finalizar la sesión, simplemente presione el enlace
+[JCerrar Sesión que se encuentra en la ventana.
+suaria: Desñador de wayha Relk Desñador de Wayka
+hecesos Diseño Gateway Administradón
+idministración de procesos de negocio
+Dsevo Fi = [ha E incluye [A [0 ra] 104 1-4de
+hna Ti Tidep prooceso Proceso Codgo Correlativo MODIFICAR — ELIMINAR
+pesca ALTAPO Comspedenca Comespondercias c . T)ticáficar Ml Eliminar
+paración AUTAPO Tósmas Solicitud de Compras Memares $04 0 E uocficar El Eliminar
+pízción AUTAPO Trámida Tapervicila de hícmes sa . E uodficar fl Diminar
+pyama de Ouras Trámio Sacrad de vias v . WM) uoáticar Mi Biminar
+N Uria de las tabías maestras foríneas) no corfiena un dado, d cual hace rdemwncia d atu registro
+
+============================================================
+PÁGINA 11 de 146
+============================================================
+
+Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+5. REQUERIMIENTOS BASICOS
+El sistema Workflow Wayka para su implementación y funcionamiento necesita:
+5.1. Equipo Servidor
+Se debe tener un equipo servidor los mismos que deben tener conexión a
+Intemet o una red interna con las suficientes capacidades para atender los
+servicios internos de la institución, una característica básica es un Pentium IV.
+o también pueden ser conexiones inalámbricas con wireless
+5.3. Clientes
+Los clientes requieren acceso a la red de computadoras, y tener > ==
+instalado en su equipo un navegador Internet como el IExplorer, Mozilla |
+Firefox u oxtro,.
+
+============================================================
+PÁGINA 12 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+6. INGRESO AL SISTEMA
+Para comprender el presente manual debe seguir el orden de los números.
+6.1. ¿Cómo ingresar al sistema?
+El administrador debe introducir su nombre de usuario y su clave (Pin) como se muestra en la
+pantalla:
+p 6 aotepós |] INGRESAR AL SISTEMA 2, Migrese la
+| clave (PIN).
+usuario. Usuario :: [eonoss >]
+¡Clave (PIN:): [oo00.. — 3. Presione el botó
+; n
+Iniciar Sesión | para ingresar al
+RO AA sistema.
+INGRESAR AL SISTEMA Aviso cuando no
+| Us E u N ar T i A o I A : A E == | | | se e u n s c u u a e r n io tr . a al
+MClWav e (PIM:):
+= Sesión |
+No puedo encontrar al usuari
+
+============================================================
+PÁGINA 13 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+El sistema desplegará la pantalla con las categorías correspondiente al rol como administrador
+del sistema por ejemplo:
+Enlace del rol
+Usuario: Admiristrador de weyha Rob Adrin, Wayha
+Accesos Administración — Grudep troabasjo
+IR Admin. Tipos Segmentos
+AR AdTmipos Tiabnlero.s
+Admin, Tipos Avisos
+AEA A A
+
+============================================================
+PÁGINA 14 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+desplegará - Estudiante - enlaces. desplegar
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 15 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+Eliminar Eliminar Eliminar Eliminar Eliminar
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 16 de 146
+============================================================
+
+siguiente E n Descripción: dependientes ejemplo:
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 17 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 18 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 19 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 20 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 21 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 22 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+Eliminar mimar Eliminar Eliminar Eliminar minar Eliminar Eliminar ELIMINAR > Siguiente
+existente. s un AUTAPO
+tiene
+Desarrollo
+9 a
+
+============================================================
+PÁGINA 23 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+Presione SELECCIONE Administrar Educación
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 24 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 25 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 26 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 27 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+“SUO Z ISAIH “
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 28 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+7.3. ADMINISTRAR USUARIOS ROLES
+Éste módulo permite asignar un rol a log diferentes usuarios existentes en el sistema, Vale
+aclarar que se pueden asignar varios roles a un mismo usuario, De éste modo, se garantiza que
+el usuario disponga del grupo de permisos definidos para tales roles,
+4.3.1 ¿Cómo ingresar? 1, Seleccione el
+enlace para
+desplegar el monú
+de enlaces. e
+(Accesos
+IR Admin. Niveles de Acceso
+IR Admin. Roles
+2, Admin. Usuarios
+2. Seleccione
+(ER_Admin. Usuarios-Rolez>A ol enlace pa
+(2% Cambio de clave(PIM) a :
+£2, Cambio Clave(PIM) Docente- Autoridad
+(2, Cambio Clave(PIM) Estudiante- Autoridad
+Al ingresar al enlace IR Admin. Usuarios-Roles «1 sistema desplegará en pantalla el listado de
+todos los usuarios y sus roles asignados.
+7 4 e . l I o c r o d n e o n p d a e r l a o d s e d te a r t m os i n d a e r
+regar un nuevo la A haslat aZ.
+usuario rol
+Fiítro= [Usuario linea Y Fu Y todo|
+Usuar| Rol Nivel de Acoeso ' Ubicacion orgánica Fecha de expiración Filtro Parráso MODIFICAR — ELIMINAR
+1 Sistema Control total MINGUMO 31/12/2009 MO irccóticar ME Est rrárise
+2 Admin. Wayka Control total Oficialia Mayor Técnica 31/12/2000 Pl) uosncsr Ml Enmirar
+3 Diseñador de Wayia Control total Dirección de Patrimonio Histórico 31/12/2000 VW moancar MY emir
+4 Ventanilla Única Control total MINOUNO 31/12/2000 110) $
+0 Técnico CAT Control total Jefatura de Catastro Uíbano 24/12/2010
+7 Diseñador de Wayra Control total Jefatura de Catastro Urbano 24/12/2010 ,
+8 Secretaria Aux CAT Control total Jefatura de Catastro U/bano 10/12/2008 1) meosticer E en
+o Fiscaltzador CAT Control total Jefatura de Catastro Urbano 10/12/2009 PM) rosncar anEN
+11 Recepalonista DAT Control total Dirección de Administración Terítoral 21/12/2000
+13 Responsable de Mapoteca Control total Dirección de Administración Temitorial 1 6. Seleccione
+14 Técnico Urbano DAT Control total Diracción de Administración Tenitoria para eliminar un
+10 Técnico Urbano DAT Control total Dirección de Administración Tenitorial
+
+============================================================
+PÁGINA 29 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Podemos observar el listado de usuarios con sus diferentes roles que existen en el sistema,
+también se tiene la posibilidad de asignarle a un usuario un nuevo rol; además de modificar o
+eliminar uno ya existente.
+4.3.2 Asignar un rol a un usuario
+Seleccione el enlace YMuevo de la ventana del listado Administrar Usuarios-Roles e
+introducir los siguientes datos:
+Agregando Admin. Usuarios Roles
+IS volver
+INTRODUZCA LOS DATOS
+e E Elija una opción - E] Buscar:
+Usuario (*)
+«Anterior Siguiente >
+Rol (*):: [- Elja una opción - [5A' Buscar:
+4. Inserte « Anterior Siguiente >
+los datos. Nivel de A e): [-- ElEilijj a una opciióón n - m[| Buscar:
+< Anterior Siguiente >
+dicas a < | -- ElEjlia una opciióón n - N%A Buscar:
+<Anterior Siguiente >
+Filtro ::
+¡Los campcoons (*), son obligatorios.
+lA los campos vacíos se les asignará un valor por defecto.
+Usuario: Persona que interactúa con el sistema de aplicación.
+Rol: Rol con permisos para asignarle al usuario.
+Nivel de Acceso: Define los privilegios de autorización del usuario.
+Ubicación Orgánica: Se registra el acceso a una ubicación orgánica específica, referida a un
+departamento de la división de un organigrama de una determinada institución.
+Fecha de expiración: Año, mes y día de expiración de vigencia del usuario para acceder al
+sistema.
+Filtro: Se utiliza para el filtrado de las tablas del DibRap. Por ejemplo: Si queremos filtrar la
+tabla países e insertamos el numero 1, el sistema solo nos permitirá administrar con el
+idp ais=1.
+Permiso: Se refiere a los permisos que se les puede dar a las tablas administradas por el
+DibRap que puede ser listado (L), Adicionar (A), Modificar (M) o eliminar (E).
+
+============================================================
+PÁGINA 30 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Si no se insertó un campo obligatorio se le hará saber mediante el siguiente aviso:
+Y Por favor, ingrese todos los campos obligatorios
+- Aceptar
+Una vez presionado el botón [SP siente le aparecerá la siguiente pantalla, donde tendrá que
+confirmar la asignación del rol al usuario correspondiente.
+pgregando Admin. Usuarios Roles...
+Volver
+CONFIRME LOS DATOS
+Usuario :: 1
+Rol :: Técnico
+Nivel de Acceso :: Control total
+| Ubicacion orgánica :: Dirección Jurídica
+| Fecha de expiración :: 31/12/2008
+| Filtro ::
+Q W Aceptar Cancelar
+|£]atos campos '<NULL>' se les asignará un valor por defecto.
+3. Presione en el botón
+para confirmalar:
+asignación del rol para
+el usuario.
+Una vez presionado el botón WAoeptar| sí los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Los datos se registraron correctamente
+W Aceptar
+Presione en el botón
+para regresar al
+listado Admin.
+Usuarios roles.
+
+============================================================
+PÁGINA 31 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+4.3.3 Modificar datos de la asignación del rol a un usuario
+Seleccione el enlace E)Modificar del listado de los usuarios y sus roles existentes, a
+continuación el sistema le desplegará la siguiente pantalla donde puede modificar los datos
+requeridos.
+Modificando Admin. Usuarios Roles
+[9 volver
+VERIFIQUE LOS DATOS
+Usuario (1): [49 _— MA Buscar:
+«Anterior Siguiente >
+1. Modifique los -
+asignación del rol P «Anterior Siguiente >
+Nivel de A e)= | Control total [54| Buscar:
+«Anterior Siguiente >
+ios Ls | Dirección Jurídica 54) Buscar:
+Ubicacion orgánica -: :
+«Anterior Siguiente >
+| Fecha de expiración :: [30/11/2007 El
+Filtro :: | 3
+|] Los campos con (*) son obligatorios.
+2. Presione el botón
+para guardar la
+modificación.
+Una vez presionado el botón E) Siguiente le aparecerá la siguiente pantalla, donde tendrá que
+confirmar la modificación de la asignación del rol para el correspondiente usuario.
+rs Admin. Usuarios Roles
+Vol wer
+CONFIRME LOS DATOS
+| Usuario :: 49
+Rol :: Director Juñídico
+Nivel de Acceso :: Control total
+| Ubicacion orgánica :: Dirección Juídica
+| Fecha de expiración :: 30/11/2007
+3. Presione el botón para
+Confirmar la modificación 3
+de la asignación del rol al Rarmiso
+usuario. | EJ cla]
+
+============================================================
+PÁGINA 32 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón **%*: si los datos fueron registrados correctamente el
+sistema desplegará en pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4.3.4 Eliminar una asignación de un rol a un usuario
+Seleccione el enlace Eliminar del listado de los usuarios-roles existentes, el sistema
+desplegará la siguiente pantalla donde podrá confirmar o cancelar dicha eliminación.
+Eliminando Admin. Usuarios Roles
+O Wolwer
+CONFIRME LA ELIMINACIÓN
+| Rol :: Director Juíídico
+| Nivel de Acceso :: Control total
+Ubicacion orgánica :: Despacho del (a) Alcalde (sa)
+| Fecha de expiración :: 30/11/2007
+
+============================================================
+PÁGINA 33 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón | Aoepra| si los datos fueron registrados correctamente el
+sistema desplegará en pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón
+para regresar al listado
+de Admin. Usuarios
+roles.
+4.3.4 Eliminar una asignación de un rol a un usuario
+Seleccione el enlace [S Eliminar del listado de los usuarios-roles existentes, el sistema
+desplegará la siguiente pantalla donde podrá confirmar o cancelar dicha eliminación.
+Eliminando Admin. Usuarios Roles
+Usuario :: 49
+Rol :: Director Jurídico
+Nivel de Acceso :: Control total
+Ubicacion orgánica :: Despacho del (a) Alcalde (sa)
+Fecha de expiración :: 30/11/2007
+
+============================================================
+PÁGINA 34 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón LY Acepta si el rol del usuario tiene alguna dependencia el
+sistema desplegará en pantalla el siguiente mensaje de error:
+No se puede eliminar este registro, porque existen
+otros que dependen de él
+O Volver
+En caso contrario si la operación fue realizada correctamente el sistema desplegará por
+pantalla el siguiente aviso:
+La transse raegistcró ccorreictaómennte _.
+w Aceptar
+o >.
+3. Presione el botón
+para regresar al
+listado admin.
+Usuarios roles.
+
+============================================================
+PÁGINA 35 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+4,4 CAMBIO DE CLAVE (PIN)
+Una clave es una serie secreta de caracteres que permite a un usuario tener acceso al sistema
+ayudan a asegurar que los usuarios desautorizados no tengan acceso a la misma.
+Éste módulo permite cambiar la clave de acceso al sistema por una clave definida por el
+USUAaTrIo.
+4.4.1 ¿Cómo ingresar? (” seleccioneel enlace
+ES Admin. Niveles de Acceso
+q Admin. Roles
+¿L Admin. Usuarios
+IR Admin. Usuarios-Roles Seleccione el
+enlace para
+(E Cambio de clave(PIND> ingresar.
+2 Cambio Clave(PIN) Docente - Autoridad
+LB Cambio Clave(PIN) Estudiante - Autoridad
+
+============================================================
+PÁGINA 36 de 146
+============================================================
+
+Fundación AUTAPO
+Manual Funcional Educación para el Desarrollo
+[Contenido de imagen/tabla no legible por OCR]
+
+S co i n p s r i e d s e io ra n c a i m on o e s s e q l u b e o t s ó e n d b eb u e t s om e a s r e le n a c p u a e r n e t c a e p rá a r l a a r s e ig g u is i t e r n a t r e s p u a n n u t e a v ll a a, c d la o v n e d . e tendrá que leer las
+Cambio
+clave(PIN)___...._
+RECOMENDACIONES ____
+Digun miáxtimoe de 40 caracterye usn mínimde o6
+Utilice caracteres válidos como [4-7], 2], D-91
+'No utilice palabras del diccionario ni nombres propios
+¡ Componga palabras combinando letras con números
+
+============================================================
+PÁGINA 37 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+- Si presionamos el botón A Sarierte le aparecerá la siguiente pantalla, donde tendrá que
+ingresar su nueva clave (contraseña) de usuario.
+Cambio Clave(PIN)
+INTRODUZCA LOS DATOS
+4. Introduzca su Usuario :: Sistema Sistema Sistema
+nueva clave. Nueva clave :: [e.osos ñ
+Si p W Aceptar A > a
+i presiona el botón si la confirmación de la clave no coincide con la nueva clave
+se desplegará por pantalla el siguiente mensaje de error:
+¡Error!
+La confirmación de la clave no coincide
+CAS Q vaver
+En caso contrario si la operación fue realizada correctamente el sistema desplegará por
+pantalla el siguiente aviso:
+¡Aviso!
+La clave fué registrada correctamente —
+
+============================================================
+PÁGINA 38 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+yos
+5 ENLACE MENÚ
+6.1 ADMINISTRAR ENLACES
+Enlace es una palabra, una frase o un gráfico de un hipertexto que conecta con otra
+información.
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar los
+diferentes enlaces, estos son adicionar, modificar los datos y/o eliminar los mismos sí así lo
+requiera.
+6.1.1 ¿Cómo ingresar? 1. Seleccione el enlace
+para desplegaerl menú
+de enlaces.
+Menú )
+Admin. Enlaces
+ues
+Al ingresar al enlace IR Admin. Enlaces
+el sistema desplegará por pantalla el listado de todos
+los enlaces existentes en el sistema.
+4. Icono para determinar
+el orden de los datos de
+la A haslat aZ.
+MOLINO O 1 Accesos NINGUNO vn categoria gr — itocificar fi Elimina
+Anáy exlpciaciiósn 1 5 Actividades porRoles IreporieActividadesRoles feutapo enlace gif RModificar E) Eliminar
+Estudartes 1 $5 Actuairar Documentos '¡KocumentosibuscarEstudanteErfatruatedpao enlacgeil Ritodificas: F) Eliminar
+Curricifmdocerte 1 5 Admín Adurtos OuricuDotceennte MEREp fautepo enlace gif cv_dat edfrtos 1 Buocificar E) Eminar
+Curricióam docente 1 1 Admín.Ritros HibRep fetapo enlacgei f cvjubros abm ,
+Ourricultamdocerte 1 3 Admin. Subftros MR p Setapo entacgeit
+[2] ona ae tes ratios maect as doráneas) no comiene un dato, al cual haco eferencia el actual registro
+para Eliminar
+un enlace.
+
+============================================================
+PÁGINA 39 de 146
+============================================================
+
+y Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+6.1.2 Registrar un nuevo enlace
+Seleccione el enlace $2 Juevo de la ventana del listado Administrar Enlaces e introducir los
+[Contenido de imagen/tabla no legible por OCR]
+
+Alos campos vacíos se les asignará un valor por defecto.
+2. Presione el
+botón para
+rdar.
+Enlace padre: Se refiere al enlace padre que pu E hijos (subenlaces). Por
+ejemplo: Accesos (Padre); Admin. Roles (Hijo); Admin. Usuarios-Roles, etc.
+Nivel: Se refiere al nivel de creación del enlace. Por ejemplo: 1
+Orden: Se refiere al orden con el que aparecerá el enlace. Por ejemplo: 1
+Enlace: Denominación del apuntador de hipertexto que sirve para saltar de una información a
+otra. Por ejemplo: Administrar enlaces.
+Ruta: Se refiere a la ruta de acceso es decir camino que hay que seguir para llegar a un fichero
+concreto.
+Imagen: Se refiere a la figura que representa al enlace Administrar Enlaces.
+Tabla: Nombre de la tabla que se quiere administrar con el DibRap. Por ejemplo: Tabla
+_Categorias.
+Permiso: Si se introdujo el nombre de alguna tabla para ser administrada con el DibRap es
+necesario colocar un permiso específico para la administración de ésta tabla. Por ejemplo: si
+requerimos que realice altas, bajas y modificaciones, entonces insertamos abm; en caso de que
+requerimos que realice listados, altas y modificaciones, entonces insertamos lam, etc.
+
+============================================================
+PÁGINA 40 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+A Por favor, ingrese todos los campos obligatorios
+Aceptar
+Una vez presionado el botón E) Sigiente le aparecerá la siguiente pantalla donde podrá
+confirmar la creación del enlace.
+Agregando Admin. Enlaces _
+Q volver pp
+| Orden :: 1
+Enlace :: Definir evaluación
+| Ruta :: *definirEvaluacion/entrada.do
+| Imagen :: enlace.gif
+Tabla :: <NULL>
+Permiso: LL>
+W Aceptar K Cancelar
+[Latos campos '<NULL>' se les asignará un valor por defecto.
+3. Presione el botón
+Una vez presionado el botón VW Aeeptar| los s correctamente el
+para Confirmar la
+sistema desplegará por pantalla el siguiente aviso: creación del enlace.
+W/ Aceptar
+4. Presione el botón
+para regresar al listado
+Admin. Enlaces.
+
+============================================================
+PÁGINA 41 de 146
+============================================================
+
+Manual Funcional | Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+6.1.3 Modificar un enlace
+Seleccione el enlace T|Modificar del listado de los enlaces existentes, le aparecerá la siguiente
+pantalla donde puede modificar los datos requeridos.
+Modificando Admin. Enlaces
+Q Volver
+VERIFIQUE LOS DATOS
+¡Enlace padre (*) ss | Docentes A dei EA ca Buscar:
+«Anterior Siguiente >
+Nivel (*) :: l1 «|
+datos del enlace. | Enlace (*) :: [Admin. Tipos Asignar
+Ruta (*) :: l/dibRap fautapo ]
+Imagen :: lenlace.gif |
+Tabla :: Íipos_asignaciones |
+[4uos campos con (*), son obligatorios.
+2. Presione el botón
+para guardar las
+modificaciones.
+Una vez presionado el botón E) Siguiente le aparecerá la siguiente pantalla, donde tendrá que
+modificar la modificación del enlace.
+Modificando Admin. Enlaces
+| CONFIRME LOS DATOS
+¡Enlace padre :: Docentes
+| Nivel :: 1
+Orden :: 2
+| Enlace :: Admin. Tipos Asignaciones.
+| Ruta :: ¿dibRap.tfautapo
+| Imagen :: enlace.gif
+Tabla :: tipos_asignaciones
+3. Presione el botón para
+confirmar la Modificación
+del enlace.
+
+============================================================
+PÁGINA 42 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón ¡W Aoeptar | si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+| Aviso
+Los datos se registraron correctamente
+4. Presione el botón
+para regresar al
+listado Admin.
+Enlaces.
+6.1.4 Eliminar un enlace
+Seleccione el enlace EJ Eliminar del listado de los enlaces existentes, el sistema desplegará la
+siguiente pantalla donde podrá confirmar o cancelar la eliminación.
+_ CONLFA EILRIMINMACIÓEN
+| Enlace padre :: Docentes
+| Nivel -: 1
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 43 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón [W soepta si el enlace tiene alguna dependencia el sistema
+desplegará por pantalla el siguiente mensaje de error:
+¡Error!
+No se puede eliminar este registro, porque existen |
+otros que dependen de él |
+O volver
+En caso contrario si la operación fue realizada correctamente el sistema desplegará por
+pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+W Aceptar
+3. Presione el botón para
+regresar al listado de
+enlaces.
+
+============================================================
+PÁGINA 44 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+6.2 ADMINISTRAR MENÚS
+Es la relación de programas y procedimientos que aparece en pantalla con el fin de que,
+usando un teclado o un ratón, el usuario pueda elegir qué opción desea ejecutar. Los
+denominados menús desplegables son el tipo más habitual en la actualidad.
+Éste módulo fue realizado con la ayuda del sistema DibRap, este le permite administrar los
+diferentes enlaces en los menús de acuerdo a un rol determinado, se tiene la posibilidad de
+crear un nuevo menú además de modificar o eliminar uno ya existente.
+6.2.1 ¿Cómo ingresar? 1. Seleccione el
+enlace para desplegar
+el menú de enlaces.
+Menú
+| laces 2. Seleccione el
+(1R Admin. Menúes enlace para
+ingresar.
+Al ingresar al enlace IR Admin. Menúes, podemos observar el listado de los enlaces
+pertenecientes a un respectivo rol existente en el sistema.
+4. Icono para determinar
+el orden de los datos de
+la A hasta la Z.
+MODIF— EILCIMAINRAR
+Administrador del MI Autorizar Convalidación Manual [<] Modificar. £3] Eliminar
+DAU Autorizar Convalidación Manual E] Modificar 1 Eliminar
+Sistema Accesos [E] Modificar ña Eiráner
+Admin. Wayka Accesos [modificar Y Eliminar
+Diseñador de Siringuero Accesos E Modificar $9) Eliminar
+Docente Accesos
+Pa (Una de las tablas maestras (foráneas) no cont referencia el actual registro
+6. Seleccione
+para Eliminar
+un menú.
+
+============================================================
+PÁGINA 45 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+6.2.2 Registrar un nuevo menú
+Seleccione el enlace (+ ]tuevo de la ventana del listado Administrar Menús y seleccione los
+siguientes datos:
+Agregando Admin. Menúes
+Q volver
+INTRODUZCA LOS DATOS
+Rol (2) = E Elija una opción - ¡| Buscar:
+loSs p «Anterior Siguiente >
+.L Elija una opción - 52) Buscar:
+Enlace (*):
+Siguiente >
+[2 Siguiente
+Los campos con (Md son obligatorios.
+Alos campos vacíos se les asignará un valor por defecto.
+2. Presione el
+botón para
+guardar.
+Rol: Un rol es un conjunto de permisos que puede asignarse a un usuario, este permiso es un
+parámetro que especifica si su poseedor dispone de acceso a una determinada función del
+sistema. Por ejemplo: se podría definir un rol Administrador para que incluya los permisos
+relacionados con tal función.
+Enlace: Nombre del apuntador de hipertexto que sirve para saltar de una informacióna otra.
+Por ejemplo: Definir Evaluación.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+[5%]
+1 Por favor, ingrese todos los campos obligatorios
+Aceptar
+
+============================================================
+PÁGINA 46 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón | Ap Sigiemo | le aparecerá la siguiente pantalla, donde tendrá que
+confirmar la creación del menú.
+Agregando Admin. Menúes
+(H volver
+CONFIRME LOS DATOS
+Rol :: Estudiante
+¡Enlace :: Retiro y Adición de Matarias como Autoridad
+E Cancelar |
+[4 Alos campos '<NULL>' se les asignará un valor por defecto.
+3. Presione el botón
+para confirmar la
+creación del menú.
+Una vez presionado el botón WAceptar| si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+__Los datos se registraron correctamente
+W Aceptar
+4. Presione el botón
+para retornar al listado
+Admin. Menús.
+
+============================================================
+PÁGINA 47 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+6.2.3 Modificar un menú
+Seleccione el enlace [E] modificar del listado de los menús existentes, de donde le aparecerá la
+pantalla donde puede modificar los datos requeridos.
+Modificando Admin. Menúes
+O vover
+VERIFIQUE LOS DATOS
+; | Estudiante 8] Buscar:
+1. Modifique los | O
+«Anterior Siguiente >
+datos del menú.
+. | Retiro y Adición de Materias e, Buscar:
+'Entace ():
+arSiguierte>
+¿£]Los campos con (*), son cbligatorlos.
+2. Presione el botón
+para guardar la
+modificación.
+Una vez presionado el botón E) Siguiente
+le aparecerlaá siguiente pantalla, donde tendrá que
+confirmar la modificación del menú.
+Modificando Admin. Menúes
+4) Wolwer
+| Rol :: Estudiante
+¡En Adición de Materias
+w Aceptar X Cancelar
+3. Presione el botón
+para Confirmar la
+modificación del
+menú.
+
+============================================================
+PÁGINA 48 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón | Aceptar si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón
+para regresar al
+listado Admin. Menús.
+6.2.4 Eliminar un menú
+Seleccione el enlace E Eliminar del listado de los menús existentes, el sistema desplegará la
+siguiente pantalla donde podrá confirmar o cancelar la eliminación del menú.
+Eliminando Admin. Menúes
+Q volver
+CONFIRME LA ELIMINACIÓN
+Rol :: Estudiante
+| Enlace Retiro y Adició tias
+W Aceptas NI Cancelar
+1. Presione el botón 2. Presione el botón
+para confirmar la para cancelar la
+eliminación. eliminación.
+
+============================================================
+PÁGINA 49 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón LV Acepta si el menú tiene alguna dependencia el sistema
+desplegará por pantalla el siguiente mensaje de error:
+¡Error!
+No se puede eliminar este registro, porque existen
+otros que dependen de él
+Ova ver
+En caso contrario si la operación fue realizada correctamente el sistema desplegará por
+pantalla el siguiente aviso:
+| Latransacción se registró correctamente
+wW Acta]
+3. Presione el botón para
+regresar al listado Admin.
+Menús.
+
+============================================================
+PÁGINA 50 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+7 ENLACE PERSONAS
+7.1 ADMINISTRAR ESTADOS CIVILES
+Un estado civil es la calidad de un individuo en orden a sus relaciones de familia en cuanto le
+confiere o le impone determinados derechos y obligaciones civiles.
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar los
+diferentes estados civiles, se tiene la posibilidad de crear un nuevo estado civil además de
+modificar o eliminar una ya existente.
+1. Seleccione el enlace
+7.1.1 ¿Cómo ingresar? para desplegar los menús
+de enlaces.
+Personas
+a Seleccione el
+, Estados Civiles enlace para
+MIRR AAddmmiinn.. SEmexporse sas Cata A
+ingresar.
+MR Admin. Personas
+Al ingresar al enlace XK Admin. Estados Civiles
+, podemos observar el listado de los estados
+civiles existentes en el sistema.
+4. Icono para determinar
+3. Seleccione para
+el orden de los datos de
+agregar un nuevo
+la A hasta la Z.
+estado civil.
+MODIFICAR — ELIMINAR
+Casado/a E) Modificar E Eliminar
+Divorciado/a 1 Modificar 5 Eliminar
+Soltero/a FE) modificar E) Eliminar
+5. Seleccione para ;
+Modificar un estado Eliminar un estado
+civil. civil.
+
+============================================================
+PÁGINA 51 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+7.1.2 Registrar un nuevo estado civil
+Seleccione el enlace []luevo de la ventana del listado Administrar Estados Civiles e
+introducir el siguiente dato:
+Agregando Admin. Estados Civiles
+Q volver
+INTRODUZCA LOS DATOS
+€ Inserte el Da q
+estado 2) | ma - A A
+E Los campos con (*), son obligatorios.
+$ alos campos vaciseo less asiugn vanlor paor dreteácto.
+2. Presione el botón
+para guardar.
+Estado civil: Se refiere a la situación jurídica de una persona física considerada desde el punto
+de vista del derecho de la familia y que hace referencia a la calidad del padre, del hijo, de
+casado, de soltero, etc.
+Si no se insertó un campo obligatorio se le hará saber mediante el siguiente aviso:
+[X]
+Zi Por favor, ingrese todos los campos obligatorios
+Aceptar
+
+============================================================
+PÁGINA 52 de 146
+============================================================
+
+AAA IA a a RI A A IA |
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón |) Siguiente
+le aparecerá la siguiente pantalla, donde tendrá que
+confirmar la creación del estado civil.
+Agregando Admin. Estados Civiles
+Volver
+É kr d r l A Lo lo s s c a c m am po p s o s c o v n a c (* io ), s s o s n e o le b s li g a a si t g o n ri a o r s á . un valor por detecto.
+3. Presione el botón
+para confirmar el
+estado civil.
+Una vez presionado el botón E) Sigieme le aparecerá la siguiente pantalla, donde tendrá que
+confirmar la creación del estado civil.
+Agregando Admin. Estados Civiles
+Volver
+CONFLIORS DMATOES
+Civil :: Viudo
+W Aceptar X Cancelar
+[Paros campos '<NULL>' se les asignará un valor por defecto.
+4. Presione el botón
+para guardar el
+estado civil.
+Una vez presionado el botón W Aceptar si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+use
+Los datos se registraron correctamente
+W Aceptar
+4. Presione el botón
+para regresar al listado
+Admin. Estados Civiles.
+
+============================================================
+PÁGINA 53 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+7.1.3 Modificar un estado civil
+Seleccione el enlace [-]Motificar del listado de los estados civiles existentes, le aparecerá la
+siguiente pantalla donde podrá modificar los datos requeridos.
+Modificando Admin. Estados Civiles
+OQ volver
+4. Modifique
+VERIFIQUE LOS DATOS
+si a ==
+datos del > J)
+estado civil.
+[A Los campos con (*), son obligatorios.
+guardar la modificación
+del estado civil.
+Una vez presionado el botón 2) Siguiente le aparecerá la siguiente pantalla, donde podrá
+confirmar la modificación del estado civil.
+O vower AAA A A
+CONFIRMLOES DATOS
+Civil -: Viudo
+Y” Aceptar | DÉ Cancelar
+3. Presione el botón para
+confirmar modificación
+del estado civil.
+Una vez presionado el botón Wkeeptal| <í los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+Y Aoeprar|
+4. Presione el botón
+para regresar al listado
+Admin. Estados Civiles.
+
+============================================================
+PÁGINA 54 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+7.1.4 Eliminar un estado civil
+Seleccione el enlace (3 Eliminar del listado de los estados civiles existentes, el sistema
+desplegará la siguiente pantalla donde podrá confirmar O cancelar la eliminación.
+Eliminando Admin. Estados Civiles
+4) Volver
+¡CONFIRME LA ELIMINACIÓN
+do Civil _-:. Viudo
+4. Presione el botón para 2. Presione el botón para
+confirmar la eliminación cancelar la eliminación
+del estado civil. del estado civil.
+Una vez presionado el botón W Aceptar | si el estado civil tiene alguna dependencia el sistema
+desplegará por pantalla el siguiente mensaje de error:
+No se puede eliminar este registro, porque existen |
+otros que dependen de él
+En caso contrario si la operación fue realizada correctamente el sistema desplegará por
+pantalla el siguiente aviso:
+Latranse sregaistróc cocrreicótamennte _.
+W Aceptar )
+3. Presione el botón para
+regresar al listado
+Admin. Estados Civiles.
+
+============================================================
+PÁGINA 55 de 146
+============================================================
+
+su Fundación AUILAPO
+Q Sistema Workflow Wayka Educación para el Desarrollo
+7.2 ADMINISTRAR SEXOS
+La palabra “sexo” originalmente se refiera nada más que a la división del género humano en
+dos grupos: mujer u hombre. Cada individuo pertenece a uno de estos grupos.
+Éste módulo fue realizado con la ayuda del sistema DibRap, este le permite administrar los
+diferentes sexos, se tiene la posibilidad de crear un nuevo sexo además de modificar o eliminar
+uno ya existente.
+7.2.1 ¿Cómo ingresar?
+1. Seleccione el enlace
+para desplegar el menú
+de enlaces.
+2. Seleccione
+IR Admin. Estados Civiles el enlace para
+e ingresar.
+( Admin. Sexo
+BR Admin. Empresas Telefónicas
+IR Admin. Personas
+Al ingresar al enlaceR Admin, Sexos , podemos observar el listado de los sexos existentes en
+el sistema.
+3. Seleccione 4. Icono para determinar
+para agregar un el orden de los datos de
+la A hasta la Z.
+s tablas maestras 248) no contiene un dato, al cual hace referencia el actual registro
+5. Seleccione para 6. Seleccione para
+modificar sexo. eliminar sexo.
+
+============================================================
+PÁGINA 56 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+7.2.2 Registrar un nuevo sexo
+Seleccione el enlace PlNevo de la ventana del listado Administrar Sexos e introducir el
+Siguiente dato.
+Agregando Admin. Sexos
+Volver
+INTRODUZCA LOS DATOS
+4 1. Indsaetort.e el " Sexo (*) :: (2 nino |
+ale campos con (*), son obligatorios.
+Alos campos vacios se les asignará un valor por defecto.
+Sexo: Distinción biológica que clasifica a las personas en hombres (masculino) y mujeres
+(femenino).
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+A Por favor, ingrese todos los campos obligatorios
+———|]
+E) Siguiente
+Una vez presionado el botón le aparecerá la siguiente pantalla, donde tendrá que
+confirmar la creación del sexo.
+Agregando Admin. Sexos
+Volwer
+CONFIRME LOS DATOS
+Sexo :: Femenino
+Aveptar Y KM Cancelar
+[Paros campos '<NULL> se les asignará un valor por defecto,
+3. Presione el botón
+para confirmar la
+creación del sexo.
+
+============================================================
+PÁGINA 57 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón
+para regresar al listado
+Admin. Sexos.
+7.2.3 Modificar un sexo
+Seleccione el enlace []Modificar del listado de los sexos existentes, le aparecerá la siguiente
+pantalla donde puede modificar los datos requeridos.
+1. Modifique los ¡VERIFIQUE LOS DATOS
+datos del sexo. | Sexo (*) ::
+Los campos con (*), son obligatorios.
+2. Presione el botón para
+guardar la modificación
+del sexo.
+Una vez presionado el botón [BD siguiente le aparecerá la siguiente pantalla, donde tendrá que
+confirmar la modificación del sexo.
+Modificando Admin. Sexos _
+(4) Volver
+CONFIRME LOS DATOS
+| Sexo :: Femenino
+Y Aceptar”y M Cancelar
+3. Presione el botón
+para confirmar la
+modificación del
+sexo.
+
+============================================================
+PÁGINA 58 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón LV Acepras | si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón para
+regresar al listado Admin.
+Sexos.
+7.2.4 Eliminar un sexo
+Seleccione el enlace El Eliminar del listado de los sexos existentes, el sistema desplegará la
+siguiente pantalla donde podrá confirmar o cancelar la eliminación de un sexo.
+Eliminando Admin. SexoS
+O volver A A A
+CONFLAI RELIMMINAECI ÓN
+W Aceptar > 4 Cancelar
+1. Presioneel botón 2. Presieol bnoteón
+para confirmar la para cancelar la
+eliminación del sexo. eliminación del sexo.
+Una vez presionado el botón WAoeptar| sí el sexo tiene alguna dependencia el sistema
+desplegará por pantalla el siguiente mensaje de error:
+No se puede eliminar este registro, porque existen
+otros que dependen de él
+O vover
+
+============================================================
+PÁGINA 59 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+En caso contrario si la operación fue realizada correctamente el sistema desplegará por
+pantalla el siguiente aviso:
+Aviso
+La transacción se registró correctamente
+3. Presione el botón
+para regresar al
+listado Admin.
+Sexos.
+
+============================================================
+PÁGINA 60 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+7.3. ADMINISTRAR EMPRESAS TELEFÓNICAS
+Una empresa telefónica se dedica a prestar servicio de telefonía móvil (celular) o fija.
+Éste módulo fue realizado con la ayuda del sistema DibRap, este le permite administrar los
+diferentes empresas telefónicas se tiene la posibilidad de crear una nueva empresa telefónica
+además de modificar o eliminar uno ya existente.
+7.3.1 ¿Cómo ingresar?
+1. Seleccione el enlace
+para desplegar el menú
+de enlaces.
+Personas
+ER Admin. Estados Civiles
+IR Admin. Sexos 2. ni el
+CIR Admin. Empresas Telefón: icas ennláarcieb arp.ara
+IR Admin. Personas
+Al ingresar al enlacHeR Admin. Empresas Telefónicas podemos observar el listado de las
+empresas telefónicas existentes en el sistema.
+3. Seleccione para 4. Icono para determinar
+agregar una nueva el orden de los datos de
+empresa telefónica. la A hasta la Z.
+efónicas
+Empresa telefónic Dirección MODIFICAR ELIMINAR
+Entel entelmovil.com.bo [8] Modificar [Y Eliminar
+Ninguno NINGUNO [W] Modificar (] Eliminar
+TELECEL-TIGO tigo.com.bo [1] Modificar 1) Eliminar
+VIVA viva-gsm.com
+[4"]'"de' luas ntabalas maestras (foráneas) ul hace refereenl aoctluaal registro
+5. Seleccione para
+modificar una eliminar una
+empresa telefónica. empresa telefónica.
+
+============================================================
+PÁGINA 61 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+7.3.2 Registrar una nueva empresa telefónica
+Seleccione el enlace 4 NWeYo de la ventana del listado Administrar Empresas Telefónicas e
+introducir los siguientes datos:
+Agregando Admin. Empresas Telefónicas
+Q Volver
+- INTRODUZCALOS DATOS
+1. Inserte los Empresa telefónica (*):: [Entel E
+datos. | MAR Dirección (21; Imovilentel.com.bo ]
+TA Los campos con (*), son obligatorios.
+Alos campos vacíos se les asignará un valor por defecto.
+2. Presione el
+botón para
+guardar.
+Empresa Telefónica: Denominación de la empresa telefónica vigente actualmente en el
+mercado.
+Dirección: Dirección web de la empresa telefónica.
+Si no se insertó un campo obligatorio se le hará saber mediante el siguiente aviso:
+A Por favor, ingrese todos los campos obligatorios
+Aceptar
+
+============================================================
+PÁGINA 62 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón CS le aparecerá la siguiente pantalla, donde tendrá que
+confirmar la creación de la empresa telefónica.
+Agregando Admin. Empresas Telefónicas
+Qv ver
+| CONFIRME LOS DATOS
+| Empresa telefónica :: Entel
+Dirección :: movilentel.com.bo
+E Cancelar
+[alos campos '<NULL>' se les asignará un valor por defecto.
+3. Presione el botón para
+confirmar la creación de
+la empresa telefónica.
+Una vez presionado el botón Wtceptar] Sí los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+4. Presione el botón para
+regresar al listado Admin.
+Empresa telefónica.
+
+============================================================
+PÁGINA 63 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+7.3.3 Modificar una empresa telefónica
+Seleccione el enlace []Modificar del listado de las empresas telefónicas existentes, le aparecerá
+la siguiente pantalla donde podrá modificar los datos requeridos:
+Modificando Admin. Empresas Telefónicas
+O volver
+: | VERIFIOUE LOS DATOS
+ali de le US Empresa telefónica (*) :: [Entel Al
+telefónica.
+Dirección (2); entelmowl.combo
+[os campos con (*), son obligatorios.
+2. Presione el botón
+para guardar la
+modificación.
+Una vez presionado el botón 2) Siguiente le aparecerá la siguiente pantalla, donde tendrá que
+confirmar la modificación de la empresa telefónica.
+Modificando Admin. Empresas Telefónicas
+Q volver qn
+_ CONFLIORS MDATOES
+Empresa telefónica :: Entel
+ón entelmovil.com.bo
+Y” Aceptar |) | MX Cancelar
+3. Presione el botón para
+confirmar la modificación
+de la empresa telefónica.
+
+============================================================
+PÁGINA 64 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón Aceptar] si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón para
+regresar al listado Admin.
+Empresas Telefónicas.
+7.3.4 Eliminar una empresa telefónica
+Seleccione el enlace Él Eliminar del listado de empresas telefónicas existentes, el sistema
+desplegará la siguiente pantalla donde podrá confirmar o cancelar la eliminación.
+Eliminando Admin. Empresas Telefónicas
+Q Volver
+CONFIRME LA ELIMINACIÓN.
+Empresa telefónica :: Entel |
+2. Presione el botón
+para cancelar la
+eliminación de
+empresa telefónica.
+Una vez presionado el botón VW” Aoeptar | sj la empresa telefónica tiene alguna dependencia el
+sistema desplegará por pantalla el siguiente mensaje de error:
+¡Error! |
+No se puede eliminar este registro, porque existen
+otros que dependen de él |
+
+============================================================
+PÁGINA 65 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+En caso contrario si la operación fue realizada correctamente el sistema desplegará por
+pantalla el siguiente aviso:
+Aviso |
+La transacción se registró correctamente
+3. Presione el botón para
+regresar al listado Admin.
+Empresas Telefónicas.
+
+============================================================
+PÁGINA 66 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+7,4 ADMINISTRAR PERSONAS
+La persona es definida como un ser racional y consciente de sí mismo, poscedor de una
+identidad propia.
+fiste módulo fue realizado con la ayuda del sistema DibRap, este le permite administrar los
+diferentes datos de las personas, se tiene la posibilidad de crear un nuevos datos de las
+mismas; además de modificar o eliminar uno ya existento,
+7.4,1 ¿Cómo ingresar?
+41. Seleccione el enlace
+para desplegar ol menú
+de enlaces.
+Personas”
+IR Admin. Estados Civiles
+ER Admin. Sexos
+ZR Admin. Empresas Telefónicas
+2. Seleccione
+(IR Admin, Personas >=] el enlace para
+A L ingresar.
+
+============================================================
+PÁGINA 67 de 146
+============================================================
+
+a LIRESLAZ RIERA AAA ss
+Al ingresar al enlaceR Admin. Personas, podemos observar el listado de las personas existentes en el sistema.
+3. Seleccione para 4. Icono para determinar
+agregar una nueva el orden de los datos de
+persona. la A hasta la Z.
+érno Cédula ds País Departamento Provincia Localidad Ec Saxo pego Dirección Telífono Celutar Correo Bn tr “tulo
+PEREZ PEREZ 1 20/02/1080 BOLIVIA TARIJA ARCE DERMEJO Casado/a Masculino Entel zu
+ABEL — SANCHEZ SANCHEZ2 08/1/1000 BOLIMA COCHABAMBA ARANI PAIRUMANI — Casado/a Masculino Entel ma
+ABIGAIL LOZANO LOZANO 3 2951088 BOLIMA CHUQUISACA OROPEZA SUCRE Soltero/a Femenino TELECEL-TIGO 7008
+ADA LOPEZ LOPEZ 4 26M0/M078 BOLIVIA TARIJA ARCE DERMEJO Solero/a Femenino Entel 2000
+ADAEL SUAREZ SUAREZ 8 DIIMOBB BOLIVIA ORURO Le DE SANKHAYURI Casado/a Masculino Ninguno 2008
+ADAEL PINZON PINZON 6 01/01/1988 BOLIVIA ORURO AVAROA ANARUYO Solero/a Masculino Ninguno 2008
+ADAMS SOLANO SOLANO 7 0101/1088 BOLIVIA CHUQUISACA Are CANDUA Soltero/a Masculino Ninguno 2e3
+ADEL— DARVICH DARVICH 8 03/05/1087 BOLIMA ORURO ATAHUALLPA ARANZAYA — Casado/a Masculino Ninguno 2008
+ADITA DURAN DURAN 09 08/8025 BOLIVIA LAPAZ MURILLO COROICO Sokero/a Femenino Ninguno 205
+Puna ce 1as tablas maestras foráneas) no contiene un dato, al cual hace referencieal actual registro
+Tipo MO o Decerciertes yor MODIFICAR — ELIMINAR
+Sarguineo Hijos
+Do90 Enoficar al Eliminar
+0 D Ntoáñca y Eliminar
+90 Ruodñica fl Eiminar
+0.0 Broática Y Biminar
+00 Ducáica Ml Eiminar
+..0 Ejtoática f Eliminar
+op Euoaica Y Eiminar
+o.» Yoga Y Eiminiar
+v9.0.
+5. Seleccione para 6. Seleccione para
+modificar persona. eliminar persona.
+
+============================================================
+PÁGINA 68 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+7.4.2 Registrar una nueva persona
+Seleccione el enlace + YO de la ventana del listado Administrar Personas e introducir los
+[Contenido de imagen/tabla no legible por OCR]
+
+| País (2): [- Elja una opción - ve Buscar::
+y, ry Me: « Anterior Siguiente >
+seleccionar los
+datos. | —. |- Elija una opcion- e] Buscar::
+| Ñ « Anterior Siguiente »
+| Provincia (1): - EliLEVjeuna a una ooppcciioonn» - M444 | Buscar::
+| « Anterior Siguiente >
+| Localidad (*):: |-- EliEjli a una opcion - N(Mli Busecar::
+« Anterior Siguiente >
+Estado Civil (2): |- Elija una opción - MA] Buscar:
+« Anterior Siguiente >
+Sexo (*):: |- Elija una opción - (4%| Buscar:
+« Anterior Siguiente >
+| -Elijauna opción - [54| Buscar::
+|| Empresa Telefónica (*)
+|| « Anterior Siguiente >
+| Dirección :: y
+| Teléfono ::
+Celular =: |
+bTE» yLoes ceam poosi acodn l (*e), Lsoanr ogbalig acotocar ios.IAN
+2. Presione el botón
+para guardar.
+
+============================================================
+PÁGINA 69 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Waylka Educación para el Desarrollo
+Nombres; Denominación del nombre o los nombres de bautizo de la persona.
+Paterno: Denominación del apellido paterno de la persona.
+Materno: Denominación del apellido materno de la persona.
+Cédula: Nro, de registro del carnet de identidad de la persona.
+Fecha de Nacimiento: Fecha de nacimiento de la persona.
+País: Denominación del país de origen de la persona.
+Departamento: Denominación del departamento de origen de la persona.
+Provincia: Denominación de la provincia de origen de la persona.
+Localidad: Denominación de la localidad de origen de la persona.
+istado Civil: Estado civil (casado, soltero, viudo, etc.) actual de la persona.
+Sexo: Distinción biológica que clasifica a las personas en hombres (masculino) y mujeres
+(femenino),
+Empresa Telefónica: Empresa telefónica a la que está registrada la persona.
+Dirección: Denominación de la dirección del domicilio de la persona.
+Teléfono: Nro. telefónico del domicilio de la persona.
+Celular: Nro. de celular de la persona.
+Correo: Dirección web del correo personal de la persona.
+AñoTitulación: Año de titulación profesional de la persona.
+Título: Denominación del título en provisión nacional de la persona.
+Tipo Sanguíneo: Denominación del grupo sanguíneo de la persona.
+Nro. Hijos: Cantidad de hijos de la persona.
+Nro. Dependientes: Cantidad de personas que son parte de la familia de la persona.
+Nro. Seguro Médico: Nro. de seguro médico de la persona.
+Si no se insertó un campo obligatorio se le hará saber mediante el siguiente aviso:
+ON Por favor, ingrese todos los campos obligatorios
+Aceptar
+
+============================================================
+PÁGINA 70 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón | “siguiente | le aparecerá la siguiente pantalla donde tendrá que
+confirmar la creación de los datos personales de la persona.
+Agregando Admin. Personas
+(SH volver |
+CONFIRME LOS DATOS
+| Nombres :: LAURA
+Paterno :: SANCHEZ
+Materno :: SANCHEZ
+Cádula :: 10
+| Fecha Nacimiento :: 1208/1980
+| País :: BOLIVIA
+Departarnento :: LA PAZ
+Provincia :: MURILLO
+Localidad :: COROICO
+| Estado Civil :: Soltero/a
+| Sexo :: Femenino
+| Empresa Telefónica :: Entel
+| Dirección :: <NULL>
+Teléfono :: “NULL>
+Celular :: <NULL>
+Correo :: <NULL>
+Año Titulación :: 2007
+| Título :: <NULL>
+| Tipo Sanguineo :: <NULL>
+| Nro.Dependientes :: D
+| Nro. o Medico :: <NULL>
+Y Aceptar X Cancelar |
+Jntos campos '<NULL> se les asignará un valor por defecto.
+3. Presione el botón
+para Confirmar la
+creación de la persona.
+Una vez presionado el botón Y Aceptar | si los datos fueron registrados correctamente el sistema
+desplegará por pantalla el siguiente aviso:
+| Aviso de]
+| Los datoses registraron correctamente
+4. Presione el botón
+para regresar al listado
+Admin. Personas.
+
+============================================================
+PÁGINA 71 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+7.4.3 Modificar los datos de una persona
+Seleccione el enlace |] Modificar del listado de las personas existentes, le aparecerá la siguiente
+pantalla donde podrá modificar los datos requeridos.
+Modificando Admin. Personas
+(SH volver
+VERIFIQUE LOS DATOS
+Nombres (*):: [LAURA
+Materno :: [SancHez |]
+Cédula (*) :: ro Sa y
+Feotva Nacimiento (*): [12/09/1980 E
+| BOLIVIA 44) Buscar:
+País (*)::
+«Anterior Siguiente >
+|L A PAZ (44)| Buscar:
+Departamento (*) ::
+« Anterior Siguiente >
+| MURILLO 54) Buscar:
+| Provincia (*) ::
+| <« Anterior Siguiente >
+1. dMoldaifi de Ñ | | [coRoIcO [44] Buscar:
+a | Localidad (+) ::
+persona. YAA d « Anterior Siguiente >
+Estado Civil (*):: | Solterofa w|e] B u u s s c c a a l r:
+<« Anterior Siguiente >
+| Sexo (2): | Femenino ($4)]| Buscar:
+| <« Anterior Siguiente >
+|| | Empresa Telefónica (*) :: Entel [5£)| Buscar:
+| <« Anterior Siguiente >
+Dirección :: Ls 7]
+| Teléfono :: Po |
+| Celular :: ¡adi |
+Año Titulación :: [2007 |
+| Titulo :: | |]
+| Tipo Sanguineo :: [0 RH+ |
+| Nro. Hijos :: lO
+Nro.Dependientes :: [o
+Nro.Seguro Medico :: L
+[4 Los campos con (*), son obligatorios.
+2. Presione el botón
+para guardar la
+modificación.
+
+============================================================
+PÁGINA 72 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón! “Psisiene | le aparecerá la siguiente pantalla, donde tendrá que
+confirmar la modificación de los datos personales de la persona,
+Modificando Admin. Personas
+(GS volver
+CONFIRME LOS DATOS
+Nombres :: LAURA
+Paterno :: SANCHEZ
+Materno :: SANCHEZ
+Cédula :: 10
+Fecha Nacimiento :: 12/08/1980
+País :: BOLIVIA
+Departamerto :: LA PAZ
+Provincia :: MURILLO
+Localidad :: CORDICO
+Estado Civil :: Soltero/a
+| Sexo :: Fernenino
+| Empresa Telefónica :: Entel
+Dirección ::
+Telétono ::
+Celular ::
+| Correo ::
+| Año Titulación :: 2007
+Titulo -:
+Tipo Sanguineo :: 0 RH+
+3. Presione el botón para
+confirmar la modificación
+de los datos personales
+de la persona.
+Una vez presionado el botón si los datos fueron registrados correctamente el sistema
+desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón
+para regresar al listado
+Admin. Personas.
+
+============================================================
+PÁGINA 73 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+7.4.4 Eliminar los datos de una persona
+Seleccione el enlace (9 Eliminar del listado de personas existentes, el sistema desplegará la
+siguiente pantalla donde podrá confirmar o cancelar la eliminación de los datos personales de
+[Contenido de imagen/tabla no legible por OCR]
+
+41. Presione el botón para 2. Presione el botón para
+confirmar la eliminación cancelar la eliminación de
+de los datos personales los datos personales de la
+de la persona. persona.
+
+============================================================
+PÁGINA 74 de 146
+============================================================
+
+Manual Funcional Fundación ÁAUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón | Aoeptar| <; log datos de la persona tienen alguna dependencia el
+sistema desplegará por pantalla el siguiente mensaje de error:
+No se puede eliminar este registro, porque existen
+otros que dependen de él
+O Volver
+En caso contrario si la operación fue realizada correctamente el sistema desplegará por
+pantalla el siguiente aviso:
+A. AA
+- Latransaccsei órengi stró correctament_e|
+W' Aceptar
+3. Presione el botón para
+regresar al listado
+Admin. Personas.
+
+============================================================
+PÁGINA 75 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+8 ENLACE PERSONAL
+8.1 ADMINISTRAR CARGOS
+Un cargo se relaciona con el rol que pueda tener una persona dentro de la institución.
+Éste módulo fue realizado con la ayuda del sistema DibRap, este le permite administrar los
+diferentes cargos, se tiene la posibilidad de crear un nuevo cargo además de modificar o
+eliminar uno ya existente.
+8.1.1 ¿Cómo ingresar?
+1. Seleccione el enlace
+para desplegar el menú
+de enlaces.
+2. Seleccione el
+enlace para
+ingresar.
+IR Admin. Items
+Al ingresar al enlaceiR Admin. Cargos podemos observar el listado de los cargos existentes en
+el sistema.
+4. Icono para determinar
+3. Seleccione para
+el orden de los datos de
+agregar un nuevo
+cargo. la A hasta la Z.
+MODIFICAR — ELIMINAR
+Albañil E) Modificar E Eliminar
+AN. — Analista E Modificar E Elimimar
+1 Asistente Juridico [E] Modificar | E Eliminar.
+1 Aeistente Social EE] Modificar: E) Eliminar
+1 Ax. Adm. Seguridad 1) Modificar E Eliminar
+1 Am Audio [E] Modificar EY Eliminar
+1 Aux. Biblioteca [E] Modificar fl) Eliminar
+1 le] : .
+E] "Una de las tablas maestras (loránea; contienuen d
+J cual hace referencia el actual registro
+modificar un cargo. eliminar un cargo.
+
+============================================================
+PÁGINA 76 de 146
+============================================================
+
+8.1.2 Registrar un nuevo cargo
+Seleccione el enlace Euevo de la ventana del listado Administrar Cargos e introducir los
+[Contenido de imagen/tabla no legible por OCR]
+
+Mos AO eA l leosb oli a o' valor por defecto.
+2. Presione el botón
+para guardar el
+cargo.
+Código: Se refiere al código del cargo. Por ejemplo: Albañil A.
+Cargo: Denominación del cargo de acuerdo a la estructura jerárquica de la institución. Por
+ejemplo: Albañil.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+Y Por favor, ingrese todos los campos obligatorios
+Aceptar
+
+============================================================
+PÁGINA 77 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón (siguente le aparecerá la siguiente pantalla, donde tendrá que
+confirmar la creación del cargo.
+Agregando Admin. Cargos
+(9 volver
+COMFIRME LOS DATOS
+Código :: 1
+y sterte cooperativo
+[Y canoa
+¿nos campos '<NULL>' se les asignará un valor por defecto.
+3. Presione el botón
+para confirmar la
+creación del cargo.
+Una vez presionado el botón [Y Acepta si los datos fueron guardados correctamente el sistema
+desplegará por pantalla el siguiente aviso:
+ARTE O
+___Los dase tregoistrasron correctamente
+W Aceptar
+4. Presione el botón
+para regresar al listado
+Admin. Cargos.
+8.1.3 Modificar un cargo
+Seleccione el enlace [)Modificar del listado de los cargos existentes le aparecerá la siguiente
+pantalla donde podrá modificar los datos requeridos.
+Modificando Admin. Cargos
+(volver
+4. ta | |o LOS DATOS.
+los datos de »)
+Cargo):1 5 l
+sSiig uiente
+[£)]uos campos con (*), son obligatorios.
+2. Presione el botón
+para guardar la
+modificación.
+
+============================================================
+PÁGINA 78 de 146
+============================================================
+
+Una vez presionado el botón | siguiera! Jo aparecerá la siguiente pantalla donde tendrá que
+confirmar la modificación del cargo.
+Modificando Admin, Cargos
+(H volver
+COMFIRME LOS DATOS
+Código ::
+(2 | AX Cancelar |
+3, Presione el botón
+para confirmar la
+modificación del cargo.
+Una vez presionado el botón [VO popa] si los datos fueron registrados correctamente el sistema
+desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón
+para regresar al listado
+Admin. Cargos.
+8.1.4 Eliminar un cargo
+Seleccione el enlace MY Eliminar del listado de los cargos existentes, el sistema desplegará por
+pantalla la siguiente pantalla donde podrá confirmar o cancelar la eliminación de un cargo.
+Eliminando Admin. Cargos
+O vaver
+¡CONFIRME LA ELIMINACIÓN
+| Código ::-
+Jo :: Albañil
+) Cancelar
+1. Presione el botón 2. Presione el botón
+para confirmar la para cancelar la
+eliminación del cargo. eliminación del cargo.
+
+============================================================
+PÁGINA 79 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+8.2 ADMINISTRAR ITEMS
+Un item se define como cada uno de los elementos que forman parte de un dato.
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar los
+diferentes ítems, se tiene la posibilidad de crear un nuevo ftem además de modificar o eliminar
+uno ya existente,
+8.2.1 ¿Cómo ingresar?
+1. Seleccione el enlace
+para desplegar el menú
+de enlaces.
+2. Seleccione el
+enlace para
+ingresar.
+Al ingresar al enlace¿R Admin. Items, podemos observar el listado de los ítems existentes en el
+sistema.
+4. Icono para determinar
+el orden de los datos de
+la A hasta la Z.
+Cargo Ubicación Orgánica MODIFICAR ELIMINAR
+ABDON PEREZPEREZ Asistente Juridico ARCHIVO DÍA 1) Modificar Eliminar
+ABEL SANCHEZ SANCHEZ — Aux Adm. Seguridad Departamento de Archivo Universitario (DAU) Modificar MN Eliminar
+ABIGAIL LOZANO LOZANO — Aux Tecnico de Redes Rectorado | N modificar E Eliminar
+ADA LOPEZ LOPEZ Analista Departamento de Cienclas Puras nodificar 1 Eliminar
+ADAEL PINZON PINZON Club Universitario Departamento de Cienolas Juridicas Y Modificar 1 Eliminar
+ADAEL SUAREZ SUAREZ Aux de Capacitación Departamento de Ciencias de la Salud Modificar MN Eliminar
+ADAMS SOLANO SOLANO Secretaria de Vicerrectorado Departamento de Metodológia de Investigación Modificar MM Eliminar
+ADEL DARVICH DARVICH Coordinadora de Inglés ¡Secretaria de la Dirección de Investigación Ciencia y Tecnológia W Modificar 10 Eliminar
+ADRIANA TORREZ TORREZ Mensajero(a) Bienes y Servicios ¡mi
+ADRIANA TORRICO TORRICO Responsble de DRDI Programa de Sistema de Producción Agropecuaria
+18) Yuna de tas tablas maestras (Toráneas) no contiene un dato, al cual hace referencia el actual registro
+6. Seleccione
+para eliminar
+un ítem.
+
+============================================================
+PÁGINA 80 de 146
+============================================================
+
+8.2.2 Registrar un nuevo ítem
+Seleccione el enlace? Nuevo de la ventana del listado Administrar Ítems y seleccionar los
+siguientes datos:
+Agregando Admin. Items
+Volver
+INTRODUZCA LOS DATOS
+1. Seleccione | ii «Antarlor Siguiente,
+úl «Anterlor Siguiente >
+| ; eror Siguiente >
+E)S iguiente
+Los campos con (*) son obligatorios.
+4"_|Alos campos vacios se les asignará un valor por defecto.
+2. Presione el
+botón para
+guardar.
+Persona: Denominación de los nombres y apellidos de la persona.
+Cargo: Denominación del cargo de la persona dentro de la institución.
+Ubicación Orgánica: Denominación de la ubicación orgánica de la persona dentro del
+organigrama de la institución.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+A Por Favor, ingrese todos los campos obligatorios
+Aceptar
+
+============================================================
+PÁGINA 81 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+GS Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón |El) Siguiente| le aparecerá por pantalla, donde tendrá la opción de
+confirmar el registro del ítem.
+Agregando Admin. Items
+O volver
+CONFIRME LOS DATOS
+Persona :: ABDOM PEREZ PEREZ
+Cargo :: Analista
+¡Ubicación Orgánica :: ARCHIVO DIA
+E Cancelar |
+[aros campos '<NULL>»' se les asignará un valor por defecto.
+3. Presione el botón
+para confirmar la
+creación del ítem.
+yw Aceptar
+Una vez presionado el botón si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+__Los datos se registraronc orrectamen_te_
+( W Aceptar )
+4. Presione el botón
+para regresar al
+listado Admin. Ítems
+
+============================================================
+PÁGINA 82 de 146
+============================================================
+
+¡a Sistema Worktlow Wayka Educación para el Desarrollo
+8.2.3 Modificar un ítem
+Seleccione el enlace [-]Modificar del listado de los ítems existentes, le aparecerá la siguiente
+pantalla donde puede modificar los datos requeridos.
+Modificando Admin. Items
+Q volver
+VERIFIQUE LOS DATOS
+Modifique persona (+) ; LABDON PEREZ PEREZ Buscar
+proa del ít los e «Anterior Siguiente >
+Cargo (*) :: | Asistente Juridico 7 Buscar:
+ás «Anterior Siguiente >
+Usenudn Úrgiien: e) |A RCHIVO DIA Ml Y Buscar:
+Anterior Siguiente >
+[4 os campos con (*), son obligatorios.
+2. Presione el
+botón guardar la
+modificación.
+Una vez presionado el botón E) Siguiente le aparecerá la siguiente pantalla donde tendrá que
+confirmar la modificación del ítem.
+Modificando Admin. Items riA ci
+DIS
+O vover
+CONFIRME LOS DATOS
+|| Persona :: ABDON PEREZ PEREZ
+| Cargo :: Asistente Juridico
+| Ubicación Orgánica :: ARCHIVO DIA
+NN W Aceptar XK Cancelar | o
+3. Presione el botón para
+confirmar la modificación
+del ítem.
+
+============================================================
+PÁGINA 83 de 146
+============================================================
+
+Manual Funcional Fundacion Ju
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón L4 Acepta si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón para
+regresar al listado Admin.
+Ítems.
+8.2.4 Eliminar un ítem
+Seleccione el enlacÉe Eliminar del listado de los ítems existentes, el sistema desplegará la
+siguiente pantalla donde podrá confirmar o cancelar la eliminación de ítem.
+Eliminando Admin. Items
+Q Wolver
+_ CONFIRME LA ELIMINACIÓN
+| Persona :: ABDON PEREZ PEREZ
+| Cargo :: Asistente Juridico
+¡Ubicaci Ó
+W Aceptar (X Cancelar)
+1. Presione el botón 2. Presione el botón
+para confirmar la para cancelar la
+eliminación del ítem. eliminación del ítem.
+
+============================================================
+PÁGINA 84 de 146
+============================================================
+
+O AE EAAO
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+9 ENLACE INSTITUCIONES
+9.1 ADMINISTRAR INSTITUCIONES
+Una institución se define como un establecimiento, empresa o persona moral fundada con
+aspiraciones de permanencia cuyos intereses son independientes de los de las personas físicas
+que la integran.
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar las
+diferentes instituciones educativas, esto es adicionar, modificar y/o eliminar los datos si así lo
+requiera.
+9.1.1 ¿Cómo ingresar?
+1. Seleccione el enlace
+para desplegar el menú
+de enlaces.
+2. Seleccione el
+( R le eninlagcree spaarr.a
+IR Admin. Universidades
+IR Admin. Facultades
+IR Admin. Fcl. Departamentos
+IR Admin. Colegios
+IR Admin. Calendario Académico
+uAs Programas/Carreras »
+Al ingresar al enlacReR Admin. Instituciones . e] sistema desplegará por pantalla el listado de
+todas las instituciones registradas en el sistema,
+
+============================================================
+PÁGINA 85 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+9.1.2 Registrar una institución
+Seleccione el enlace [Huevo de la ventana de listado Administrar Instituciones e introducir
+los siguientes datos:
+Agregando Admin. Instituciones
+A vomer
+INTRODUZCA LOS DATOS
+institución (1) = | o
+Sigla | 1
+Sede Con(t1)r 3a [|]
+Pala (1) = [: PU pon 54) Buscar:
+< Arterior Siguiente >
+. «Anterior Siguiente >
+1. Inserte y seleccione | il < Anterior Siguiente >
+ga | tocaranqy « LEE ime opción 1] buscar
+| me < Anterior Siguiente >
+| Autoridad (') = | - Elia una opción - 4 Buscar:
+| . «Anterior Siguiente >
+Instrumento de Apertura = | ]
+actividad = | |]
+Dirección = | ]
+Teléfono = |
+Fax = ]
+| Uns AN
+Correo = ]
+| Fecha Inicio de Actividades = E am0
+| Representante Legal = ]
+| Plan Estratégico = [ ]
+| Estatuto Orgánicoz. | E
+| Reglamento de Investigación = 1 al
+¡Centro de InvestigaCceinótrnal = [— ]
+Los campos con (*), son obligatorios.
+Años campos vacios se les asignará un valos por defecto.
+2. Presione el botón
+para guardar.
+Institución: Grupo de personas organizadas que realiza una actividad determinada. Por
+ejemplo: Institución privada o pública.
+Sigla: Es una nomenclatura corta y propia de la institución.
+Sede Central: Lugar central de accionar de la institución.
+
+============================================================
+PÁGINA 86 de 146
+============================================================
+
+_ Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+País: Nación o país donde nació la persona. Por ejemplo: Bolivia, Perú, etc.
+Departamento: Territorio perteneciente a un determinado país. Por ejemplo: La Paz, Tarija,
+etc.
+Provincia: Territorio perteneciente a un determinado departamento. Por ejemplo: Murillo,
+Pacajes, etc.
+Localidad: Territorio perteneciente a una determinada provincia. Por ejemplo: La Paz,
+Copacabana, etc.
+Autoridad: Persona que está a cargo de la institución.
+Instrumento de Apertura: Medio por el cual se decidió crear la institución.
+Actividad: Actividad a la que se dedica la institución.
+Dirección: Domicilio o vivienda de la institución. Por ejemplo: Av. Las Ameritas 1£345, etc.
+Teléfono: Número telefónico perteneciente a la institución. Por ejemplo: 2212345, 2834321,
+etc.
+Fax: Número telefónico de la institución para transmitir a distancia textos escritos o gráficos.
+Url: Dirección de url de la página web de la institución. Por ejemplo:
+www.fundacionautapo.bo.
+Correo: Correo electrónico, para permitir a los usuarios enviar y recibir mensajes. Por
+ejemplo: mavixz(M)yahoo.es, carmensc(2 gmail.com, etc.
+Fecha de creación: Fecha en la que se creó la institución.
+Fecha inicio de Actividades: Fecha en la que inicio sus actividades la institución.
+Representante Legal: Persona que posee la autoridad legal y suficiente en caso de empresas e
+instituciones públicas o privadas.
+Plan Estratégico: Planes destinados al logro de los objetivos de la institución, declaración
+formal que contiene y describe la razón de ser de la institución.
+Estatuto Orgánico: Disposiciones generales de la institución.
+Reglamento de Investigación: Reglas de investigación.
+Centro de Investigación Central: Lugar de desarrollo para investigación.
+Logo: Imagen corporativa de la institución.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+CIEN
+A Por favor, ingrese todos los campos obligatorios
+And
+
+============================================================
+PÁGINA 87 de 146
+============================================================
+
+9.1.3 Modificar una institución
+E) Modificar
+Seleccione el enlace del listado de los instituciones existentes, le aparecerá la
+siguiente pantalla donde puede modificar los datos requeridos.
+Modificando Admin. Instituciones
+GS vote
+VERIFIQUE LOS DATOS
+Sigla = [PUB |
+Sede Central (1) = [11 |
+pa(tyo a LLOLIVA _ MBuscar:
+< Anterior Siguiente >
+Bass ey TARA 4) Buscar
+« Anterior Siguiente >
+o” [ CERCADO 2) Buscar:
+« Anterior Siguiente »
+Localidad (*) = [TARUA busca
+« Anterior Siguiente >
+AE [S istema Sistema Sistema E Buscar”
+< Anterior Siguiente >
+Instrumento de Apertura = | ]
+actividad =| ]
+Dirección = (Av. Las Americas ]
+Teléfono = [2424355 AN
+Fax = [2425645 dl
+Un! = [http://fundacionautapo.¿
+Correo = [victoria vilafundaciona
+Fecha de Creación = [10/1211972 E
+Fecha Inicio de Actividades = [23/93/1973 E
+Representante Legal = [Lic.Carlos Medna |
+Plan Estratégico = | |
+Estatuto Orgánico = | 1]
+| Reglamento de Investigación = [— Pas
+¡Centro de InvestigaCceinótrnal = | ]
+[EF Los campos con (*) con obligatorios.
+2. Presione el botón
+para guardar la
+modificación.
+
+============================================================
+PÁGINA 88 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+9.1.4 Eliminar una institución
+Seleccione el enlace Y Fliminar de] tistado de las instituciones existentes, el sistema desplegará
+la siguiente pantalla donde podrá confirmar o cancelar dicha eliminación.
+Eliminando Admin. Instituciones
+[Contenido de imagen/tabla no legible por OCR]
+
+Correo = victoria.viaYfundacionautapo.org
+Fedce Chreacaión = 10121972
+Fecha Inicio de Actividades = 23/03/1973
+Representante Legal = Lic.Carlos Medina
+4. Presione el botón para
+confirmar la eliminación
+de la institución.
+
+============================================================
+PÁGINA 89 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+10 ENLACE SISTEMA
+ADMINISTRAR BASE DE DATOS
+Una base de datos es una colección de información organizada de forma que un programa de
+ordenador pueda seleccionar rápidamente los fragmentos de datos que necesite.
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar las
+diferentes bases de datos, esto es adicionar, modificar o eliminar los mismos si así lo requiera.
+¿Cómo ingresar?
+1. Seleccione el enlace
+para desplegar al
+menú de enlaces.
+a a Seleccione el
+enlace para
+IR Admin. Tablas
+ingresar.
+IR Admin. Campos
+ER Admin. Llaves Foráneas
+IR Admin. Campos por Enlaces
+IR Admin. Llaves Primarias
+IR Admin. Parámetros
+IR Admin. IPs por usuario
+IR Admin. Estados
+ER DibRep
+$ Lista Reportes
+4 Sacar Copia de Seguridad
+¿Restaurar Copia de Seguridad
+Al ingresar al enlace IR: Admin, Bases de Datos el sistema desplegará por pantalla el listado
+de las bases de datos existentes en el sistema.
+
+============================================================
+PÁGINA 90 de 146
+============================================================
+
+A AA EES A I a
+A A
+$ Manual Funcional Fundación AUTAPO
+istema Workflow Wayka Educación para el Desarrollo
+3. Seleccione para 4. Icono para determinar
+agregar una nueva el orden de los datos de
+base de datos. la A hasta la Z.
+5. Seleccione para 6. Seleccione
+modificar una para eliminar una
+base de datos. base de datos.
+40.1.2 Registrar una base de datos
+Seleccione el enlace d:luevdoe la ventana del listado Administrar Bases de Datos e introducir
+el siguiente dato:
+Agregando Admin. Bases de Datos E o e
+€) Volver
+rota _ INTRODUZCADLAOTOSS
+¡Base de datos 7]
+Tx Los campos con (*), son obligatorios.
+Atos campos vacios se les asignará un valor por defecto.
+2. Presione el
+botón para
+guardar.
+Base de datos: Se refiere al nombre de la base de datos. Por ejemplo: mi, wayka, etc.
+
+============================================================
+PÁGINA 91 de 146
+============================================================
+
+Manual Funcional
+Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+10.1.3 Modificar una base de datos
+Seleccione el enlace |]Modificaderl listado de las bases de datos existentes, le aparecerá la
+siguiente pantalla donde puede modificar los datos requeridos.
+Modificando Admin. Bases de Datos
+Q Volver
+bir _ VERIFIQUELOS DATOS
+¡Base de datos (= PS na
+[F tos campos con (*), son obligatorios.
+2. Presione el botón
+para guardar la
+modificación.
+E) Siguiente
+Una vez presionado el botón le aparecerá la siguiente pantalla donde tendrá que
+confirmar la modificación de la base de datos.
+Modificando Admin. Bases de Datos
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 92 de 146
+============================================================
+
+Fundación AUTAPO
+Manual Fuunncciioon al
+Educación para el Desarrollo
+Sistema Workflow Wayka
+Una vez presionado el botón | W Aceptar si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón
+para regresar al
+listado Admin.
+Bases de datos.
+10.1.4 Eliminar una base de datos
+Seleccione el enlace ( Eliminaderl listado de las bases de datos existentes, el sistema
+desplegará la siguiente pantalla donde podrá confirmar o cancelar dicha eliminación.
+Eliminando Admin. Bases de Datos AA
+G vower — AA
+4. Presione el botón 2. Presione el botón
+e p l a im ra i n co a n ci fi ó r n m d a e r l l a a para cancelar la
+base de datos. e b lim an i o n a d c e i ó d n id d a e s . la
+
+============================================================
+PÁGINA 93 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+10.2 ADMINISTRAR TABLAS
+Los datos recolectados por un programa son guardados en formas de tablas dentro de una base
+de datos, es decir que estamos hablando de una forma de almacenar y ordenar información.
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar las
+diferentes tablas existentes, esto es adicionar, modificar o eliminar los datos si así lo requiere.
+10.2.1 ¿Cómo ingresar?
+4. Seleccione el
+enlace para desplegar
+el menú de enlaces.
+Sistema *
+Admin. Bases de Datos
+(%_Admin. Tablas >= 2. Seleccione el
+: enlace para
+IR Admin. Campos ingresar.
+ER Admin. Llaves Foráneas
+ER Admin. Campos por Enlaces
+IR Admin. Llaves Primarias
+IR Admin. Parámetros
+IR Admin. IPs por usuario
+IR Admin. Estados
+IR DibRep
+4, Lista Reportes
+4, Sacar Copia de Seguridad
+4, Restaurar Copia de Seguridad
+Al ingresar al enlace ER Admin. Tablas el sistema desplegará por pantalla el listado de las
+tablas existentes en el sistema,
+
+============================================================
+PÁGINA 94 de 146
+============================================================
+
+[Contenido de imagen/tabla no legible por OCR]
+
+3. Seleccione para 4. Icono para determinar
+agregar una nueva el orden de los datos de
+la A hasta la Z.
+Base de datos Tabl Etiqueta MODIFICAR — ELIMINAR
+mi categorias Admin. Categorías E] Modificar Fa Eliminar
+mi _dib_bases_datos Admin. Bases de Datos E) Modificar e Eliminar
+mi _dik_campos Admin. Campos ¿[E Modificar E Eliminar
+mi _dib_campos_condicion Admin. Campos Condición E) Modificar ' el, Eliminar
+mi _dib_componentes Admin. Componentes 13 Modificar 1 Eliminar
+mi _dib_consultas Admin. Consultas E Modificar id Eliminar
+mi _eo_consuast otales Admin. Consultas Totales [2] Modificar: (7) Eliminar
+mi _dito_enl_campos Admin. Campos x Enfaceg/ [4
+Fi (Una de las tablas maestras (foráneas) no contiene un dat ia el actual registro
+5. Seleccione para
+modificar una para eliminar una
+tabla. tabla.
+40.2.2 Registrar una tabla
+Seleccione el enlace (+ ]lluevoge la ventana del listado Administrar Tablas e introducir los
+siguientes datos:
+Agregando Admin. Tablas : — e
+(E) vower A
+_ INTRODUZCALOSDATOS
+1. Seleccione e E de datos (') = |-Elia una A
+inserte los datos. < Anterior Siguiente >
+| Tabla (1) = | ]
+) Etiqueta (*) 5
+| Los campos con (*), son obligatorios.
+' A los campos vacios se les asignará un valor por defecto.
+
+============================================================
+PÁGINA 95 de 146
+============================================================
+
+rundación AUlAFUu
+Ey --—-—- N Wayka Educación para el Desarrollo
+Base de datos: Se refiere al nombrede la base de datos. Por ejemplo: mi, wayka, etc.
+Tabla: Se refiere al nombre de la tabla registrado en l a base de datos. Por ejemplo:
+_ E t c i a q t u eg e o t r a ia : s T , i d e i n b e _ c r a e m la p c o ió s n , e c t o c n . el nombre del enlace que se creará para la tabla. Por ejemplo:
+Admin. Categorias, Admin. Campos, etc.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+A Por favor, ingrese todos los campos obligatorios
+Una vez presionado el botón E) Siguiente] jo aparecerá la siguiente pantalla donde tendrá que
+confirmar la creación de la tabla.
+Agregando Admin. Tablas
+S volver
+[CONFIRME LOS DATOS
+| Base de datos = mi
+| Tabla =_categorias
+Y Aceptar) JE Cancelar
+£ Altos campos '<HULL> se les asignará un valor por defecto.
+3. Presione el botón
+para confirmar la
+Una vez presionado el botón W Aceptar] 5; los datos fu creación de la tabla. tamente el
+sistema desplegará por pantalla el siguiente aviso:
+— Los datosse registraron correctamente
+w” Aceptar
+4. Presione el botón
+para regresar al
+listado Admin. Tablas.
+
+============================================================
+PÁGINA 96 de 146
+============================================================
+
+ivan Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+10.2.3 Modificar una tabla
+Seleccione el enlace 1*]Modificdaerl listado de las tablas existentes, le aparecerá la siguiente
+pantalla donde puede modificar los datos requeridos.
+Modificando Admin. Tablas
+Q voor
+E LOSa is
+1. Modifique Dase de da Buscar:
+los datos. did A¿ñterior Siguerte >
+Tabla (')= categorías A
+É Los campos con (*), son obligatorios.
+Una vez presionado el botón E) Siguiente| le aparecerá la siguiente pantalla donde tendrá que
+confirmar la modificación de la tabla.
+Modificando AdminT.a blas E
+CONFIRME LOS DATOS
+Base de datos = mi
+Tabla = _categorias
+
+============================================================
+PÁGINA 97 de 146
+============================================================
+
+¡ | Si : s te M m a a n W ua o l r F k u fl n o c w io W na a l yka bidie Fu a n ci d ó a n c ió p n ú es Á alD eecllo
+Una vez presionado el botón |w Acepta! ¡
+, Y _PePe!! gi los datos fueron registrados correctam
+sistema desplegará por pantalla el siguiente aviso: y ee
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón
+para regresar al
+listado Admin.
+Tablas.
+10.2.4 Eliminar una tabla
+Seleccione el enlace EY Eliminar del listado de las tablas existentes, el sistema desplegará la
+siguiente pantalla donde podrá confirmar o cancelar dicha eliminación.
+Eliminando Admin. Tablas
+4. Presione el botón
+para confirmar la
+eliminación de la
+tabla.
+
+============================================================
+PÁGINA 98 de 146
+============================================================
+
+MM E UMICIONA
+Fundación AUTAPO
+Sistema Workflow Wayka
+Educación para el Desarrollo
+10.3 ADMINISTRAR CAMPOS
+En aplicaciones como bases de datos el campo se define como el espacio reservado para
+introducir determinados datos asociados a un tipo de dato,
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar los
+diferentes campos de una tabla, esto es adicionar, modificar o eliminar los datos de las mismas
+si así lo requiera.
+10.3.1 ¿Cómo ingresar?
+1. Seleccione el
+enlace para
+desplegar el menú
+de enlaces
+IR Admin. Bases de Datos
+IR Admin, Tablas
+seL >I a
+; A Y Seleccione el
+meus enlace para
+IR Admin. Llaves Foráneas ingresar.
+IR Admin. Campos por Enlaces
+IR Admin. Llaves Primarias
+IR Admin. Parámetros
+ER Admin. IPs por usuario
+IR Admin. Estados
+BRK DibRep
+¿2 Lista Reportes
+¿L Sacar Copia de Seguridad
+¿Restaurar Copia de Seguridad
+IR Admin. Campos el sistema desplegará por pantalla el listado de los
+Al ingresar al enlace
+campos existentes en el sistema.
+
+============================================================
+PÁGINA 99 de 146
+============================================================
+
+Fundación AUTAPO
+Ey vw wayka Educación para el Desarrollo
+10.3.2 Registrar un campo
+Seleccione el enlace '* I'Wevode la ventana del listado Administrar Campos e introducir los
+Siguientes datos:
+Agregando Admin. Campos
+€) Volver
+INTRODUZCA LOS DATOS
+Tabla (*) = [- Elia una opción a e Buscar:
+<Anterior Siguiente >
+| Componente () |-Elujnaa opción - 44) Buscar:
+o 4 Seleccione 6 Ano < Arterior Siguiente >
+inserte los datos. ' | Campo()= [|
+| Tipdoe dato ()= |
+Piquet) [
+Orden = [o |
+Permiso =| |
+| Campo padre = |
+| Columnas =
+Los campos con (*), son obligatorios.
+A los campos vacios se les asignará un valor por defecto.
+2. Presione el
+botón para
+guardar.
+Tabla: Se refiere al nombre de la tabla registrada en la base de datos. Por ejemplo:
+_ categorias, dib_campos, etc.
+Componente: Se refiere a una parte del tipo del dato del campo. Por ejemplo: Alfanumérico,
+boolean, etc.
+Campo: Se refiere al nombre del campo de una tabla, Por ejemplo: Tabla _categorias;
+Campos: idc ategoria, id_campo, etc.
+Tipo de dato: Se refiere al tipo de dato del atributo del campo. Por ejemplo: dtexto2, int4, etc.
+Etiqueta: Se refiere a la etiqueta del campo. Por ejemplo: id_categoría, id_campo, etc.
+Orden: Se refiere al orden de creación del campo. Por ejemplo: 1,2, etc.
+Permiso: Se refiere a los permisos que se les puede dar a las tablas administradas por el
+DibRap que puede ser listado (L), Adicionar (A), Modificar (M) o eliminar (B).
+
+============================================================
+PÁGINA 100 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Campo padre: Se refiere al nombre del padre del campo.
+Columnas: Cantidad de columnas aceptables para el campo.
+Filas: Cantidad de filas aceptables para el campo.
+Caracteres: Cantidad de caracteres aceptables para el campo.
+x: Posición en el eje de coordenadas “x” para el campo.
+y: Posición en el eje de coordenadas “y” para el campo.
+Mascara: Se refiere a la máscara que se denota en el campo.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+[X]
+A Por favor, ingrese todos los campos obligatorios
+Aceptar |
+Una vez presionado el botón E) Siguiente le aparecerá la siguiente pantalla donde tendrá que
+confirmar la creación del campo.
+¡|C ONFIRME LOS DATOS
+Componente = Alfanumérico
+Campo = id_categoria
+Tidpe doato = intá4
+Etiqueta = id_cstegoria
+Orden = 1
+Permiso = lemb
+Campo padre = <NULL>
+Columnas = 1
+Filas =1
+Za los campos "<HULL> se les asignará un valos por defecto.
+
+============================================================
+PÁGINA 101 de 146
+============================================================
+
+(ey a > Educación para al Deasañr ío llo
+a ai
+Una vez presionado el botón WTO los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+a Aviso
+Los datos se registraron correctamente
+4. Presione el botón
+para regresar al listado
+Admin. Campos.
+10.3.3 Modificar un campo
+Seleccione el enlace [)Modificaderl listado de campos existentes, le aparecerá la siguiente
+pantalla donde puede modificar los datos requeridos.
+Modificando Admin. Campos
+Ovore ANDAN A
+1 VERIFIQUELOSDATOS
+| Tabla ()= |_categorias 4 Buscar:
+| < Anterior Siguiente >
+e e 113 |A lfanumérico M4 Buscar
+| < Anterior Siguiente >
+Ñ Modifique | Campo (*) = [id_categoria >]
+los datos. r Tipde doato (*) = [int4 ]
+| Etiqueta(*) [id_categoña ]
+| Orden = [1 |
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 102 de 146
+============================================================
+
+¡musas Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+10.3.4 Eliminar un campo
+Seleccione el enlace EY Elimindaerl listado de los campo existentes, el sistema desplegará la
+siguiente pantalla donde podrá confirmar o cancelar dicha eliminación.
+Eliminando Admin. Tablas
+(GS votver
+CONFIRME LA ELIMINACIÓN
+Bades dieos = mi
+Tabla = categorías
+4. Presione el botón
+para confirmar la
+eliminación del
+campo.
+Una vez presionado el botón W Aceptar| sí el campo tiene alguna dependencia el sistema
+desplegará por pantalla el siguiente mensaje de error:
+No se puede eliminar este registro, porque existen otros
+| que dependen de él
+En caso contrario si la operación fue realizada correctamente el sistema desplegará por
+pantalla el siguiente aviso:
+para regresar al
+listado Admin.
+Campos.
+
+============================================================
+PÁGINA 103 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+10.4 ADMINISTRAR LLAVES FORÁNEA
+Las llaves foráneas son usadas para establecer relaciones entre las tablas.
+Este módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar las
+diferentes llaves foráneas; esto es adicionar, modificar o eliminar las mismas si así lo requiera.
+10.4.1 ¿Cómo ingresar?
+4. Seleccione el
+enlace para
+desplegar el menú
+de enlaces.
+,SE
+Admin. Bases de Datos
+IR Admin. Tablas
+IR Admin, Campos mí. el
+(FR Admin. Llaves Foráneas)/== Et
+IR Admin. Campos por Enlaces pe
+IX Admin. Llaves Primarias
+IR Admin. Parámetros
+IR Admin. IPs por usuario
+IR Admin. Estados
+lx DibRep
+4 Lista Reportes
+4, Sacar Copia de Seguridad
+4, Restaurar Copia de Seguridad
+Al ingresar al enlace IR Admin, Llaves Foráneas el sistema desplegará por pantalla el listado
+de las llaves foráneas existentes en el sistema.
+
+============================================================
+PÁGINA 104 de 146
+============================================================
+
+— Manuas Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+3. Seleccione para 4. Icono para determinar
+agregar una nueva el orden de los datos de
+llave foránea. la A hasta la Z.
+Campo Tabla foránea Id campo foraneo Campo foráneo Condición MODIFICAR — ELIMINAR
+Tabla
+Categorias ul_usuario _usuarios ld_usuerlo 1d_usuario Modificar E Etíminar
+_dib_bases_datos ullusuario _usuarios ld_usuario ld_usuario E) modificar E Eñrminar
+_dh_campos id_tobla _dh_lablas ld_labla tobla FF] modificar El Eliminar
+—dib_campos ld_componente _d_componentes ld_componente componente F) Modificar Y Efiminar
+—di_campos ul_usuerio — _usuerios ld_usuario id_usuario E) modificar E Eñminar
+_dth_campos_condicion id_consulta _dib consultas Id_consulta consulta E) modificar $ Eñiminar
+_dib_campos_condicion d_campo _dib_campos id_campo campo n
+_dibh_campos_condicion ull_usuario _usuarios id_usuario id_usuario
+E) (Uona de las tablas maestras (foráneas) no contiene un dato, al cual hace referencia el act
+modificar una
+llave foránea.
+10.4.2 Registrar una llave foránea
+Seleccione el enlace £?tuevoge la ventana del listado Administrar Llaves foráneas e introducir
+los siguientes datos:
+Agregando Admin. Llaves Foráneas
+(G voiwer ]
+INTRODUZCA LOS DATOS
+< Anterior Siguiente >
+campo (7 3 Efe unoa pciond-l Buscar
+1. Seleccione | ide « Anterior Siguiente >
+e inserte los ES
+li campo foraneo (1) 3 | _
+Campo foráneo (1) 3 |
+| Lposo capmapc ono (*s), A conj oobl.ig atiocreio s,ARAN
+
+============================================================
+PÁGINA 105 de 146
+============================================================
+
+Manual Funcional
+[a Sistema Workflow Wayka EduF cuacnidóanc pióanra A eUl DTAesPaOrrollo
+Tabla: Se refiere al nombre de la tabla registrada en la base de datos. Por ejemplo:
+_Categorias, dib_campos, etc.
+Campo: Se refiere al nombre del campo de una tabla. Por ejemplo: Tabla _categorias;
+Campos: idc ategoria, id_campo, etc.
+Tabla foránea: Se refiere al nombre de la tabla foránea dentro de la base de datos. Por
+ejemplo: usuarios, dib_tablas, etc.
+Id campo foráneo: Se refiere al nombre del campo foráneo dentro de la base de datos. Por
+ejemplo: Tabla foránea: _usuarios; Id_campo_foraneo: ult_usuario, etc.
+Campo foráneo: Se refiere a la denominación del campo foráneo. Por ejemplo: id_usuario,
+id tabla, etc.
+Condición: Es la condición del campo foráneo.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+CENA)
+A Por favor, ingrese toldos ocampsos obligatorios
+[PA
+Una vez presionado el botón siguiente le aparecerá la siguiente pantalla donde tendrá que
+confirmar la creación de la llave foránea.
+Agregando Admin. Llaves Foráneas
+(S voter ii
+¡CONFIRME LOS DATOS
+| Tabla =_categorias
+Campo = ul_ usuario
+Tabla foránea = _usuarios
+ld campo foraneo = id_usuario
+Campo foráneo = id_usuario
+ón = <NULL>
+(1 Aceptar|)| $ Cancelar
+Fa los campos "<HULL> se les asignará un valor por defecto.
+3. Presione el botón
+para confirmar la
+creación de la llave
+foránea.
+
+============================================================
+PÁGINA 106 de 146
+============================================================
+
+Fundación AUIAPO
+E OISULIIA YY ULUIUW VVayKa Educación para el Desarrollo
+Una vez presionado el botón LY Aceptar si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón
+para regresar al listado
+Admin. Llaves foráneas.
+10.4.3 Modificar una llave foránea
+Seleccione el enlace [*)Modificdaer] listado de las llaves foráneas existentes, le aparecerá la
+siguiente pantalla donde puede modificar los datos requeridos.
+(C) vower
+WERIFIQUELOS DATOS.
+| _categorias $) Buscar:
+Tabla (*) =
+< Anterior Siguiente >
+1. Modifique campoy o so
+los datos. | « Anterior Siguiente >
+Tabla foránea (*) = |_usuarios 3
+ld campo foraneo (*) 3 lid_usuario ]
+Campo foráneo (*) 3 [id_usuario |
+Ptos camcpono (*s), son obligatorios.
+
+============================================================
+PÁGINA 107 de 146
+============================================================
+
+Fundación AUTAPO
+Q sistema worktlow Wayka Educación para el Desarrollo
+10.4.4 Eliminar una llave foránea
+Seleccione el enlace E Eliminaderl listado de las llaves foráneas existentes, el sistema
+desplegará la siguiente pantalla donde podrá confirmar o cancelar dicha eliminación.
+Eliminando Admin. Llaves Foráneas
+O Volver
+¡CONFIRME LA ELIMINACIÓN
+Tabla = _categorias
+Campo = ult_usuario
+Tabla foránea = _usuarios
+ld campo foraneo = id_usuario
+Campo foráneo = id_usuario
+4. Presione el botón
+2. Presieol bnotóen
+para confirmar la cancela
+o de la eliminación E
+ave foránea. llave foránea.
+Una vez presionado el botón W Aceptar] si la llave foránea tiene alguna dependencia el sistema
+desplegará por pantalla el siguiente mensaje de error:
+| No se puede eliminar este registro, porque existen otros
+| que dependen de él |
+En caso contrario si la operación fue realizada correctamente el sistema desplegará por
+pantalla el siguiente aviso:
+OA | A
+Latransacciósne registró correctamente |
+w Aceptar
+3. Presione el botón
+para regresar al 133
+listado Admin.
+
+============================================================
+PÁGINA 108 de 146
+============================================================
+
+[a Sistema Workflow WENa yka
+10.5 ADMINISTRAR CAMPOS POR ENLACES
+En aplicaciones como bases de datos el campo se define como el espacio reservado para
+introducir determinados datos asociados a un tipo de dato.
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar los
+diferentes campos por enlaces; esto es adicionar, modificar o eliminar los datos de las mismas
+si así lo requiera.
+10.5.1 ¿Cómo ingresar?
+1. Seleccione el
+enlace para desplegar
+el menú de enlaces.
+IR Admin. Bases de Datos
+ER Admin. Tablas
+ER Admin. Campos
+R Admin. Llaves Foráneas | 2. Seleccioneel
+1R_Admin. Campos por O annie
+IR Admin. Llaves Primarias
+ER Admin. Parámetros
+IR Admin. IPs por usuario
+IR Admin. Estados
+ER Dibrep
+4, Lista Reportes
+££ Sacar Copia de Seguridad
+£ Restaurar Copia de Seguridad
+Al ingresar al enlace ER Admin, Campos por Enlaces el sistema desplegará por pantalla el
+listado de los campos por enlaces existentes en el sistema.
+
+============================================================
+PÁGINA 109 de 146
+============================================================
+
+vianu Funcional Fundación AUTAPO
+Sistema Workflow Wayka
+Educación para el Desarrollo
+3. Seleccione para 4. Icono para determinar
+agregar un nuevo el orden de los datos de
+campo por enlace. la A hasta la Z.
+5. Seleccione para 6. Seleccione para
+modificar un eliminar un campo
+campo por enlace. por enlace.
+410.5.2 Registrar un campo por enlace
+Seleccione el enlace E; lluevoge la ventana del listado Administrar Campos por enlaces e
+introducir los siguientes datos:
+Agregando Admin. Campos x Enlaces A
+PAEP O
+G Volver
+a - [Eulnai ojpcaión - __ (| Buscar:
+4. Seleccione e ns « Anterior Siguiente >
+inserte los datos. ¡ Tabla()= ES ]
+¡Campo (1) 3 [ i
+| Permiso = E
+"a A Lo to s s c c a am m pos pc o v n a o c ( i *s o ) s , s s o e n le ob s li a g s a ig to n r a i r o á s . un valor por defecto.
+2. Presione el
+
+============================================================
+PÁGINA 110 de 146
+============================================================
+
+]ad
+Manual Funcional Fundación AUTAPO
+E Sistema Workflow Wayka Educación para el Desarrollo
+Enlace: Denominación del apuntador de hipertexto que sirve para saltar de una información a
+otra. Por ejemplo: Administrar enlaces.
+Tabla: Se refiere al nombre de la tabla registrada en la base de datos. Por ejemplo:
+_Categorias, dib_campos, etc.
+Campo: Se refiere al nombre del campo de una tabla. Por ejemplo: Tabla _categorias;
+Campos: id_categoria, id_campo, etc.
+Permiso: Se refiere a los permisos que se les puede dar a las tablas administradas por el
+DibRap que puede ser listado (L), Adicionar (A), Modificar (M) o eliminar (B).
+Orden: Se refiere al orden de listado de los campos por enlace.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+1 Por favor, ingrese todos los campos obligatorios
+Aceptar
+Una vez presionado el botón E) Siqiente le aparecerá la siguiente pantalla donde tendrá que
+confirmar la creación del campo por enlace.
+Agregando Admin. Campos x Enlaces a
+E vower AA PP.
+Enlace =
+Tabla
+La los campos "<HULL> se les asignará un valor por defecto.
+3. Presione el botón
+para confirmar la
+creación del campo
+por enlace.
+
+============================================================
+PÁGINA 111 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón LW Acepta si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón para
+regresar al listado Admin.
+Campos por enlaces.
+10.5.3 Modificar un campo por enlace
+Seleccione el enlace [K) modificaderl listado de los campos por enlaces existentes, le aparecerá
+la siguiente pantalla donde puede modificar los datos requeridos.
+Modificando Admin. Campos x Enlaces_
+(E vowes A A
+| _ VERIFIQUELOS DATOS An Ñ
+1. Modifique | 5 « Anterior Siguiente >
+los datos. | Tabla (*) = [enlaces |
+¡Cam(p)o = [enlace]
+| Permiso=s m)
+[7] Los campos con (son obligatorios.
+2. Presione el botón
+para guardar la
+modificación.
+
+============================================================
+PÁGINA 112 de 146
+============================================================
+
+EduFcaucnidóanc pióanra A eUl DTeAsPaOrrollo
+Q Sistema Workflow Wayka
+10.5.4 Eliminar un campo por enlace
+Seleccione el enlace £ Elimindaerl listado de los campos por enlaces existentes, el sistema
+desplegará la siguiente pantalla donde podrá confirmar o cance lar dicha eliminación.
+Eliminando Admin. Llaves Foráneas
+(S volver
+'CONFIRME LA ELIMINACIÓN
+Tabla = categorías
+Campo = ult_usuario
+Tabla foránea = _usuarios
+ld campo foraneo = id_usuario
+4. Presione el botón
+para confirmar la
+eliminación del
+campo por enlace.
+Una vez presionado el botón W Aceptar! si el campo por enlace tiene alguna dependencia el
+sistema desplegará por pantalla el siguiente mensaje de error:
+| No se puede eliminar este registro, porque existen otros |
+que dependen de él |
+ES API a A O INTO |
+En caso contrario
+Si la operación fue realizada correctamente el sistema desplegará por
+pantalla el siguiente aviso:
+E y 71 TES:
+Latransacciósne istró correctamente |
+3. Presione el botón
+para regresar al
+listado Admin.
+Campos por enlaces. 139
+
+============================================================
+PÁGINA 113 de 146
+============================================================
+
+(Sy Ñ OC TY A ab i Edu F ca u c n i d ó a n c p ió a n ra A e U l D LA es P a O rrollo
+10.6 ADMINISTRAR LLAVES PRIMARIAS
+La llave primaria se define como una columna o un conjunto de columnas que identifican
+univocamente a cada fila.
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar las
+diferentes llaves primarias; esto es adicionar, modificar o eliminar los datos de las mismas si
+así lo requiera.
+10.6.1 ¿Cómo ingresar?
+4. Seleccione el
+enlace para desplegar
+el menú de enlaces.
+, Bases de Datos
+IR Admin. Tablas
+ER Admin. Campos
+IR Admin. Llaves Foráneas
+ER Admin, Campos por Enlaces | 2. Seleccione el
+AER_Admin. Llaves Primarias >= pasat
+ER Admin. Parámetros
+IR Admin. IPs por usuario
+IR Admin. Estados
+ER Dibrep
+¿Lista Reportes
+2 Sacar Copia de Seguridad
+¿2 Restaurar Copia de Seguridad
+Al ingresar al enlace ER Admin. Llaves Primarias e] sistema desplegará por pantalla el listado
+de las llaves primarias existentes en el sistema.
+
+============================================================
+PÁGINA 114 de 146
+============================================================
+
+Sistema Workflow Wayka Fundación AUTAPO
+Educación para el Desarrollo
+3. Seleccione para 4. Icono para determinar
+agregar una nueva el orden de los datos de
+llave primaria. la A hasta la Z.
+Imarias
+id_tabla id_campo MODIFICAR — ELIMINAR
+_categorias 51 E Modificar 4% Eliminar
+_dib_bases_datos 121 [E] modificar: $ Eliminar
+_dib_campos 127 E Modificar | Er Eliminar
+_dib_campos_condicion 146 [E] modificar 10% Eliminar
+_dlb_componentes 155 [modificar $ Eliminar
+_dib_consultas 182 Ejmodiricar É Eliminar
+_dib_consultas_totales 174
+_dibh_enl_campos 182
+PS (na de las tablas maestr; a i , al cual hace referencia el actual registro
+5. Seleccione para 6. Seleccione para
+modificar la llave eliminar una llave
+primaria. primaria.
+410.6.2 Registrar una llave primaria
+Seleccione el enlace de ]luevode la ventana del listado Administrar Llaves Primarias e
+introducir los siguientes datos:
+Agregando Admin. Llaves Primarias
+4) Volver
+| INTRODUZCA LOS DATOS
+1. Seleccione e | ld_tabla = [ -Elja una opciónM4 Buscar:
+inserte los datos. | e « Anterior Siguiente >
+id_campo 2
+Th Los campos con (*), son obligatorios.
+dl A los campos vacios se les asignará un valor por defecto.
+
+============================================================
+PÁGINA 115 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+ld _tabla: Identificador de la tabla que contiene la llave primaria. Por ejemplo: Tabla
+_Categorias (6), etc.
+Id_ campo: Identificador del campo que es llave primaria. Por ejemplo: Tabla _categorias
+Campo id categoria (51), etc.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+A Por favor, ingrese todos los campos obligatorios
+Una vez presionado el botón 2 Siguiente| le aparecerá la siguiente pantalla donde tendrá que
+confirmar la creación de la llave primaria.
+Agregando Admin. Llaves Primarias
+(€-) Volver
+CONFIRMLOES DATOS
+| id tabla =_ categorias
+| j =
+Y Acepta) Dl Cancela]
+A A los campos *<HULL>” se les asignará un valor por defecto.
+3. Presione el botón
+para confirmar la
+creación de la llave
+primaria.
+Una vez presi . o nado el botón W' Aceptar! si . los datos fueron Te os correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Los datos se registraron correctamente |
+W/ Aceptar
+4. Presione el botón para
+regresar al listado Admin.
+Llaves Primarias.
+
+============================================================
+PÁGINA 116 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+40.6.3 Modificar una llave primaria
+Seleccione el enlace 1*]Modificdaerl listado de las llaves primarias existentes, le aparecerá la
+siguiente pantalla donde puede modificar los datos requeridos.
+Modificando Admin. Llaves Primarias
+Q Volver
+4. Modifique VERIFIQUE LOS DATOS
+108 datos. | id_tabla= [_categorñas oo A 7 ) Buscar:
+<Arterioer di ,
+mic ampo = [51
+¿Los campos con (*), son obligatorios.
+2. Presione el botón
+para guardar la
+Una vez presionado el botón | Ys ¡guiente le aparecerá la siguiente pantalla donde tendrá que
+confirmar la modificación de la llave primaria.
+Modificando Admin. Llaves Primarias A
+E vomwer li te
+CONFIRME Los DATOS
+
+============================================================
+PÁGINA 117 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón LW Acepta! si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+Y Acepta
+4. Presione el botón
+para regresar al
+listado Admin.
+Llaves Primarias.
+10.6.4 Eliminar una llave primaria
+Seleccione el enlace E Eliminaderl listado de las llaves primarias existentes, el sistema
+desplegará la siguiente pantalla donde podrá confirmar o cancelar dicha eliminación.
+Eliminando Admin. Llaves Primarias
+¡CONFIRME LA ELIMINACIÓN
+| id_tabla = _categorias
+| E 3
+[7 Aceptar [| JE Cancelar!)
+4. Presione el botón 2. Presione el botón
+para confirmar la para cancelar la
+eliminación de la eliminación de la
+llave primaria. llave primaria.
+
+============================================================
+PÁGINA 118 de 146
+============================================================
+
+Fundación AUTAPO
+y Siovusua vy UL KILOW Wayka
+Educación para el Desarrollo
+10.7 ADMINISTRAR PARÁMETROS
+Un parámetro se define como la condición de variable a la que se asignan unos valores
+determinadosy fijos.
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar los
+diferentes parámetros; esto es adicionar, modificar o eliminar los datos de las mismas si así lo
+requiera.
+10.7.1 ¿Cómo ingresar?
+1. Seleccione el
+enlace para desplegar
+el menú de enlaces.
+Sistema ,
+, Bases de Datos
+IR Admin. Tablas
+IR Admin. Campos
+IR Admin. Llaves Foráneas
+IR Admin. Campos por Enlaces
+ER Admin. Llaves Primarias 2. Seleccioneel
+(R_AdminE . Parámetros >===
+[Contenido de imagen/tabla no legible por OCR]
+
+Al ingresar al enlace IR Admin, Parámetros e] sistema desplegará por pantalla el listado de
+los parámetros existentes en el sistema,
+
+============================================================
+PÁGINA 119 de 146
+============================================================
+
+Qy SISUCILA VVULKUOW Wayka Fundación AUTAPO
+Educación para el Desarrollo
+4. Icono para determinar
+el orden de los datos de
+la A hasta la Z.
+camp valor sistema descripcion MODIFICAR ELIMINAR
+tormato_: dliMyyyy dibrop — Vista del estilo de la fecha [E] Modificar E Eliminar
+formeto_hora — HHimm dibrap Vista delestio de la hora [modificar EY Efiminar
+gestion 2008 coimata Presente año FE) modificar El Eliminar
+gestion_siguiente 2008 ml Gestión académica siguiente [) Modificar E Etiminar
+ll_perfil_ prorroga 99 mi Código del Perfi correspondiente a la Prorróga (No debe cambiar) [E] modificar E) Eliminar
+lal_perfi_ varios 95 cejas ¡Ddelperf que contiene los conceptos varios (No debe cambiar) [E] modificar E Eliminar
+paginación 10 wayka Número de trámites por página Modificar dd Eliminar
+Pa Ú Undae las tablas maestras (foráneanso) contuine danto,e al cual hace referencia
+modificar un
+parámetro.
+10.7.2 Registrar un parámetro
+Seleccione el enlace [+ luevoge la ventana del listado Administrar Parámetros e introducir los
+siguientes datos:
+Agregando Admin. Parámetros
+(O votes
+INTRODUZCA LOS DATOS
+campo ||
+3 l1o.s I ndsaetrotse. [e ovalor = |AR A ]c Ae
+descripcion [2]
+Los campos con (*'), son obligatorios.
+A los campos vacios se les asignará un valor por defecto.
+
+============================================================
+PÁGINA 120 de 146
+============================================================
+
+Q Sistema vvorkuow Wayka Fundación AUTAPO
+Educación para el Desarrollo
+Campo: Denominación del campo que hace referencia a una parte funcional del sistema. Por
+ejemplo: Formato de fecha, formato de hora, paginación, etc.
+Valor: Se refiere al valor que tomará el campo. Por ejemplo: dd/MM/yyyy, HH:mm, 10, etc.
+Sistema: Se refiere a la denominación del sistema en uso para el campo. Por ejemplo: dibrap,
+wayka, etc.
+Descripción: Es una breve descripción representativa de lo que hace el parámetro. Por
+ejemplo: Vista del estilo de la fecha, vista del estilo de la hora, número de trámites por página,
+etc.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+CAER
+A Por favor, ingrese todos los campos obligatorios
+Aceptar
+Una vez presionado el botón le aparecerá la siguiente pantalla donde tendrá que
+confirmar la creación del parámetro.
+Agregando Admin. Parámetros
+(GS voiwer
+1 CONFIRME LOS DATOS
+1| cam= pagp.i nacoi.on
+É A los campos "<HULL> se les asignará un valor por defecto.
+3. Presione el botón
+para confirmar la
+creación del
+parámetro.
+
+============================================================
+PÁGINA 121 de 146
+============================================================
+
+| LUUCaciOl pela Úl DUESaALLULV
+Una vez presionado el botón LV boe] si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón para
+regresar al listado Admin.
+Parámetros.
+40.7.3
+Modificar un
+parámetro
+ione el enlace [E] modificdaerl listado de los parámetros existentes, le aparecerá la
+s S i e g l u e i c e c n te pantalla dondepuede modificar los datos requeridos.
+Modificando Admin. Parámetros AAA
+VERIFIQUE LOS DATOS
+los datos. valor = [8
+| sistema = [dibrap
+Pa Los campos con (*), son obligatorios.
+2. Presione el botón
+para guardar la
+modificación.
+
+============================================================
+PÁGINA 122 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+10.7.4 Eliminar un parámetro
+Seleccione el enlace EY Elimindaerl listado de los parámetros existentes, el sistema desplegará
+la siguiente pantalla donde podrá confirmar o cancelar dicha eliminación.
+Eliminando Admin. Parámetros
+Q Volver
+CONFIRME LA ELIMINACIÓN
+4. Presione el botón 2. Presione el botón
+para confirmar la para cancelar la
+eliminación del eliminación del
+parámetro. parámetro.
+Una vez presionado el botón W Aceptar si el parámetro tiene alguna dependencia el sistema
+desplegará por pantalla el siguiente mensaje de error:
+| No se puede eliminar este registro, porque existen otros |
+| que dependen de él |
+le) Volver E a |
+En caso contrario si la operación fue realizada correctamente el sistema desplegará por
+pantalla el siguiente aviso:
+Aviso
+__Latransacción se registró correctamente |
+W” Aceptar
+3. Presione el botón
+para regresar al
+listado Admin.
+Parámetros.
+
+============================================================
+PÁGINA 123 de 146
+============================================================
+
+10.8 ADMINISTRAR IPS POR USUARIO
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar los
+diferentes ips por usuario; esto es adicionar, modificar o eliminar los datos de las mismas si así
+lo requiera.
+10.8.1 ¿Cómo ingresar?
+1. Seleccione el
+enlace para desplegar
+el menú de enlaces.
+IR Admin. Bases de Datos
+IR Admin. Tablas
+ER Admin. Campos
+ER Admin. Llaves Foráneas
+lR Admin. Campos por Enlaces
+ER Admin. Llaves Primarias
+IR Admin. Parámetros pa Seleccione el
+¿1%_Admin. IPs por usuaria >= yy
+IR Admin. Estados po
+R DibRep
+2 Lista Reportes
+4, Sacar Copia de Seguridad
+4, Restaurar Copia de Seguridad
+Al ingresar al enlace IR Admin, IPs por usuario e] sistema desplegará por pantalla el listado
+de los ips por usuario existentes en el sistema,
+
+============================================================
+PÁGINA 124 de 146
+============================================================
+
+A DUACIVAL LAN) LL£LAL NS
+A Educación para el Desarrollo
+3. Seleccione para 4. Icono para determinar
+agregar a un ipa el orden de los datos de
+un usuario. la A hasta la Z.
+me un dato, al cual hace referencia el actual registro
+5. Seleccione para 6. Seleccione para
+modificar el ip del eliminar el ip del
+usuario. usuario.
+40.8.2
+Registrar un ip para un usuario
+Seleccione el enlace ET!evoge la ventana del listado Administrar Usr_ips e introducir los
+siguientes datos:
+Agregando _Usr_IpS A
+INTRODUZCA LOS DATOS
+|i d 5 | - Elunia jopaciióón n -- [|4] BuscaBuscar:
+| < Anterior Siguiente>
+Le sempoear “3, bd son l e o s b li a g s a ig to n r a i r o á s . un valor por defecto.
+Altos campos vacios se
+
+============================================================
+PÁGINA 125 de 146
+============================================================
+
+nn Fundación AUTAPO
+Sistema Workflow Wayka
+Educación para el Desarrollo
+ld usuario: Se refiere al identificador del usuario dentro de la tabla _usuarios. Por ejemplo:
+I 1 p ,2 : . S e e te . refiere al número que identifica de manera lógica y jerárquica a una interfaz de una
+computadora dentro de la red. Por ejemplo: 192.168.3.75, etc.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+Por favor, ingrese todos los campos obligatorios
+¿be
+( 7]
+Una vez
+presionado el botón Sigui:ente| 1g aparecerá la siguiente pantalla donde tendrá que
+confirmar la creación del ip por usuario.
+[Contenido de imagen/tabla no legible por OCR]
+
+Pa A los campos *"<HULL> se les asignará un valor por defecto.
+ado el botón 2. si Joloss datos fueron registrados correctamente el
+U sis n t a e m v a e z d e p s r p e l s e i g o a n r : á por pantalla el siguiente aviso:
+| Aviso
+Los datos se registraron correctamente
+4. Presione el botón para
+regresar al listado Admin.
+Usr_ips.
+
+============================================================
+PÁGINA 126 de 146
+============================================================
+
+AVALALLUNLA A CALILIVILAL Fundación AUTA PO
+Sistema Workflow Wayka Educación para el Desarrollo
+40.8.3 Modificar un ip para un usuario
+Seleccione el enlace E] Modificdaerl listado de los ips por usuario existentes, le aparecerá la
+siguiente pantalla donde puede modificar los datos requeridos.
+Modificando _usr_ips
+(O Volver
+n=LO S DATOS
+Epa LAu suario= A es
+< Anterior Siguiente >
+= (192168375 |]
+¿Los campos con (*), son obligatorios.
+2. Presione el botón
+para guardar la
+Una vez presionado el botón | Siguiente le aparecerá la siguiente pantalla donde tendrá que
+confirmar la modificación deli p para el usuario.
+Modificando _usr_ips A
+AA le nl
+(C vower
+¡CONFIRME LOS DATOS
+= 192.168.3.75
+[Y Aceptar) . JE Cancelar
+3. Presel ibootónn paera
+confila rmmodificaaciórn
+del ip para el usuario.
+
+============================================================
+PÁGINA 127 de 146
+============================================================
+
+Fundación AUTAPO
+1 a AECI
+intemáW orkflow Wayka Educación para el Desarrollo
+Una vez presionado el botón LY Aceptar si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+w” Aceptar
+4. Presione el botón
+para regresar al
+listado Admin.
+Usr_ips.
+10.8.4 Eliminar un ip para un usuario
+Seleccione el enlace 7) Eiminar del listado de los ips por usuario existentes, el sistema
+desplegará la siguiente pantalla donde podrá confirmar o cancelar dicha eliminación.
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 128 de 146
+============================================================
+
+Manual Funcional Fundaciión AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+10.9 ADMINISTRAR ESTADOS
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar los
+diferentes estados; esto es adicionar, modificar o eliminar los datos de las mismas sí así lo
+requiera.
+10.9.1 ¿Cómo ingresar?
+1. Seleccione el
+enlace para desplegar
+el menú de enlaces.
+IR Admin. Bases de Datos
+IR Admin. Tablas
+IR Admin. Campos
+IR Admin. Llaves Foráneas
+ZR Admin. Campos por Enlaces
+IR Admin. Llaves Primarias
+IR Admin. Parámetros
+IR Admin. IPs por usuario 2. Seleccione el
+enlace para
+(R_Admin : . Estados == pora.
+IR DibRep
+¿E Lista Reportes
+¿2 Sacar Copia de Seguridad
+2, Restaurar Copia de Seguridad
+Al ingresar al enlace ER Admin. Estados e] sistema desplegará por pantalla el listado de los
+estados existentes en el sistema.
+
+============================================================
+PÁGINA 129 de 146
+============================================================
+
+Fundación AUTAPO
+»» "VAYKa
+Educación para el Desarrollo
+3. Seleccione 4. Icono para determinar
+para agregar el orden de los datos de
+un estado. la A hasta la Z.
+imagen MODIFICAR — ELIMINAR
+est_ibretas estado.gif E) Modificar ba Eliminar
+estudiantes estadogif [E]modificar $ Eliminar
+Mor_tipos_notas activo.gif [K) Modificar $ Eliminar
+natas estado.gif KR Modificar E Eliminar
+postuientes estedogif [E]modificar (7 Eliminar
+Frd á (una de las tablas 3 ene un dato, al cual hace referencia el actual registro
+6. Seleccione
+para modificar el para eliminar
+estado. el estado.
+10.9.2
+Registrar un estado
+Seleccione el enlace 47 huevo qe la ventana del listado Administrar Estados e introducir los
+siguientes datos:
+Agregando Admin. Estados CA
+"INTRODUZCA LOS DATOS
+1. Inserte pS
+los datos.
+TH Los campos con (*), son obligatosios.
+A tos campos vacios se les asignará un valor por defecto.
+
+============================================================
+PÁGINA 130 de 146
+============================================================
+
+Manual Funcional
+Sistema Workflow Wayka Fundación AUTAPO
+Educación para el Desarrollo
+Tabla: Se refiere al nombre de la tabla dentro de la base de datos. Por ejemplo: est libretas
+estudiantes, etc. >
+Imagen: Es la imagen correspondiente al estado. Por ejemplo: estado.gif, activo! ¡peg, etc.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+Una vez presionado el botón Siguiente le aparecerá la siguiente pantalla donde tendrá que
+confirmar la creación del estado.
+Agregando Admin. Estados
+(GS votwer
+tabla = est ibretas
+a A los campos "<HULL>' se les asignará un valor por defecto,
+Una vez presionado el botón Acepta si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+—————IVIOO
+DES
+Los datos se registraron correctamente
+
+============================================================
+PÁGINA 131 de 146
+============================================================
+
+Mañnuál Funcional Fundaci 7 ón AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+40.9.3 Modificar un estado
+Seleccione el enlace [E] modificar del listado de los estados existentes, le aparecerá la siguiente
+pantalla donde puede modificar los datos requeridos.
+Modificando Admin. Estados
+(Q vowwer
+( VERIFIQUE LOS DATOS
+. Modifique | O
+os datos. | tabla = [eslti bretas |
+[£]Los campos con (*), son obligatorios.
+2. Presione el botón
+para guardar la
+modificación.
+Una vez presionado el botón E) Siguiente| je aparecerá la siguiente pantalla donde tendrá que
+confirmar la modificación del estado.
+Modificando Admin. Estados o
+¡CONFIRME LOS DATOS
+3. Presione el botón
+para confirmar la
+modificación del
+estado.
+
+============================================================
+PÁGINA 132 de 146
+============================================================
+
+A Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez presionado el botón LW Acepta! si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente
+4. Presione el botón
+para regresar al
+listado Admin.
+Estados.
+40.9.4
+Eliminar un estado
+nlace E Eliminar del listado de los esta : dos ex 2 i % stentes, el sistema desplegará la
+s S i e g l u e i c e c n io te n e p a e n l t a € l la donde podrá confirmar o cancelar dicha eliminación.
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 133 de 146
+============================================================
+
+Manual Funcional Fuunndidacaió n AUTAAPPOO
+Sistema Workflow Wayka Educación prara el Desarrollo
+11 ENLACE UBICACIONES
+11.1 ADMINISTRAR PAÍSES
+La palabra país engloba a un estado, una nación o a una región. Es el principal nónimo de
+estado nacional: un área geográfica y una entidad políticamente independiente con su propio
+gobierno, administración, leyes, la mayor parte de las veces una constitución, policía, fuerzas
+armadas, leyes tributarias y un grupo humano.
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar los
+diferentes países; esto es adicionar, modificar o eliminar los datos de las mismas % así lo
+requiera.
+11.1.1 ¿Cómo ingresar?
+ER Adrnin. Países -— | elenlace para
+IR Admin. Departamentos Pr
+IR Admin. Provincias
+IR Admin. Localidades
+Al ingresar al enlace IR Admin. Países el sistema desplegará por pantalla el listado de los
+países existentes en el sistema.
+
+============================================================
+PÁGINA 134 de 146
+============================================================
+
+orsucmua vvurK How Wayka Fundación AUTAPO
+Educación para el Desarrollo
+4. Icono para determinar
+el orden de los datos de
+la A hasta la Z.
+Hacionalidad MODIFICAR — ELIMINAR
+A, Argentina [|] Modificar E) Eliminar
+BOLIVIA — Boliviana [%|Modificar ÉY Eliminar.
+BRASIL. Brasileña [%)Modificar ff Eliminar.
+CHILE Chilena FE) modificar $ Eliminar
+ECUADOR Ecuatoriano — [%]modificar [3 Eliminar.
+PERÚ Peruana
+P m7 d (Una de las tablas mas ' ne un dato, al cual hace referencia el actual registro
+5. Seleccione 6. Seleccione
+para modificar el para eliminar
+país. el país.
+41.1.2
+Registrar un país
+Seleccione el enlace [Nuevo ge la ventana del listado Administrar Países e introducir los
+siguientes datos:
+Agregando Admin. Países AA
+(O vower A
+INTRODUZCA LOS DATOS
+4. Inserte l Pais (*) = [ ]
+los datos. Mac 70 =>]
+Los campos <on (*), son obligatorios.
+A los campos vacíos se les asignará un valor por defecto.
+2, Presione el
+botón para
+guardar.
+
+============================================================
+PÁGINA 135 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+S Sistema Workflow Wayka Educación para el Desarrollo
+País: Territorio que forma una unidad geográfica, política y cultural. Por ejemplo: Bolivia,
+Perú, etc.
+Nacionalidad: Estado propio de la persona nacida o naturalizada en una nación. Por ejemplo:
+Nacionalidad boliviana, peruana, etc.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+1 Por favor, ingrese todos los campos obligatorios
+[aceptar]
+Aceptar
+Una vez presionado el botón E) Siguiente le aparecerá la siguiente pantalla donde tendrá que
+confirmar la creación del país.
+Agregando Admin. Países
+G Volver
+CONFIRMLOES DATOS
+LaS z
+(QUA ceptas) L 38 Cancer
+Pa A los campos "<HULL> se les asignará un valor por defecto.
+3. Presione el botón
+para confirmar la
+creación del país.
+Una vez presionado el botón W Aceptar] «i los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+| Ao ie
+¡Los datos se registraron correctamente
+w Aceptar
+4. Presione el botón
+para regresar al listado
+Admin. Países.
+
+============================================================
+PÁGINA 136 de 146
+============================================================
+
+Manual Funcional :
+Fundación AUTAPO
+G Sistema Workflow Wayka Educación para el Desarrollo
+11.1.3 Modificar un país
+Seleccione el enlace ]Modificaderl listado de los países existentes, le aparecerá la siguiente
+pantalla donde puede modificar los datos requeridos.
+Modificando Admin. Países.
+G Volver
+1. Modifique - VERIFIQUE LOS DATOS
+los datos. Pais ()= [BOLIVIA 7
+Macionalidad7
+E Los campos con (*), son obligatorios.
+2. Presione el botón
+para guardar la
+modificación.
+Una vez presionado el botón | siguiente le aparecerá la siguiente pantalla donde tendrá que
+confirmar la modificación del país.
+E vomer
+CONFIRME LOS DATOS
+| Pais = BOUVIA
+
+============================================================
+PÁGINA 137 de 146
+============================================================
+
+j Fundación AUTAPO
+Manual Funcional
+Educación para el Desarrollo
+Sistema Workflow Wayka
+Una vez presionado el botón [Y Aceptar si los datos fueron registrados correctamente el
+| sistema desplegará por pantalla el siguiente aviso:
+Aviso
+Los datos se registraron correctamente |
+4. Presione el botón
+para regresar al
+listado Admin.
+Países.
+11.1.4 Eliminar un país
+Seleccione el enlace E Eliminar de] listado de los países existentes, el sistema desplegará la
+siguiente pantalla donde podrá confirmar o cancelar dicha eliminación.
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 138 de 146
+============================================================
+
+G Siostem a Wor-k flow Wayka EduFcaucnidóanc pióanra A eUl DTeAsPaOrrollo
+11.2 ADMINISTRAR DEPARTAMENTOS
+Un departamento se define como una división administrativa en un país.
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar los
+diferentes departamentos; se tiene la posibilidad de crear un nuevo departamento además de
+modificar o eliminar una ya existente.
+11.2.1 ¿Cómo ingresar?
+4. Seleccione el
+enlace para desplegar
+el menú de enlaces.
+NUF
+[Ubicaciones |
+IR Admin, Países 2. Seleccione
+el enlace para
+1R_Admin. Departamentos> ingresar.
+IR Admin. Provincias
+IR Admin. Localidades
+Al ingresar al enlace ER Admin. Departamentos «¿ sistema desplegará por pantalla el listado
+de los departamentos existentes en el sistema.
+
+============================================================
+PÁGINA 139 de 146
+============================================================
+
+Le Departamento MODIACAR — ELIMINAR
+ARGENTINA TUCUMÁN E) Modificar > Eliminar
+BOLIVIA PANDO E] Modificar me Eliminar
+BOUVIA — BEN ER Modificar vr Eliminar
+BOLIVIA ORURO 1 Modificar va Eliminar
+BOuvia COCHABAMBA 1 Modificar 1 Eliminar
+BOLIVIA LA PAZ 1 Modificar Eliminar
+Pal Una de las tablas maes ¡forá dato, al cual hace referencia el actual registro
+6. Seleccione
+para modificar un para eliminar un
+departamento. departamento.
+41.2.2
+Registrar un departamento
+Seleccione el enlace dz iluevoge la ventana del listado Administrar Departamentos e introducir
+los siguientes datos:
+Agregando Admin. Departamentos
+4) Volver
+— INTRODUZCALOS DATOS
+be rnapala pio yy 3 E Elizuna opción - 4 Buscar:
+e inse 'OS < Anterior Siguiente »
+datos.
+Dis c a c m am p p o o s s c o v n a c ( í * o ) s , s so e n le o s b l a ig s a ig to n r a i r o á s . un valor por defecto.
+
+============================================================
+PÁGINA 140 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+País: Territorio que forma una unidad geográfica, política y cultural. Por ejemplo: Bolivia,
+D Pe e r p ú a , r e ta tc m . ento: División de un territorio sujeta a una autoridad administrativa. Por ejemplo:
+Bolivia esta dividida en 9 departamentos, La Paz, Tarija, Potosí, etc.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+A Por Favor, ingrese todos los campos obligatorios
+PAK
+Aceptar
+Una vez presionado el botón E) Siqient le aparecerá la siguiente pantalla donde tendrá que
+confirmar la creación del departamento.
+Agregando Admin. Departamentos
+(€) Volver
+CONFLIORS MDATEOS
+| Pais = BOLIVIA
+¡pret= LoAPAZ
+L $ »
+Fa los campos "<HULL> se les asignará un valor por defecto.
+Una vez presionado el botón Y Acepta si los datos fueron registrados correctamente el
+sistema desplegará por pantalla el siguiente aviso:
+RSE + AR
+Los datos se registraron correctamente |
+4, Presione el botón para
+regresar al listado Admin.
+Departamentos.
+
+============================================================
+PÁGINA 141 de 146
+============================================================
+
+— Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+11.3 ADMINISTRAR PROVINCIAS
+La provincia se define como la división administrativa del territorio de un estado, sujeta por lo
+comúna una autoridad administrativa.
+Este módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar los
+diferentes provincias; se tiene la posibilidad de crear una nueva provincia además de modificar
+o eliminar una ya existente.
+11.3.1 ¿Cómo ingresar?
+4. Seleccione el
+enlace para desplegar
+el menú de enlaces.
+IR Admin. Países
+' 2. Seleccione
+IR Admin. Departamentos el enlace para
+«ñ_Admin. Provincias >= AMS TR
+IR Admin. Localidades
+Al ingresar al enlace ER Admin. Provincias e] sistema desplegará por pantalla el listado de las
+provincias existentes en el sistema.
+
+============================================================
+PÁGINA 142 de 146
+============================================================
+
+Fundación AUTAPO
+Sistema Workflow Wayka
+Educación para el Desarrollo
+4. Icono para determinar
+el orden de los datos de
+la A hasta la Z.
+MODIFICAR — ELIMINAR
+ARGENTINA TUCUMÁN TUCUMÁN [modificar 553 Eliminar
+BOLVMIA TARA ARCE [E] modificar v4 Eliminar
+BOLIVIA TARA AVILEZ 19 Modificar E Eliminar
+BOLIVIA TARA GRAN CHACO 13 Modificar PA Eliminar
+BOLIVIA POTOSÍ ANTONIO QUVARRO — [E] modificar [3 Eliminar
+BOLIVIA POTOSÍ CHARCAS E Modificar. bn Eliminar
+BOLIVIA POTOSÍ
+BOLIVIA POTOSÍ
+5. Seleccione
+para modificar para eliminar
+una provincia. una provincia.
+11.3.2 Registrar una provincia
+Seleccione el enlace (> Huevoge la ventana del listado Administrar Provincias e introducir los
+[Contenido de imagen/tabla no legible por OCR]
+
+Departamento (*) 3 [- Elja unao pcion- ¡4 Buscar:
+< Anterior Siguiente >
+Pio campos con (*), son obligatorios.
+A los campos vacíos se les asignará un valor por defecto.
+
+============================================================
+PÁGINA 143 de 146
+============================================================
+
+Fundación AUTAPO
+Manual Funcional
+Educación para el Desarrollo
+j Sistema Workflow Wayka
+País: Territorio que forma una unidad geográfica, política y cultural. Por ejemplo: Bolivia,
+D Pe e r p ú a , r e ta tc m . ento: División de un territorio sujeta a una autoridad administrativa. Por ejemplo:
+Bolivia esta dividida en 9 departamentos, La Paz, Tarija, Potosí, etc.
+Provincia: División administrativa del territorio de un departamento, sujeta por lo común a
+una autoridad administrativa. Por ejemplo: El departamento de La Paz está dividida en 20
+provincias Murillo, Larecaja, Pacajes, etc.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+A Por favor, ingrese todos los campos obligatorios
+Aceptar
+o —=—————
+Una vez presionado el botón le aparecerá la siguiente pantalla donde tendrá que
+confirmar la creación de la provincia.
+rai
+Agregando Admin. Provincias
+G Volver
+o Pais = BOLIVIA
+| Departamento = LAPAZ
+= MURILLO
+Y acepta) DE Cancelar
+Pa A los campos "<HULL> se les asignará un valor por defecto.
+
+============================================================
+PÁGINA 144 de 146
+============================================================
+
+Fundación AUTAPO
+[57 DISU C LU HIA VVULKIOW WVayka Educación para el Desarrollo
+11.4 ADMINISTRAR LOCALIDADES
+Se define una “localidad” a un municipio, a la llamada “zona urbanizada” de un pueblo o
+Ciudad (sea que quede dentro de los límites de un municipio, sea que, por el contrario, rebase
+esos límites), a una porción de esa “zona urbanizada” (especialmente cuando cada porción fue
+alguna vez un trazado continuo separado y luego se consolidó con otros en uno solo), y, hasta
+a un barrio, loteo, villa de emergencia, etc. dentro de una “zona urbanizada”.
+Éste módulo fue realizado con la ayuda del sistema DibRap, éste le permite administrar las
+diferentes localidades; se tiene la posibilidad de crear una nueva localidad además de
+modificar o eliminar una ya existente.
+[Contenido de imagen/tabla no legible por OCR]
+
+Al ingresar al enlace IR Admin. Localidades el sistema desplegará por pantalla el listado de
+las localidades existentes en el sistema.
+
+============================================================
+PÁGINA 145 de 146
+============================================================
+
+A A Sn
+4. Icono para determinar
+el orden de los datos de
+la A haslat aZ.
+a Provincia Localidad MODIFICAR — ELIMIMAR
+ARGENTINA TUCUMÁN TUCUMÁN TUCUMÁN [%) Modificar £9 Eliminar
+BOLIVIA ORURO SAJAMA PUJINI 1 Modificar [4 Eliminar
+BOLIVIA PANDO MADRE DE DIOS SENA FC) Modificar. E Eliminar
+BOLIVIA. LAPAZ MURILLO TIPUANI FE) Modificar E Eliminar
+BOLIVIA. ORURO AVAROA LOMA, modificar E) Eliminar
+BOLIVIA PANDO MANURPI PUERTO RICO [E)Modificar E Eliminar
+BOLIVIA PANDO NICOLÁS SUÁREZ ALTO BAHIA Modificar $ Eliminar
+para eliminar
+una localidad.
+41.4.2 Registrar una localidad
+Seleccione el enlace [+luevoge la ventana del listado Administrar Localidades e introducir los
+siguientes datos:
+Agregando Admin. Localidades
+CAR Ñ
+(GS votuer
+| INTRODUZCA LOS DATOS
+| < Anterior Siguiente>
+e inserte la Departamento (*)3 [-Eliauna opcion- si car:
+P - Uos c a c m am po p s o s c o v n a c ( i * o ), s s c o e n l e o s b l a ig s a ig t n o a ri r o á s . un valor por defecto.
+
+============================================================
+PÁGINA 146 de 146
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+País: Territorio que forma una unidad geográfica, política y cultural. Por ejemplo: Bolivia,
+Perú, etc.
+Departamento: División de un territorio sujeta a una autoridad administrativa. Por ejemplo:
+Bolivia esta dividida en 9 departamentos, La Paz, Tarija, Potosí, etc.
+Provincia: División administrativa del territorio de un departamento, sujeta por lo común a
+una autoridad administrativa. Por ejemplo: El departamento de La Paz está dividida en 20
+provincias, Murillo, Larecaja, Pacajes, etc.
+Localidad: División del territorio de una provincia, sujeta a una autoridad. Por ejemplo: La
+provincia Murillo tiene las localidades de Ciudad de La Paz, Mecapaca, etc.
+Si no se insertó un campo obligatorio se le informará mediante el siguiente aviso:
+lx)
+A Por Favor, ingrese todos los campos obligatorios
+[eceptar_)
+Una vez presionado el botón Siguiente | Je aparecerá la siguiente pantalla donde tendrá que
+confirmar la creación de la localidad.
+Agregando Admin. Localidades Le
+Duo
+CONFIRME LOS DATOS
+Pais = BOLIVIA
+IP 1 09 campos "<HULL> se les asignará un valor por defecto.

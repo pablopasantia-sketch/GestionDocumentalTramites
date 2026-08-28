@@ -1,0 +1,2180 @@
+============================================================
+PÁGINA 1 de 65
+============================================================
+
+MANUAL FUNCIONAL
+ENCARGADO DE VENTANILLA ÚNICA
+INDICE DE CONTENIDO
+2. INTRODUCCION ionsnrnmssrarrerrra nicas isc ... 1
+Ll JUE. ES WORKFLOW a orrmanmurntaarriiaanartataanaaacnianataa 1
+1.2 LQUÉSIGNIFICA Wayka? aouunosnomarranerninnairsrrmiissiacmojurmrmarrarciraneáió ... 1
+LI SISTEMA WORKFLOW WAYKA scaamrrima raraWV.Vraontrrsmcririiósas 1
+22 LEQUENOS arar Irsa ... 2
+E TÉRMINOS ostratito 5
+A o EEE AO 5
+LA “DM ida 5
+US. CAMEO A AAA AAA AAA A AS 6
+ES: teus SAAAA A 6
+ET. TACA AA sddd 6
+TM. TIMES AAA 6
+DN. ESOO VIII AAa 6
+S. . FUNCIONALIDADES == 7
+TD EAS Ao 7
+ES. PROS sAAE AR A RRA 8
+6 REQUERIMIENTOS. BASICOS ... 9
+6 - ENMODSCVIÓOS iii ... 9
+ED: - CONCA ci 9
+3 A |] ... 10
+Ti COMOINGRESAR ALSISTEMA ii AA 10
+> RACINA PRIN CIR is 11
+
+============================================================
+PÁGINA 2 de 65
+============================================================
+
+8.2. Reporte global de procesos de NegoCiO ... 13
+9: INGRESVDAL SISTE Amcommnanainanaaamnanmnaanseroass ... 17
+LO: ACCESOS ninas tan narcovsraisi 18
+10 d COMBO CIBER ana, ... 18
+Ll, MIESCRITO isos ERANiia 21
+11.1. Creación de procesos de NegociO ... 21
+dddd, — AQUA ARRIVOS iii atacara 23
+111.2. Descargar archivos adjuntos ... 24
+11.2. Avanzar un proceso de Negocio ... 26
+11.3. — Retroceder Un proceso de Negocio ... 27
+11. —NUSPENCIENTES erouararstacionanianamaaVWariarrniaaascr ... 28
+12. ADMINISTRACIÓN incuraarrrtadra4t IEnA 3 ... 1
+19. ANALISS Y EXPLOTACION +. cosittaraa eestada ... 35
+132. PTOCESOS dE DOSOCIO ... 35
+34. TRANSPARENCIA ... 39
+14.4. PLOCESOS de NOBOGÍO iccvccconAioNnAiii nA nai ai iiiii ... 39
+TER. — POMCAMPOS sisusicisiccnin AAAA A 42
+BB. Vista eje cUtÍIVA siii AA 48
+TO: PIOLESOS CONCIUIAOS «cria 62
+18. GRUPOS DE TRABAJO 55 00 ... 64
+51 Administración de Mural ircid ... 64
+15.111. Registrar Nueva NOTICÍA ioriniamr iiscónsntinasicaoinnnisasaiacació ... 65
+154.2. Moglficar Nolan ... 66
+53 Bliminar No ririiirrcnr mr ... 66
+15.2. Administración de MÍOS innata ... 67
+15.2.2. Eliminar Hilo de TrabdlO ... 68
+15.23. listado de HIlOS Trabajo sismo marras ... 69
+15:28. CrEAr NUEVO SEEMENTO isis ais ... 70
+
+============================================================
+PÁGINA 3 de 65
+============================================================
+
+¿QUÉ ESUA CEIM Perra noti 70
+15.25. LISTA SEGMENTOS oommmmnnannininivanmaainaa namaa ... 72
+15:28. — AQUUITÁR SCRIVOS cnussororrmanrnsir narra aan ... 72
+16. CORRESPONDENCIA ... 73
+161.2 Adjuntar ArCRIVOS coxmonsiomaitaimanmrararacaiiamiiáinciciiirs ... 76
+16.1.3. Descargar archivos AdjUNtOsS ... 77
+16.2. Avanzar una COrrespondencia ... 78
+163. — BONOIENTES suscrita rara7 ... 9
+17. ¿CÓMO SALIR DEL SISTEMA? oscar raritcreeeiós ... 83
+
+============================================================
+PÁGINA 4 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+8. PAGINA PRINCIPAL
+Al ingresar al sistema, se mostrará la siguiente información:
+- INGRESAR AL SISTEMA '
+Usuario [_]
+Q Búsqueda proceso de negocios
+Z Reporte global de procesos de negocios
+romcar]|| PERS]
+e En la parte central de la pantalla la opción para ingresar al sistema con usuario y
+e Yenla parte inferior central se encuentran las opciones de búsqueda de procesos de
+negocio y los reportes globales de los procesos de negocio. (Ver Figura 2).
+8.1. Búsqueda de procesos de negocio
+En la pantalla principal esta opción tenemos la posibilidad de hacer búsquedas de
+procesos de negocio y obtener toda la información del mismo de la siguiente manera. (Ver
+Búsqueda proceso de negocios Al a g -
+2 Reporte global de procesos de negocios
+
+============================================================
+PÁGINA 5 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez seleccionado el enlace se abrirá una pantalla en la cual se debe ingresar la Gestión
+en la que se inició trámite/correspondencia que esta buscando y posteriormente el
+número de hoja de ruta que se le asignó. (Ver figura 4).
+[Contenido de imagen/tabla no legible por OCR]
+
+El resultado de la búsqueda mostrará la siguiente pantalla los siguientes datos:
+En la parte superior los datos generales como el número de proceso, las
+referencias registradas para ser visualizadas, y la fecha de ingreso del proceso
+En la parte central nos muestra el flujo del proceso en forma gráfica donde los
+iconos en color azul representa las actividades concluidas y los iconos en color
+naranja indican las actividades que faltan
+En la parte inferior se muestra un detalle histórico del proceso de negocio donde
+se indica las actividades y el estado actual en la cual se encuentra el proceso, los
+responsables que atendieron dichas actividades, el tiempo estimado y
+transcurrido que se tomo en atender, los proveídos registrados por los usuarios en
+cada actividad, y los documentos que se subieron al sistema. (Ver Figura 5)
+[Datos del proceso de negocio
+DATOS CENERALES
+REFERENCIAS
+Benkre del tram: iNtoeamí dCaboallerro
+1D 2/1 21311006 TIMAID06 TIMO
+1500 1813 “nx PE 05
+[A A ciirá adas condrdas 2 Acñicidades quetaliza
+Bota: Acercar eLmoose al cuadro para var la actividad - Unidad
+DETALLE MISTÓRICO DEL PROCESO DK HECOCID
+Acida Responeclila P.-N<A Prvrádo Adjuanios
+A Trujillo Delina
+ÑO com 4. Corpo Cojo OMA y pg)
+liquidación y exrega del Unidad Dincción de
+comprobets kgs
+Murillo Vladimir Raciládo
+E 4 Congo Asistartdae ALCA 0-2
+ln arcameta R c e ió vi n s ión guenl de U Ayt n ym i y d i n a i d ci ra Já c d ió im n U d lb e e na 1 DÍSG) 3 E 6 a M n S i ie a xg d tuo o asd o s eadas lo to s d a c s u a l l a e s s A no y . y da scuet P o a a s a os uñas que
+Figura 5
+
+============================================================
+PÁGINA 6 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+8.2. Reporte global de procesos de negocio
+Al seleccionar esta opción tenemos la posibilidad de hacer búsquedas de nuestros
+procesos de negocio, por áreas y en un periodo de fechas determinado, de la siguiente
+manera. (Ver Figura 6).
+Q Búsqueda proceso de negocios
+A Reporte global de procesos de negocios>
+Figura 6
+Una vez seleccionado el enlace se abrirá una pantalla en la cual se debe ingresar la Gestión
+en la cual se esta trabajando y el número de proceso que se esta buscando. (Ver figura 7).
+Reporte global de procesos de negocio
+_ INTRODUZCA LOS DATOS
+lzm(*)a : | Diección de AdmiristraTecniótonña l__2 ] 27
+Peña a 0) = [20051212 IE E
+9 http://ocalhost:8080 ... [2] 5%
+<« < Diciembre 2006 > »
+ANA
+18|19|20|21|22/23
+24|25|26/27|28|29|30
+Terminado
+Figura 7
+El resultado de la búsqueda es un listado de:
+e Losprocesos iniciados y cuantos fueron iniciados.
+e De aquellos que están en flujo (Movidos) y cuántos son.
+
+============================================================
+PÁGINA 7 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+e También de los procesos que fueron concluidos y la cantidad de los mismos. (Ver
+Figura 8).
+Reporte Global de Procesos/Trámites
+Volver
+Periodo de 01/09/2007 al 31/01/2008
+5. Seleccione un tipo
+INICIADOS
+PROCESO CANTIDA de proceso ae
+Cambio de Nombre > 0]
+Certificación de Valor Catastral 0
+MOYIDOS
+PROCESO CANTIDAD
+Cambio de Nombre í 60
+Certificación de Desglose El 4
+Certificación de Valor Catastral. 7
+TOTAL ce ES
+CONCLUIDOS
+PROCESO CANTIDAD
+Cambio de Nombre dde E 1310
+Certificación de Desglose. ] 89
+Certificación de Valor Catastral. 166
+1 A
+Figura 8
+Al seleccionar un determinado proceso nos permitirá ver listado de los procesos que se
+encuentran en ese grupo — Iniciados, en flujo, concluidos -. (Ver Figura 9).
+
+============================================================
+PÁGINA 8 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+A A e RI E - A
+Reporte global de procesos de negocio
+OVolver
+RESULTADO DE LA BÚSQUEDA
+e TROCKSO REFERENCIAS AECI TAO
+á ¡ 7 e Publicación dela Convyo Ascignaacitóno der CiUaCH Nembre dd Técn : ico del Arm G a e n So e l r i a c l itenda Asignado el Proceso :
+21/02/2007
+Comratacdiones 0925
+6. Seleccione
+21/02/2007
+1133
+Nembae del Técnico del Arva Soliciturdo Asignado el Proceso :
+Axesa Solic: iSetcraetarnia Gteneeral
+Fecdah enavio : 09/04/2007 1022
+Fecha de recep: 21d/04e/20n07
+Nesnbae del Tónico del Area Solicitarda Asignado el Proceso : Jumn Carlos
+E ) Mirmda Rojes
+4 Pura Elaboración de Informe de Contrato y Contruto Marea Solicitante : JICA
+Contrataciones Para sub area : 0 11:01
+asimiaclan: Fecdeh enavio : 09/04/2007
+Figura 9
+Para ver el detalle de un proceso — trámite/correspondencia — debe hacer clic sobre el tipo
+de proceso como se muestra en la figura 9.
+El resultado de la búsqueda mostrará la siguiente pantalla los siguientes datos:
+e En la parte superior los datos generales como el número de proceso, las
+referencias registradas para ser visualizadas, y la fecha de ingreso del proceso.
+e En la parte central nos muestra el flujo del proceso en forma gráfica donde los
+iconos en color azul representa las actividades concluidas y los iconos en color
+naranja indican las actividades que faltan.
+e En la parte inferior se muestra un detalle histórico del proceso de negocio donde
+se indica las actividades y el estado actual en la cual se encuentra el proceso, los
+responsables que atendieron dichas actividades, el tiempo estimado y
+transcurrido que se tomo en atender, los proveídos registrados por los usuarios en
+cada actividad, y los documentos que se subieron al sistema. (Ver Figura 10).
+
+============================================================
+PÁGINA 9 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+11. MI ESCRITORIO
+11.1. Creación de procesos de negocio
+Este enlace nos permite iniciar la creación de procesos de negocios seleccionando la
+opción correspondiente como se muestra en la siguiente pantalla: (Ver figura 21).
+Accesos Administración Análi
+“Creaciódne procesos de negoció”
+Sl Mis pendientes
+'l Mis Pendientes Agrupados
+El Mis pendientes limbo
+SÍ Recepción de correspondencia
+Figura 21
+Una vez seleccionado el enlace el sistema le desplegará la pantalla siguiente en la cual se
+lista los procesos asignados al usuario: (Ver Figura 22).
+Creación de procesos de negocio
+Proceso de negocio |-S eleccione— A
+— Seleccione —
+Solicitud de Compras Menores
+Figura 22
+Al seleccionar el proceso de negocio, se desplegará un formulario para registrar los datos
+del proceso, seguidamente presionar sobre el botón “Aceptar”, para confirmar la creación
+del proceso. (Ver Figura 23).
+
+============================================================
+PÁGINA 10 de 65
+============================================================
+
+=—— J UMUUuUUr:
+Sistema Workflow Wayka Educación para el Desarrollo
+Creación de proceso de negocio
+¡Proceso de negoclo [ Solicitud de viajes dY]
+Fecha :: 29/07/2008 Ho:: [14r : a59: 11] PROVEIO
+Gerente | IngA. ndrPreeisiga (Ys! D
+Programa [Progder Qamua inua
+Coordinador [Rivardo Gurmán |
+Nombrdeel Funcionario [RafaRel avila] E
+Para realizar análisis de campo en las provincias ] | >
+Motdei vviaoje 1. Registrar los E)
+rede avio soyaao E] recrmcertao srorano JE a)
+Y 2. Presionar
+Wie sobre el botón
+Figura 23
+En la parte derecha se muestra una opción para registrar el proveído, además se lista un
+histórico de los proveídos, detalles como quien la escribió el proveído, cuál es su cargo, la
+unidad a la que pertenece y en qué fecha se envió, y el texto del Proveído (esta lista se va
+formando a medida que pasan las actividades. (Ver Figura 24)
+PROVEIDO
+6. Presione sobre el
+botón para bajar un
+documento
+5. Presione sobreel ap An > Descargar Adjuntos»
+botón para Adjuntar DETALLE HISTÓRICO DE PROVEIDOS ds
+e deco REMITENTE PROYEIDO proveído y un
+Rafael Revilla | detalle del mismo
+Cargo Técnico de área
+Unidad Programa de Quinua
+Fecha 24/07/2008 21:35
+Figura 24
+
+============================================================
+PÁGINA 11 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+G Sistema Workflow Wayka Educación para el Desarrollo
+11.1.1. Adjuntar archivos
+Al presionar sobre el botón Adjuntar nos permite subir diferentes documentos para que
+los usuarios lo puedan utilizar. (Ver Figura 25).
+l. dime el SN
+Adjuntando Archivos
+archivo a adjuntar.
+Dirección :: [CADocuments and s| |
+Qjrección :: | Examinar...)
+2. Presionaerl botón . |
+para adjuntar los [Fección :: | —[L Examinar.]..
+archivos. > ea o
+Figura 25
+Si los documentos se adjuntaron correctamente, el sistema le mostrará a continuación el
+siguiente mensaje de confirmación de que el documento subió correctamente (Ver figura
+26).
+Adjuntando Archivos
+¡Aviso!
+Figura 26
+
+============================================================
+PÁGINA 12 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+11.1.2. Descargar archivos adjuntos
+Para descargar los documentos se debe presionar el botón Descargar Adjuntos como se
+muestra en la siguiente pantalla. (Ver Figura 27)
+PROYEIDO
+(Dj adjuntar |
+DETALLE HISTÓR
+REMITENTE PROYEIDO
+Rafael Revilla |
+¡Cargo Técnico de área |
+¡Unidad Programa de Quinua
+¡Fecha: 21235
+Figura 27
+A continuación se desplegará una ventana con la lista de los archivos adjuntos.
+e Para descargar debe hacer clic en el nombre del archivo.
+EA Eliminar
+e Si desea eliminar, presione sobre el enlace para hacer un borrado lógico
+de la base de datos (Ver Figura 28).
+Adjuntando Archivos
+ADJUNTo s.
+ELIMINAR |
+Las as paro E limina |
+Figura 28
+
+============================================================
+PÁGINA 13 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+11.2. Avanzar un proceso de negocio
+Esta opción nos permite despachar el trámite/correspondencia atendido al siguiente
+destinatario para su correspondiente atención.
+Según como se diseño el flujo pueden presentarse los siguientes casos:
+1. Si es tipo de actuación es Lineal o un Salto a otra actividad, entonces el avance
+del proceso de negocio es directo presionamos sobre el enlace 4"?"?*" de la
+siguiente forma como se muestra en la pantalla. (Ver Figura 30)
+luario: Andreas Prelsig Rol: Gerente Ecerrar Sesión
+escritorio
+AUTAPO O trámites Recibidos O trámites Despachados O Correspandencias Recibidas (O Correspondencias Despachada
+de Table | Y Fa Y Todo | 1-1de1
+P pendientes A A
+» REMITENTE REFERENCIAS ACTIVIDAD FORMULARIO RETROCEDER ff AVANZAR
+dis Nombre del Funcionario : Ratael Revilla Ml ralla
+y V-172008 LA Ratael Revilla F D e e c s h ti a n o d e : P e o n t v o io si : 2008-07-20 So p li r c itud de d v e i a v je ia s je Formulari y o Retroceder Avanzar
+Técnico de ima Fecha de recepcion : 2008-07-20 ROL [Gerente]
+- Avanzarala actividad
+Figura 30
+2. En caso de que la actividad tenga un tipo de actuación con bifurcación, se
+presentará un paso adicional donde tendrá que elegir el camino a seguir como
+se muestra en la siguiente pantalla. (Ver Figura 31).
+SELECCIONE UNA ACTUACIÓN
+| Ó Sin aprobación |
+Ai epción Dl 10) Aprobado Pe.
+Ml Cl Avanzar | E> y ,
+Figura 31
+
+============================================================
+PÁGINA 14 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+11.3. Retroceder un proceso de negocio
+“Retroceder” significa volver a una actividad anterior del flujo, esta opción la tomamos
+cuando necesitemos devolver el proceso al usuario anterior por algún error u observación
+que exista en el registro de los datos dentro del formulario. (Ver Figura 32)
+Usuario: Andreas Pretsig Rol: Gerente Ec
+Mi escritorio
+FAUTAPO AA AA PMA PA
+Mis pendientes
+» REMITENTE REFERENCIAS ACTIVIDAD FORMULARIO RETROCEDER
+SV 32008 D > Ricardo Guzman F D N e e o c s m h ti b a n r o e d e : d e e P l n o t v F o i u o s n i c : io 2 n 0 a 0 r 8 io -0 7 : -3 R 0 a ul Huarachi S er o p l r ic itud t d s e d v e i a v je ia s je ss Formulario
+Fecha de recepcion : 2008.0730 ROL [Gerente y
+Da 5 a Aprobación de viaje Gerencia
+SV-tr2009 62 shitey Casto Fecdeh enavio : 2008:07-30 Solicdiet «uiajdes
+Fecha de recepcion : sin recepcion ROL pa
+Figura 32
+Una vez seleccionada esta opción debe introducir la justificación o razón por la cual esta
+devolviendo el proceso al anterior usuario. (Ver Figura 33)
+Retroceder proceso de negocio
+[Contenido de imagen/tabla no legible por OCR]
+
+============================================================
+PÁGINA 15 de 65
+============================================================
+
+Manual Funcional Fundación Avinx w
+Sistema Workflow Wayka Educación para el Desarrollo
+11.4. Mis pendientes
+En la categoría Mi escritorio tenemos el enlace “Mis Pendientes” nos muestra en la
+siguiente pantalla como acceder (Ver figura 34).
+Administración Análi
+2 procesos de negocio
+= Penidientes Agrupados
+Y Mis pendientes limbo
+<< Recepción de correspondencia
+Figura 34
+Al presionar sobre este enlace se desplegará una pantalla, de esta manera la información
+que nos muestra es la siguiente:
+e En la parte superior se listan las opciones para seleccionar los Y Trámites Recibidos
+con los estados de los trámites atendido y por recibir.
+e Tamb.ié, n tenemos la opci.ó, n [Dos Nro de TrJámite i:: TWA Filtrar WeTosdo] | an caso que se
+tenga muchos trámites en el escritorio y necesite filtrar uno específicamente.
+e Posteriormente se muestra un listado de los trámites pendientes para ser
+atendidos por el usuario con las características que se muestran en las pantallas
+siguientes. (Ver figura 35).
+
+============================================================
+PÁGINA 16 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Usuario: Andreas Prelsig Rol: Gerente EIcorrar Sesión
+Mi escritorio
+FAUTAPO
+Mis pendientes
+1] REMITENTE
+E Miri RN Aprobadce ivóianja Gerencia
+SV 3,2008 Montt du: Fect de envio : 2008-07-30 Solicitud de viajes Formulario Retrocadar Avanzar
+” Fecha de recep: 2c00i8o-07n-30 ROL (Gerente)
+Nombre del Funcion: aRarfiaoel Revilla
+- Potosi Aprobación de viaje Gerencia
+Fecha de envio : 2008-07-30
+Fecha de recepcion : sin recepclon ROL [Berarta]
+e Y los O Trámites Despachados con el estado de los trámites despachados y sin
+confirmación y despachado confirmado como se muestra en la pantalla (Ver figura
+36).
+mi escritorio
+Mis pendientes
+
+============================================================
+PÁGINA 17 de 65
+============================================================
+
+E Sistema Workflow Wayka Educación para el Desarrollo
+11.5. Mis pendientes agrupados
+En el enlace “Mis pendientes agrupados”, nos permite acceder a un resumen de sus
+trámites pendientes en fecha calendario de la semana en la que se encuentren (Ver figura
+37).
+"Mi escritorio | Administración Análi
+<=] Creación de procesos de negocio
+pl Mis pendientes
+CT Mis Pendientes Agrupados Sa
+Y Mis pendientes limbo
+<=] Recepción de correspondencia
+Figura 37
+A continuación se desplaza una pantalla donde se puede ver el conteo de sus trámites de
+acuerdo al estado en el que se encuentren. (Ver figura 38).
+Misp endientes agrupados
+ESTADOS ¡TOTAL del Lunes '|Daj Lunes al Martes Miercoles
+28/07/2008 28/07/2008 28107/2008 30/07/2008
+EF 1.4 | 0 1
+E 1 Dd) 0 1
+fa 1 m. | 0 4
+TOTAL PENDIENTES. 3. 0 NS 3
+fla pa lo0 0 1
+TOTAL MOVIMIENTO 4 0 0 4
+Figura 38
+
+============================================================
+PÁGINA 18 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+12. ADMINISTRACION
+12.1. Bloquear procesos de negocio
+Este enlace nos permite parar los procesos siguientes:
+1. Los que no estén en tránsito,
+2. Despachados sin confirmación.
+Este bloqueo es por un tiempo determinado, por lo cual no se podrá trabajar con este
+proceso. (Ver figura 39).
+Administración
+€ Bloquear Procesos de Negoci
+Q Desbloquear Procesos de Negocio
+Figura 39
+A continuación de seleccionar la opción Bloquear Procesos de Negocio, se desplegará la
+siguiente pantalla donde se debe registrar:
+e Lagestión que muestra por defecto en la cual se esta trabajando
+e El nombre del proceso a ser buscado. (Ver figura 40).
+Bloquear Procesos/Trámites
+_ INTRODUZLCOAS DATOS.
+1. Introduzceal SE
+lA campos con (*), son obligatorios.
+Figura 40
+El resultado de la búsqueda devolverá la siguiente pantalla donde debe introducir un
+detalle en el proveído explicando el bloqueo del trámite. (Ver Figura 41)
+
+============================================================
+PÁGINA 19 de 65
+============================================================
+
+Manual Funcional
+Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Datos del prodce neesgoo cio
+Dreaver
+DATOS GENERALES
+2 PROCESO PEFEPENCIAS INSPESO
+Nombre del Pamclonario : Padel Períila
+Ov-22008 Occitan de dales Le cino : Oruro 30/07/2008 15:15
+Fecha de en vlo : 2009-07-30
+Fecha de recepelon : 2009-07-30
+Por incumplimiento de documentos
+el trámite será bloqueado
+3. Presioneel botón para
+Jm (
+2. Escriba el motivo
+del bloqueo del
+proceso. Ech aq
+30/07/2008 15:15 90/07/2008 15:15 30/07/2009 17:80 [ Y Ca
+30.07.2008 17:52
+[20% vidade coonciida e MA] Act vidade c que nit
+Mota: Hcerel cmaarre al cudlro para verla 9-14) - Vidal
+DETALLE MISTÓRICO DEL PROCESO DEMESOCIO
+Act uidad ; Pe pon cable Tempo Ecfmado Tiempo Tran cousrido Pro veldo A4Junt
+Pecibido
+3007/2008 17:52
+E; RM pegiztode A| 244 D Miaazras
+59 Segundos
+Mach hoy 0408/2008 157.
+a a ) e : Peclbido 3Q07/2008 1730.
+Y 14D 8 Segunvios
+Pecibido 3QUT/2DOS 15:15 |
+Cargo
+Unid34
+a ME ppeciación de ale Cortinación <Camyo 1D 12 rasos
+Unidad | 2 Segun'03
+_ Euviado_ 3007/2008 1725
+E"S) A pegiznode slo! parada z C U a n r id g a o d 1D E R 1 n e 2 v c O i i b a e i d g d o u o n t 3 3 o 0 Q z / U 0 7 7 / / 2 2 0 0 0 0 8 8 1 1 5 5 : : 1 1 5 5
+Figura 41
+A continuación se desplegará el siguiente aviso si el bloqueo del trámite se realizó
+correctamente (Ver figura 42).
+E _ El tramse bilotqueeo conectamente
+Figura 42
+
+============================================================
+PÁGINA 20 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+12.2. Desbloquear procesos de negocio
+Esta opción tenemos la posibilidad de desbloquear aquellos procesos de negocio que
+fueron por alguna razón bloqueados. (Ver figura 43)
+Administración|
+¿2 Bloquear Procesos de Negocio
+ida Desbloquear Procesos de Negoc
+Figura 43
+Al seleccionar esta opción se desplegará la siguiente pantalla donde se debe introducir el
+número del trámite. (Ver Figura 44)
+- 1. Ingrese el número | INTRODUZCA LOS DATOS.
+[Pro campos con (*) son obligatorios.
+Figura 44
+
+============================================================
+PÁGINA 21 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+El resultado de la búsqueda devolverá la siguiente pantalla para que pueda introducir el
+motivo por el cual se está desbloqueando el trámite. (Ver Figura 45).
+Datos del proceso de negocio a Desbloquear
+Qvover
+= PROCESO DATOS AGENERAL InoPEso ei AN
+Mombwe del Rimclonarto : Pattel Perilla 3. Escribeal proveido
+OW2A00 Oiicdiet taale!s De ctno Ono 2007/2008 15:15 para desbloquear el
+Fecha de recepcion : 1009-0004 trámito,
+Por completar la dorumentación
+lonas (DLL 4. Presione botón para
+desbloquear el trámite.
+Ech aquí
+1 2 3
+_ E ml MPa
+30/07/2008 15:15 30/67/2008 15:15 30/07/2008 17:30 [3
+0408/2008 15:52
+MM 204 vidade c oonciida e TA 208 vidade c que titan
+Bot: ¿ceerl cmoaure ral cuadro para verla acido- Unidad ;
+] DETALLE MISTÓRIOO DEL PROCESO DENBIOCIO
+£0t vidad Fe pon cable lempo Ecfmado TemTram cpousioido Pro veldo Ad juntoe
+[es] * Pegi: bode ¿id tal en contabilidad u y. e ¡9 a 34 q. [Pos Incumplimiento de documentos el Yamtei sera bloqueado
+Recibido 3007/2008 1732
++Dn:
+E3S r
+A regto d:e slaen cotntasdos Cuaurlgénot ¡tb s
+[Contenido de imagen/tabla no legible por OCR]
+
+Dd] DE riñación ec tds aura CUanrbggoad 10mB a8o Segun io3z07/08 1730
+; TERA 93 e Pecibido 3007/2008 15:15
+> Meana l
+Figura 45
+Si el desbloqueo el trámite se realizo correctamente el sistema le mostrará el siguiente
+aviso (Ver figura 46).
+| El prosec deesblsoquoeo correctamente
+Figura 46
+
+============================================================
+PÁGINA 22 de 65
+============================================================
+
+Fundación AUTAPO
+Manual Funcional
+Educación para el Desarrollo
+Sistema Workflow Wayka
+13. ANALISIS Y EXPLOTACION
+13.1. Por procesos de negocio
+Esta opción nos permite generar reportes en forma dinámica con los campos del
+formulario. (Ver figura 47).
+Análisis y Explotación a
+CA Por proceso de >
+¿A Impresión de Procesos de Negocio
+Figura 47
+Una vez elegido el enlace se desplegará la siguiente pantalla donde se debe seleccionar el
+tipo de proceso. (Ver figura 48).
+Reportes por proceso
+Tipo de proceso :: on
+=Selenfinnar — |
+/ Solicitud de viajes
+Figura 48
+A continuación se desplegará una pantalla donde se muestra la siguiente información:
+Se lista en proceso seleccionado
+Seleccionar los campos necesarios que se encuentran en la parte izquierda y que
+necesita se liste en el reporte.
+Seleccione uno o más campos que necesita sean agrupados.
+Seleccione el campo por el cual necesita se contabilizen.
+Se tiene la opción si se requiere un listado general o no. (Ver Figura 49)
+
+============================================================
+PÁGINA 23 de 65
+============================================================
+
+Manual Funcional
+Fundación AUTAPO
+Sistema Workflow Wayka
+Educación para el Desarrollo
+Reportes por proceso
+'Tipo de proceso :: |S olicitud de viajes 144]
+Í CAMPOS ORDENAR POR AGRUPAR POR CONTAR DATOS DE , E»
+O Gerente Programa e Destino] | Programa me] 3. Seleccione los
+Nombre del Funolonarlo , campos a ser
+Programa Destino , contados
+[O Coordinador | 2. Seleccione los
+Nombre del Funcionario ORIIpDe 2.2
+¿ _x__—————__—_— q ——— agrunados
+¿utili > JO. (+ ] 10 ]
+UU] Feoha de viaje
+Mostrar listado ge
+O Fecha de retomo e
+Dr —.
+[Se Destino 5. Presione el botón para)
+e LA generar el reporte. dad
+1. Seleccione los
+campos a mostrar
+Figura 49
+El reporte generado es un listado general como se muestra en la siguiente pantalla donde:
+e El primer reporte es por los campos seleccionados inicialmente para ser
+ordenados por Programa, Nombre del funcionario y Destino
+e El segundo resultado se refiere a la agrupación por el campo seleccionado que es
+Destino
+e Por último se muestra la contabilización de los datos por el campo elegido que es
+en este ejemplo los Programas. (Ver Figura 50)
+
+============================================================
+PÁGINA 24 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka lducación para el Desarrollo
+13.2. Impresión de procesos de negocio
+Este enlace nos permite ver un listado de los Procesos de negocio, sus referencias y
+actividades, fechas e incluso para poder registrar firmas para hacer un seguimiento como
+la hoja de ruta, (Ver figura 51)
+Buscar ProcesosiTrámites
+l. Introduzca el ¡ICAA De. sli
+número de proceso | dá —
+o de proceso (*) :: EA 2]
+a, Buscar |
+A Los campos con (*), son obligatorios.
+2. Presionar sobre el
+botón buscar
+Figura 51 Se
+La siguiente pantalla que se muestra a continuación hace referencia a un listado de un
+proceso de negocio buscado, que al mismo tiempo sirve como hoja de ruta donde puede
+registrar su firma en la actividad que le corresponda a cada usuario. (Ver figura 52)
+GQ volver 3, Procar oli lo]
+botón para ver el
+mismo reporte en
+formato PDF.
+Listado del proceso de negocio...
+N D r E o R H U O T J A A REFERENCIAS | ACTIVIDAD FECHA F e
+Nombre del Funcionario : Rafael Revilla
+212008 Destino : Oruro Registro de solicitud en contabilidad
+en Fecha de envio : 2008-07-30 Solicitudde viajes 30/07/2008 15:15
+Fedec rehcepcaion : 2008-08-04
+Nombre del Funcion:a Rrafiaoel Revilla.
+Destino : Cochabamba Registro de solicitud en contabilidad
+SV-4/2008 Echa de envio : 2008-07-30 Solicitudde viajes MAPA 17:
+Fecha de rece:p sinc reicoepcnion
+Figura 52
+
+============================================================
+PÁGINA 25 de 65
+============================================================
+
+Manual Funcional
+Fundación AUTAPO
+Sistema Workflow Waykn ducación para el Desarrollo
+14, TRANSPARENCIA
+14.1. Procesos de negocio
+Las siguientes opciones nos permiten realizar búsquedas de Procesos de Negocio de
+acuerdo a diferentes criterios.
+o Transparen 9 trabajo
+a Procesos de nagocio Mimo
+a Por Campos
+U Procesos de negocio por estados y fechas
+Vista ejecutiva
+Reporte global de procesos de negocio
+Conteo de Procesos de Negocio por astado y fachas
+Pendientes por funcionario
+Trámites atendidos por funcionario
+Resumen Detallado de Procesos/Trámites
+Procesosf Trámites Concluidos
+EDODODDA
+Resumen Detallado de Procesos/Trámites
+Figura 53
+Al seleccionar esta opción se desplegará la siguiente de búsqueda de datos:
+e Enla parte superior se debe registrar el número de Procesos.
+e Enla parte inferior tenemos la opción de seleccionar entre fechas que sean
+necesarias buscar los Procesos. (Ver figura 54)
+Buscar Procesos/Trámites
+[Pr campcoons (*), son obligatorios.
+
+============================================================
+PÁGINA 26 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Si seleccionó la primera opción para buscar un Proceso, la pantalla que se desplegará es la
+siguiente. (Ver figura 55).
+Datos del proceso de negocio
+Vol ver
+DATOS OBIERALES
+» PROZEDO rereraicus more
+Nome del Aimeinarto : Patel Perito
+a Do vino ¿Orto e
+DULAS DMA TRES cdae eto : OSO SA
+Fecha de recep: 2t10i8o-00n-05
+Esta aqu
+30/07/0008 05205 30,67/2689 15:05 67/2658 CO E |
+0563.0003 5:52
+sc 0 tdo des conchuidas Dl 2etvidaqued raaltasn
+Mota: Acercar elmorce acabo paa ares Yala o
+DETALLENETORIDDAOL PROCEDO DEMESOCIO
+Leidas Responsable Tlempo Estimado — Tiempo Transcunido | Poveda PS apuros
+Recitido
+L i > s * PEJCtOA co En DCA IS C p ¿ a 9 rg 4 o c Prog i ram a de Ora MA o ¡ 2 O D4 S T L E e A bg OA ur C od S o 1 s 532 Por oops hi docmerticho Ditat
+Harta hoy (508/2008 1:1
+e Mega coman cotas E ARE , yC P a ro to gi amade Obra ¡me a R 1 e D g ci a b u ido a . s GUISA | Poe cumpla l rt de doceme ntc eltamlt sera biopreado
+¡Bnulado S5R00a 157
+| Reribido JOE 0603 MZ
+e <AMEyCarto cr
+LPST A ragrnote coloso CAROS Cpudgoa C Partoagbrarm a Orta 1 Da5 e2
+¡Bdado OLTE/IOS 1552
+E Andre PrEy ¡Recibido 3002/0008 (730
+cd A LD —
+Figura 55
+Si seleccionó la segunda opción donde se registran las fechas de búsqueda de los
+Procesos, a continuación se muestra la siguiente pantalla donde:
+e Selistan los Procesos de Negocios existentes entre esas fechas.
+e Si presionamos donde se encuentran los nombres de los Procesos podremos ver a
+detalle la situación de los Procesos y en que actividad se encuentran los mismos.
+(Ver figura 56)
+
+============================================================
+PÁGINA 27 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Resultados de la búsqueda
+O volver
+DATOS ENCONTRADOS
+Mm ACTIVIDAD REFERENCIAS RESPONSABLE FECMA DE INGRESO TIPO DOCUMENTO
+dl pss Pm Nombrdeel Funcio: Rnafaael rReivoia
+es ES sHA ss Feoha de envio : Ventanilla (hica 24/07/2000 2132 Original
+Feoha de recepcion : 2008-07-24
+NINGUNO
+Nombre del Funcionario : Rafael Revilla
+SUDOR note A n p de r v o ia b s a dce ivóianje Gerencia D Fe e o st h in a o d e : e P n o v to io si : 2008-07-30 A S n o d r re e a n s OPrenisaig, 29/07/2008 20:40 Orig4inal
+NINGUNO Fecha de recepcion : sin recepción
+Y Nombre del Funcionario : Rafael Revilla
+-— Infordem viaeje Destino : Santa Cruz Ratael Revilla d
+MUDO ooltud de viajes Feoha de envio : 2000-07-30 Técnico de área 2107/2008 2125 Original
+NINGUNO Fecha de recepcion : sin recepcion
+[7 Nombre del Funcionario : Rafael Revilta
+l-— Registro de solicitud en contabilidad Destino : Oruro Shirley Castro El
+MAZO ooituy de viajes Fecha de envio : 2000-07-30 Sd ¡PI -
+NINGUNO Fecha de recepcion : 2008-08-05
+e Nombre del Funcionario : Raul Huarachi
+2nos -— Aprodbe vaiajec Gieórenncia Destino : Potosi Andreas Preisig p
+Solicitud de viajes Fecha de envio : 2008-07-30 Gerente General 9/07/2008 1722 Ofginal
+NINGUNO Fecha de recepcion : 2008-07-30
+1] Nombre del Funcionario : Rafael Revilla —
+Registro de solicitud en contabilidad Des: Ctocihnabamoba Shirley Castro da
+SVAZOOS Sono de viajes Fecha de envio : 2008-07-30 Contador — ¡NA ¡Ae
+NINGUNO Fecha de recepcion : sin recepcion
+Figura 56
+Si selecciono algún Procesos de Negocio para ver en que actividad se encuentra y además
+detalles del mismo le aparecerá la siguiente pantalla (Ver figura 57)
+Datos del proceso de negocio
+(€) vol ver
+* PROD PEFERBIRS GRO
+Hombre dl Aincio> nPatae! rPeiroito
+SL A e OLe 7/8 15:15
+oc cit
+Esta aquí
+SEEETM M5NS 2687/2608 15:15 687068 0:39 [3
+65582608 16:52
+O het dad concluidas [E het 4daqdue otaltsan
+Mota: Acercar elimcase al cradio para ver acti - Un lia
+DETALLE HISTORICO DEL PROCDE EMNSESOOCIÓ
+ALegu4d0S Fosponsatle Tlapo Estimado — Tiempo Transcunido Poveda y Adjuntos
+Recibido
+salis key Cacto 05 1A DMA 163 Por captetar hic ubaoda sdire
+J"a A Pégitode solidas Cot Ceanrggoa C Patridoag rea Omraa 1 Da YY U2ebgautsde |
+Hasta hoy 0508/0003 130
+O * Págttdoe coladas conti p e e en : 3 R 1 4 e 9 c S D i e b g id u o d s O s LDAL00S 1552 E A AAN
+Enviado (508/0108 1532
+Recibido 3007/0008 MSZ
+a AMECA 2 D m Hot
+| pe Cago Cortada 1 Da; y Ubrte
+Figura 57
+
+============================================================
+PÁGINA 28 de 65
+============================================================
+
+A UMUUMUVIVA 1M14UILAMIL Y
+y --—UW Wayka Educaciióón para el Desarrollo
+14.2. Por campos
+Este enlace nos permite realizar búsquedas de los Procesos de Negocio pr un determinado
+campo creado en el formulario.
+Transparencia | Grupos de trabajo
+Q, Procesos de negocio
+(T Por Campos $»)
+Procesos de negocio por estados y fechas
+Vista ejecutiva
+Reporte global de procesos de negocio
+Conteo de Procesos de Negocio por estado y fechas
+Pendientes por funcionario
+Trámites atendidos por funcionario
+Resumen Detallado de Procesos/Trámites
+Procesosf Trámites Concluidos
+ODBOPPPPd
+Resumen Detallado de Procesos/Trámites
+Figura 58
+A continuación de elegir la opción Por Campos se desplegará la siguiente pantalla, donde
+podrá seleccionar:
+e El Tipo de Proceso,
+e Elcampo por el cual desea realizar la búsqueda,
+e Y por último registrar el valor del campo. (Ver figura 59).
+Buscar Procesos/Trámites por Campos - aa
+s ES
+Tipo de proceso -: | Solicitud de viajes Y
+Campo (*) :: | Destino Ml
+. seda A
+Valor (*) :: [Potosi |
+Ota sca
+[2 Los campos con (*), son obligatorios.
+Figura 59
+
+============================================================
+PÁGINA 29 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+El resultado de la búsqueda es como se muestra en la pantalla a continuación con la
+siguiente información:
+e El número de los Procesos de Negocio
++ Un icono donde nos indica el estado del Proceso, su actividad en la que se
+encuentra.
+e Los datos referenciales del Proceso de Negocio.
+e Lasfechas de registro de los Procesos.
+e Ylos datos del valor de la búsqueda. (Ver figura 60)
+Buscar Procesos/Trámites por Campos
+___ INTRODUZCA LOS DATOS
+Tipo de proceso :: | Solicitud de viajes E]
+| Campo (*) :: D|estino EA
+| Valor (*) :: [Potosi |
+3. Presionar sobre el [Q, Buscar| o
+A Los campos con (*), son oblig
+RESULTADO DE LA BÚSQUEDA
+K PROCESO REFERENCIAS REGISTRO DATOS ENCONTRADOS
+Ea Nombre del Funcionario : Rafael Revilla
+Aprobación de a Destino : Potosi | y
+O ce viajes Fecha de envio : 2008-07-30 ¿29/07/2008 20:49 Potosi
+Progrdea Qmuinuaa
+de envio : 2008-07-30 30/07/2008 1722 Potosi
+Figura 60
+
+============================================================
+PÁGINA 30 de 65
+============================================================
+
+Manual Funcional
+Fundación AUTAPO
+Sistema Workflow Wayka
+Educación para el Desarrollo
+Si presionó sobre el enlace del Proceso de Negocio que estaba buscando, podrá ver con
+más detalle cual es la actividad en la que se encuentra el trámite, como se muestra en la
+pantalla a continuación. (Ver figura 61).
+Datos del proceso de negocio
+4) Volver
+DATOS GENERALES
+E PROCESO REFERENCIAS MGRESO
+Hombre del Amcionarto : Rar Hiaractl. |
+SUIS Dolicitidde vias Leto : Pots 30.07.0008 1122
+Fecha de envio : M009-7-30
+Fecha de recep: 2c00i6o-07n-30
+Esta aquí
+30/67/2689 022 30/67/2003 17223 (3
+3007/2008 17:29
+A actividades concluidas MA 2ctividades que taltan
+Nota: 2ceIcarelimotse alcrapdarar oer hb acti- Un kia
+Actividad Responsable Tiempo Estimado — Tiempo Transcunido — Provsido PP PEPUET pu,
+bis » — a es Pt Sl IS e > Rec > A — — - -
+a 'Ardreas Preyt a '
+Leod Me eprctacin de ste Geracto CUanrigdoa d GPeroregrra mGaedree rSaul ba 1 Da) a E
+¡Hasta hoj 07/080008 1434
+E PrarbGruna ¡Recibido 30072008 127
+Me Cargo Cocdiaador 14 Da 13323 ub
+a AA Unidad Progranade Culasa
+Enviado 3107208 MI
+Figura 61
+
+============================================================
+PÁGINA 31 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+14.3. Procesos de negocio por estado y fechas
+Este enlace nos permite obtener la búsqueda de los trámites en sus diferentes estados y
+entre un rango de fechas, como se muestra en la siguiente pantalla. (Ver figura 62).
+Transparencia | Grupos de trabajo
+Q, Procesos de negocio
+Q Por Campos
+«Í_ procesos de negocio por estados y fechas >
+Vista ejecutiva
+Reporte global de procesos de negocio
+Conteo de Procesos de Negocio por estado y fechas
+Pendientes por funcionario
+Trámites atendidos por funcionario
+Resumen Detallado de Procesos/Trámites
+Procesos/Trámites Concluidos
+AOBODPIPPA
+Resumen Detallado de Procesos/Trámites
+Figura 62
+La pantalla siguiente nos muestra los siguientes detalles:
+e Introducción entre rangos de fechas
+e Seleccionar el estado de los Trámites que requiera buscar (Ver figura 63)
+Buscar ProcesosIT rámites por Fecha y Estado |
+|, BUSQUEDA DE DATOS
+introduzca Fechas
+es AL resis) = paJsE)
+Fecha final (*) - fomoszzoos JE)
+[Contenido de imagen/tabla no legible por OCR]
+
+- trámite buscar. O Correspondencia a enviar
+O En atención
+| O Por Recibir
+sobre el botón => AE
+para buscar a Buscar
+Los campos con (*), son obligatorios.
+Figura 63
+
+============================================================
+PÁGINA 32 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez seleccionado una de las opciones que indican el estado de los Trámites es que a
+Continuación se desplegará una pantalla en la cual se lista el resultado de la búsqueda, en
+este caso seleccionamos a “Todos”. (Ver figura 64).
+Resultados de la búsqueda
+Volver
+DATOS ENCONTRADOS
+Nro. MN ACTIVIDAD REFERENCIAS RESPONSABLE FECHA DE INGRESO
+1 SW1/2005 Ep j registro de solicitud para viajar FNeocmhab rdee d eenl vFiou n:c ionario : Ratael ReviaVentanilla Única 24/07/2008 21:32
+SolickRud de vias Fecha de recepcion : 2008-07-24
+NINGUNO
+A Nombre del Funcionario : Rafael Revilla
+Aprobación de viaje Gerencia Destino : Potosi
+2 UA motu de viajes
+NINGUNO
+— Informe de viaje
+3 dd2 12005 Solicitud de viajes
+NINGUNO
+(57
+4 2,2008 Registro de soli
+ná Solickud de viajes
+NINGUNO
+5 Aprobación
+Solickud de vlajes
+NINGUNO jon :
+E Nombre del Funcionario : Rafael Revilla
+6 SV-4/2008 Solicit R ud e g d i e s t v r i o a je d s e solicitud en contabilidad F D ech e a de s: e Ct n o v ci i h o na b : a 2 m 0 o 0 b 8 a - 07-30 C Sh o i n r t le ad y o C r astro 30407/2008 17:40
+NINGUNO ¡Fedec rehcepcaion : sin recepcion
+7 SU5/2008 5 So 8 li ) c A it p u r d o de b a v c ia ió je n s de viaje Gerencia | D N e o F s m ti e n b o r d e c e d : he e S n l a v n a F i t o u a n C : c 2 r i u o 0 z 0 n 8 a - r 0 i 8 o - 0 : 8 P auta Miranda A | G n e d re re n a te s G Pr e e n i e s r ig al 09/08/2008 17: y 23
+NINGUNO Fecha de recepcion : 2008-08-08
+Figura 64
+
+============================================================
+PÁGINA 33 de 65
+============================================================
+
+Manual Funcional
+Fundación AUTAPO
+Sistema Workflow Wayka
+Educación para el Desarrollo
+Si presionó sobre el nombre del Proceso que estaba buscando, a continuación se
+desplegará la siguiente pantalla en la cual podrá ver a más detalle la información existente
+del Trámite, como los datos generales, la información gráfica, y el detalle histórico del
+Proceso de Negocio. (Ver figura 65).
+Datos del proceso de negocio
+Volver
+DATOS GENERALES
+A PROCESO REFERENCIAS MSRESO |
+Hombre del Funcionario : Patel Revilla
+SU-L00S Delicidae vigas ES vino: Cochabamba 3007/2008 17-45
+Fedce henviao : 06-07-30
+Fedec rechepcioan : sh recepoha |
+Evta aquí
+30.07.2688 CAD 3667/2688 CT 90/07/2068 17:51
+30/07/2093 17:51
+O cta concturdas TD Actividqaued taettasn
+Mota: Aceicar elmotse alctato para mer Dacia - Un
+— DETALLEMISTORIDO CEL PROCESO DE MESOCIO
+TiempoEs timado: Tempo Transcunido Proveldoy paraa adjuntos
+Actividad sil calca
+SIMNEYCAcUO
+A PegEtod solicindes cortos Ugo Cortador 4 Das
+'Unidad Progrdea Gmaliaa
+| Adicas PREM Recibido 3007/08 MSI
+de MO cpretacia ae ge Gerencia Cargo Gesert Geseral 4 Da 62gudx
+Unidad Progrdea smhaa, ¡Enviado 3007008 M5)
+Figura 65
+
+============================================================
+PÁGINA 34 de 65
+============================================================
+
+Manual Funcional
+Fundación AUTAPO
+Sistema Workflow Wayka
+Educación para el Desarrollo
+14.4. Vista ejecutiva
+El siguiente enlace nos permite realizar de la misma forma que los anteriores las
+búsquedas de los Procesos de Negocio pero a un nivel más detallado y con datos
+confidenciales. (Ver figura 66).
+Transparencia | Grupos de trabajo
+Q, Procesos de negocio
+Q Por Campos
+egocio por estados y fechas
+Q, vista ejecutiva
+al de procesos de negocio
+Q Conteo de Procesos de Negocio por estado y fechas
+Q, Pendientes por funcionario
+Q, Trámites atendidos por funcionario
+Q, Resumen Detallado de Procesos/Trámites
+Q, Procesos/Trámites Concluidos
+Y Resumen Detallado de Procesos/ Trámites
+Figura 66
+El resultado de esta búsqueda nos muestra los datos más a detalle de los campos creados
+para ese formulario. (Ver figura 67)
+Buscar proceso de negocio
+*** CONFIDENCIAL +**
+el número del | Gestión (*) :: [2008 |
+Proceso de h úmero de proceso (*):: [SY_2 |
+[A Los campos con (*), son obligatorios.
+Figura 67
+
+============================================================
+PÁGINA 35 de 65
+============================================================
+
+89 e1n314
+¡OLEZ SO0UBwLO Áoy se
+sopundages.
+SODA 2 Pepun 2
+SEP E ds suo 9 Oe 1 O, E|
+eyuz Ñ
+T9l SOUL/SIYSO
+oP:qpaY
+sounipy oppumosueJ] Odur»i OpewÍs] 0d! a¡qesuodsay Pepa
+OI3093N 30 033044 130 ODIQLSIH 3TIUZO a
+Pepmur) - Pepranpe e] an eled ameno [2 25NOU P IL530Y -EJON
+Uepes anb sapepmaw [7] SEP PUOO SPEPnao
+25-91 8002/80/50
+0€-2b 8002/2000€ SH-Sh S00Z/LOYOE SUS) S0UZ/LOFOE
+>» MEES
+S9PepIAnoy “z pr ne es]
+SOTUONTO OAOP LUIS
+a SO0ULWOc ee ap epa
+E < QA US Enumb 29 sayozonpaJd uo LOTES e] ARAP OMMOR
+UEUEND OPUEo ¡p900)
+[ep sodureo e y
+SO| 3P e3SrT *] Misma SERpUy “Du aque
+e SITVIINIO SOLVO
+UODUIUJEY PEPEUS PPAEOIJOSU AP AONSIÓ)Ny SIDP PAMEOJOS SOUU/TAS
+TWNLIV OOWISI TYNLIV OVAL OIDO9IN 30 OSIDOYU] *M
+wuu WIONIOINANOO su e
+"(89 e.1n31y 194) '0O/9033N 9P 0S3I0.4 J9P O91IQISIY A[PIBP UNA e
+"se914813 3p 2UJOy US SIPEPIANDO SE] BIISINVI IS DJUDWJONIDISO] e
+"S9/819U9305)
+50]2( UO9 330409 35 a3Nb OL1e¡nuJO ja Ua sopeaJo soduleo so ua sajjezap seu u0) e
+:e,¡ejued a]ua¡ngis ey ua u9IDenu1juo) e e4sanu as epanbsnq ej ap opeynsas 13
+o[[o118esa(f [9 exed ugroronp
+ENÁTA MO[AIO A PUUDISIS
+OdVLANV “9pepuny
+[2uoun y ¡nuey
+
+============================================================
+PÁGINA 36 de 65
+============================================================
+
+Manual Funcional
+Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+14.5. Reporte global de procesos de negocio
+EL siguiente enlace nos permite realizar una búsqueda de los Procesos de Negocio entre
+determinadas fechas. (Ver figura 69).
+Transparencia | Grupos de trabajo
+Q, Procesos de negocio
+Q Por Campos
+Q Procesos de negocio por estados y fechas
+Q, vista
+E Reporte global de procesos de NEO Si
+Q, Conteo de Procesos de Negocio por estado y fechas
+Q, Pendientes por funcionario
+Q, Trámites atendidos por funcionario
+Q, Resumen Detallado de Procesos/Trámites
+Q, Procesos/Trámites Concluidos
+¡Y Resumen Detallado de Procesos/ Trámites
+Figura 69
+La siguiente pantalla permite registrar rangos de fechas inicial y final para realizar la
+búsqueda de los Procesos. (Ver figura 70).
+[Reporte Global de ProcesosiTrámites
+INTRODUZCA LOS DATOS
+| Fecha inicio (*) == [91/07/2008] ¡El
+| E
+| Fecha final (*) :: [07/08/2008
+its a ERES is
+Pro» campos con (*) son obligatorios.
+Figura 70
+
+============================================================
+PÁGINA 37 de 65
+============================================================
+
+A" Manual Funcional Fundación AUTAPO
+istema Workflow Wayka Educación para el Desarrollo
+El resultado de la búsqueda nos muestra en la pantalla a continuación donde se lista:
+e Losprocesos iniciados y su cantidad.
+e De aquellos que están en flujo (Movidos) y su cantidad.
+e También se listan los procesos que fueron concluidos y la cantidad de los mismos.
+(Ver Figura 71).
+Reporte Global de Procesos/Trámites
+O volver OS ]
+Periodo de 01/07/2008 al 03/08/2008
+INICIADOS
+PROCESO CANTIDAD
+Correspondencias D
+Solicitud de Compras Menores D
+Supervisión de Informes o
+Solicitud de viajes 1
+TOTAL 1
+MOVIDOS
+PROCESO CANTIDAD
+Correspondencias ye 0 - sobre el nombre
+Solicitud de Compras Menores 0D
+Solicitud de viajes :
+TOTAL 4
+CONCLUIDOS
+PROCESO CANTIDAD
+Correspondencias 0
+Solicitud de Compras Menores o
+Supervisión de Informes 0
+Solicitud de viajes 1
+TOTAL 1
+| Figura 71
+La siguiente pantalla es el resultado de seleccionar un Proceso donde nos indica:
+e Elnúmero de Proceso de Negocio en el sistema,
+e Elnombre del Proceso y en que estado se encuentra.
+e Los datos como referencia del Proceso.
+e Lafecha de registro del Proceso de Negocio. (Ver figura 72)
+[ 51
+
+============================================================
+PÁGINA 38 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+_ Reporte global dep rocesos de negocio
+(volver
+RESULTADO DE LA BÚSQUEDA
+m7 PROCESO REFERENCIAS REGISTRO
+Nombre del Funcionario : Rafael Revilla
+Aprobación de viaje Gerencia Destino : Potosi
+ADO ita de viajes Fecha de envio : 2009-07-30 20/07/2008 20:49
+NINGUNO Fecha de recepcion : sin recepcion
+E Nombre del Funcionario : Rafael Revilla
+Registro de solicitud en contabilidad Destino : Oruro ;
+SUDOR ota de viajes Fecha de envio : 2008-07-30 20/07/2008 16:16
+NINGUNO Fecha de recepcion : 2008-08-05
+O Nombre del Funcionario : Raul Huarachi
+Aprobadce ivóianje Gerencia Destino : Potosi ;
+VIA e oituo de viajes Fecha de envio : 2008-07-30 3007/2008 17:22
+NINGUNO Fecha de recepcion : 2008-07-30
+Ed Nombre del Funcionario : Rafael Revilla
+AOS ou de viajes Feoha de envio : 2008-07-30 30A7/2008 17:46
+NINGUNO Fecha de recepcion :s in recepcion
+E Nombre del Funcionario : Paula Miranda
+Aprobadce ivóianje Gerencia Des: tSainnta Coruz
+MS tud de viajes Fecha de envio : 2003-08-08 08/08/2008 17:23
+NINGUNO ali ¡Fecha de recepcion : 2008-08-08
+Figura 72
+Una vez que se realizó la selección del Proceso, a continuación se desplegará la siguiente
+pantalla en la cual se muestra:
+e Enforma textual los datos generales y de referencia del Proceso.
+e Lagráfica del recorrido de las Actividades del Proceso de Negocio.
+e Yun detalle histórico del movimiento de las Actividades del Proceso. (Ver figura
+73).
+
+============================================================
+PÁGINA 39 de 65
+============================================================
+
+..-
+Si munuas - uiCIOnal Fundación AUTAPO
+istema Workflow Wayka Educación para el Desarrollo
+14.6. Conteo de procesos de negocio por estado y fechas
+El siguiente enlace es también una opción que nos permite realizar búsquedas de los
+Procesos de Negocio entre un rango de fechas y por tipo de estados del Trámite. (Ver
+figura 74)
+Transparencia | Grupos de trabajo
+Q, Procesos de negocio
+1Q Por Campos
+Q, Procesos de negocio por estados y fechas
+Q Vista ejecutiva
+¿2 Reporte global de procesos de negocio
+L4 Conteo de Procesos de Negocio por estado y fechas 15
+Q, Pendientes por funcionario
+Q Trámites atendidos por funcionario
+¡a Resumen Detallado de Procesos/Trámites
+Q, Procesos/Trámites Concluidos
+Y Resumen Detallado de Procesos/Trámites
+Figura 74
+A continuación se despliega la siguiente pantalla en la cual se debe registrar fechas de
+inicio y fecha final de la búsqueda. (Ver figura 75)
+_I NTRODUZCA LOS DATOS
+introduzca Fechas
+| Fecha inicio (*) =buerzos ]ES :
+G Los campos con (*), son obligatorios.
+Figura 75
+
+============================================================
+PÁGINA 40 de 65
+============================================================
+
+Manual Funcional
+Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+El resultado de la búsqueda nos muestra en la siguiente pantalla donde se listan los
+Procesos por su tipo de estado y cuantos fueron creados entre ese rango de fechas
+introducidos. (Ver figura 76).
+Conteo procesos de negocio por fecha y estado
+Q volver
+Periodo de 01:07/2008 al 09/08/2008
+DATOS ENCONTRADOS
+PROCESO ESTADO CANTIDAD
+Solicdiet vuiajdes |) En atención*
+Slode vijtes | Concluido ' |
+00 pr us?
+Figura 76
+
+============================================================
+PÁGINA 41 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+14.7. Pendientes por funcionario
+El siguiente enlace es una búsqueda que permite ver por Unidad y Funcionario cuántos
+Trámites/correspondencias se encuentran en su escritorio virtual para ser atendidos. (Ver
+figura 77).
+Transparencia | Grupos de trabajo
+Procesos de negocio
+Por Campos
+Procesos de negocio por estados y fechas
+Vista ejecutiva
+Reporte global de procesos de negocio
+OPLDLRP Conteo de Procesos de Negocio por estado y fechas
+Pendientes por funcionario >
+Trámites atendidos por funcionario
+Resumen Detallado de ProcesosfTrámites
+ProcesosfTrámites Concluidos
+OuP
+a Resumen Detallado de Procesos/ Trámites
+Figura 74
+A continuación de seleccionar esta opción aparecerá la pantalla en la cual:
+Debe seleccionar el nombre del funcionario.
+Se muestra un listado de los Estados de los Trámites que pertenecen a este
+Funcionario entre fecha anterior, la presente semana y el día de hoy en el que se
+encuentra en el calendario.
+Total de Trámites pendientes.
+Total de Trámites en movimiento. (Ver figura 75).
+Reporte de pendientes agrupados
+¡Funcionario [Programa de Quinua-Andreas Preisig_34]
+ANTES ESTA SEMANA HOY
+ESTADOS TOdTel ALunLes De Lunal Jeuevses Viernes|
+04/03/2008 08/08/2008
+04/03/2008 07/08/2008
+8) 1 o 0
+[ss] o. 0 / D o
+eee 1 1 0 0
+SS 1 1
+TOTAL PENDIENTES 3 3
+e 1 D 1 0
+TOTAL MOVIMIENTO. 4 3. 4 0
+
+============================================================
+PÁGINA 42 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Figura 75
+14.8. Trámites atendidos por funcionario
+El siguiente enlace a seleccionar nos permite realizar una búsqueda de los Procesos de
+Negocio que fueron atendidos por un determinado Funcionario. (Ver figura 76)
+Transparencia | Grupos de trabajo
+Q, Procesos de negocio
+Q Por Campos
+Q, Procesos de negocio por estados y fechas
+Q Vista ejecutiva
+2, Reporte global de procesos de negocio
+Q, Conteo de Procesos de Negocio por estado y fechas
+Q, Pendientes por funcionario
+Trámites atendidos por funcionario)
+Q, Resumen Detallado de Procesos/Trámites
+Q, Procesos/Trámites Concluidos
+¡Y Resumen Detallado de Procesos/Trámites
+Figura 76
+Al seleccionar esta opción se desplegará la pantalla siguiente, donde se debe:
+e Seleccionar el Área o unidad registrado en el sistema.
+e Lafecha de inicio de la búsqueda
+e Lafecha final de la búsqueda del sistema. (Ver figura 77).
+Tramites/procesos por Funcionarios
+INTRODUZCA LOS DATOS
+de búsqueda,
+— Áre(*)a :: | Progrdae Qmuinaua (44)
+Fatatido (*)= [puozzo0s]
+| Fecha final (*): oanazoos |)
+Q Buscar |
+l Los campos con (*), son obligatorios.
+
+============================================================
+PÁGINA 43 de 65
+============================================================
+
+Y UMUAVIDAL LA) 1 L£A1 NY
+Sistema Workflow Wayka Educación para el Desarrollo
+Al realizar la búsqueda la siguiente pantalla nos muestra el resultado donde se puede ver
+un listado de los Funcionarios por Proceso y la cantidad de los mismos que fueron
+atendidos por esos funcionarios. (Ver figura 78).
+Tramitesiprocesos por Funcionarios
+O volver
+Periodo de 01/07/2008 al 00/09/2000
+FUNCIONARIO PROCESO CANTIDAD Hb pese
+Rafael Revilla — Solicitud de vlajes 4 Proceso,
+Ricardo Guzman Solicitud de viajes 4
+Shirley Castro Solicitud de viajes -
+Andreas olicitud de viajes 5
+Figura 78
+La siguiente pantalla es el resultado de seleccionar un Proceso donde nos indica:
+e El número de Proceso de Negocio en el sistema.
+e El nombre del Proceso y en que estado se encuentra.
+e Los datos como referencia del Proceso.
+e Lafecha de registro del Proceso de Negocio. (Ver figura 79)
+Tramites/procesos por Funcionario
+[O volver
+: RESULTADO DE LA BÚSQUEDA
+Ñ PrOcA | | _ REFERENCIAS REGISTRO
+A [red peF uncionario : Raul Huarachi
+SIRO rc Ap r d o e b v a i c a i j ó es n de viaje Gerencia Fech i a n o d e : env P i o o tos i : 2008-07-30 30407/2008 17:22
+Programa de Quinua
+¡Fectvaderecep: c200i8o-07n-30
+nd Aids Nombre del Funcio: Rnafaael Rreivoia
+[Contenido de imagen/tabla no legible por OCR]
+
+a encia Eta in o d e : u Po b to a si OA 29/07/2008 20:40
+Programa de Quinua ¡Fecha de recepcion : sin recepcion
+O Registro de solicitud en contabi Le p. ! ml ...
+SU o de viajes icitud en __ i _ li _ d _ a _ d ñ Fech D a es ti d no e : e Onruvrioo : 2008-07-30 30/07:2008 15:15
+Programa de Quinua
+Erog de Quinua
+oaroos E S + o R li * c i tu R d e d g e is t v r i o a je d s e solicitud en contabilidad D F N e e o o s m h ti a b n r o d e e : d e e C n l o v F c i h u o a n b : c a 2 io m 00 n b 8 a a - r 0 i 7 o - 3 : 0 R afael Revilla 30407/2008 17: ¡ 40
+Programa de Quinua Fecha de recepcion : sin recepcion
+Figura 79
+
+============================================================
+PÁGINA 44 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Al realizar la búsqueda la siguiente pantalla nos muestra el resultado donde se puede ver
+un listado de los Funcionarios por Proceso y la cantidad de los mismos que fueron
+atendidos por esos funcionarios. (Ver figura 78).
+Tramitesiprocesos por Funcionarios
+volver
+Periodo de 01/07/2008 al DO/09/2008
+4, Presione sobre el
+FUNCIONARIO. PROCESO CANTIDAD enlace para ver el
+Rafael Revilla Solicitud da vlajas 4
+Ricardo Guzman Solicitud de viajes
+Shiley Castro — Solicitud de viajes
+Figura 78
+La siguiente pantalla es el resultado de seleccionar un Proceso donde nos indica:
+e El número de Proceso de Negocio en el sistema.
+e El nombre del Proceso y en que estado se encuentra.
+e Los datos como referencia del Proceso.
+e Lafecha de registro del Proceso de Negocio. (Ver figura 79)
+Tramitesiprocesos por Funcionario
+[S volver
+RESULTADO DE LA BÚSQUEDA
+E PROCESO REFERENCIAS REGISTRO
+A ¡Nombre del Funcionario: Raul Huarachi
+obación de viaje Gerencia Destino: Potosi
+sua e Fecha de envio: 2008-07-30 ii
+Solicitud de viajes
+omFecha de recepcion : 2003-07-30
+¡Nombre del Funcionario: Rafael Revilla
+Aprobación de viaje Gerencia FDeecshtai ndoe: ePnotvoiosi : 2008-07-30 2907/2008 20:!49
+SUIZOS coo de viajes
+Programa de Quinua
+Fecha de recepcion : sin recepcion
+Nombre del Funcionario : Rafael Revilla
+A PA
+MUZE. Solicitu R d e g de is t v r i o a je d s e solicitud en contabilidad F D e e c s h t a i n d o e : e O n ru v ro i o: 2008-07-30 S/OT2009 16:16
+on: 2008-08-05
+dade Quinua
+24/07/2008 21:35
+—Á informe de viaje
+52/2005
+Drill sin recepcion
+54/2008 d So d liot u R d e g de is t v r i o aj e d s e solicitud en contabilidad ¡ F DN eo o h me a d b e s:dr e eeCt n l o v Fci i h o nua b : na 2 mo 0 c 0 b 8 ia - o 07 n -3 :a 0 R rafiaoel Revilla AO 10 : 0
+Fecha de recepcion : sin recepcion
+Programa de Quinua
+Figura 79
+
+============================================================
+PÁGINA 45 de 65
+============================================================
+
+Manual Funcional
+Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Una vez que se realizó la selección del Proceso, a continuación se desplegará la siguiente
+pantalla en la cual se muestra:
+e En forma textual los datos generales y de referencia del Proceso.
+e Lagráfica del recorrido de las Actividades del Proceso de Negocio.
+e Yun detalle histórico del movimiento de las Actividades del Proceso. (Ver figura
+80).
+Datos del proceso de negocio IAN e — > l
+O volver
+DATOS GENERALES
+N PROCESO REFERENCIAS - INGRESO.
+Nombre del Funcionario : Rafael Revilla
+Destino: Santa Cruz
+SW2I2005 Solicdiet vuiajdes Fecde henviao : 2008-07-30 (24/07/2008 21:35:
+Fecha de recepcion : sin recepcion
+Esta aquí
+o A a a 2
+24/07/2008 21:35 30/07/2008 17:47 30/07/2008 17:48 30/07/2008 17:48
+30/07/2008 17:50
+JA Actividades concluídas EX] Actividades que faltan
+Nota: Acercar el mouse al cuadro para verla actividad - Unidad
+DETALLE HISTÓRICOOD EL PROCESODE NEGOCIO
+Actividad ho : Responsable Tiempo Estimado Tiempo Transcurrido Proweido
+Rafael Revila
+, . 72 Concluido
+E Informe de vi e aj e ¡ ¡ U Ca n r id g a o d T P é ro c gr n a de m i c d á a r e oe a Q uinua. 1 Día(s) 072008 17-48
+Rafael Revilla Recibido 30/07/2008 17-50
+A ve ¡Cargo Técndei cároea 4 Día (s) 7 Segundos
+Informe de vizje Unidad Progrdea Qmuinuaa Enviado 30/07/2008 17:50
+Shidey Castro Recibido 3040742008 17:48
+aM E Regi:s tro de soiciud en contabilidad C U a n r id g a o d C P ont r a o dor g rdea Qmuinuaa 1 Día(s) 5 E 9 n v S i e a g d u o n do 3 s 0/07/2008 17:40
+Andreas Preisig Recibido 30/07/2008 17:48
+Lpas MC aorovaci,ó n de vdiaaj e Gerenc ; i a ¡U Ca n r id g a o d G e P re r n o te g Ge rd n ea e r Q a mu l inuaa 1 Día(s) E 10 n v S i e a g d u o n do 3 s 0/07/2008 17:48
+Ricardo Guzman Recibido 30407/2008 17:47
+El | ME aprobaci E ó n de v s i o j s e Coordinac : ió n ¡U Ca n r id g a o d C P ood r in o ad g or r dea Qmuinuaa. 1 Día(s) 9 E n S v e i g a u d n o d os 30/07/2008 17:47
+Figura 80
+
+============================================================
+PÁGINA 46 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+14.9. Resumen detallado de procesos
+El siguiente enlace nos permite realizar una búsqueda por tipo de proceso, mostrando en
+este reporte de toda la información del trámite/correspondencia. (Ver figura 81).
+Transparencia | Grupos de trabajo
+Procesos de negocio
+Por Campos
+Procesos de negocio por estados y fechas
+Vista ejecutiva
+Reporte global de procesos de negocio
+Conteo de Procesos de Negocio por estado y fechas
+Pendientes por funcionario
+Trámites atendidos por funcionario
+Resumen Detallado de Procesos/Trámites>5
+Procesos/Trámites Concluidos
+SODIBDDD
+PAIPa
+Resumen Detallado de Procesos/Trámites
+Figura 81
+A continuación se desplegará una pantalla en la cual se debe:
+e Registrar la gestión
+e Seleccionar el Tipo de Proceso a buscar.
+e Enla parte inferior de la pantalla se lista el resultado de la búsqueda mostrando los
+números de trámite, el nombre del Funcionario, y el destino estos dos últimos son
+campos seleccionados como referenciales dentro del Formulario. (Ver figura 82).
+Resumen Detallado de ProcesosiTrámites
+Gestión (*):: [2008]
+Tipo de proceso (*) :: | Solicitud de viajes mil
+a Buscar
+VER DATOS H Nombrdeel Funcionario Destino
+¿ver Datos 5W-1/2008 Rafael Revila Potosi
+¿Pver Datos $V-2/2008 Rafael Revilla Oruro
+¿Diver Datos $W3/2008 Raul Huarachi Potosi
+Figura 82
+
+============================================================
+PÁGINA 47 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+La siguiente pantalla se muestra:
+e Con más detalles los datos generales que vienen a ser los campos creadas dentro
+de un formulario correspondiente al Proceso de Negocio.
++ También nos muestra el flujo del Procesos y sus Actividades
+e Yun detalle histórico del recorrido realizado por el Proceso de Negocio. (Ver figura
+83).
+Datos del proceso de negocio
+4) Volver
+Ñ PROCESO DE NEGOCIO ACTIVIDAD ACTUAL ESTADO ACTUAL
+$W5/2008 Solicitud de viajes Aprdeo viabje Gearenccia iEnó atennción
+DATOS GENERALES
+GeInrg.e Andnreas tPreeisig
+ProgÁrera aTecmnologaías Emergentes
+Coordinador Roberto Zambrana
+Nombrdeel Funcionario Paula Miranda
+Modtei vviaoje Para realizar presentdea scisitóemna
+Fecha de viaje 08/08/2008
+Fecha de retorno 12/08/2008
+[Contenido de imagen/tabla no legible por OCR]
+
+UN »etividades concluidas [E] Actividades que taltan
+Nota: Acercar el mouse al cuadro para ver la actividad - Unidad
+DETALLE HISTÓRICO DEL PROCESO DE NEGOCIO
+Actividad Responsable Tiempo Estimado. Tiempo Transcurrido Proveido Adjuntos
+| ¡Recibido
+| 08/08/2008 17-25
+; | ¡3 Horas
+O MN acotdae vicajei Góerenncia CN90 [1 oros
+| | 159 Segundos
+Figura 83
+
+============================================================
+PÁGINA 48 de 65
+============================================================
+
+Educación para el Desarrollo
+14.10.Procesos concluidos
+Al seleccionar el siguiente enlace nos permite realizar la búsqueda de los Procesos de
+Negocio que ya concluyeron su atención. (Ver figura 84).
+Transparencia 1 Grupos de trabajo
+Q Procesos de negocio
+a Por Campos
+Q, Procesos de negocio por estados y fechas
+Q Vista ejecutiva
+2, Reporte global de procesos de negocio
+Q, Conteo de Procesos de Negocio por estado y fechas
+Q, Pendientes por funcionario
+Q, Trámites atendidos por funcionario
+Q Resum rocesos/ Trámites
+rocesosfTrámites Concluidos
+Y Resumen Detallado de Procesos/Trámites
+Figura 84
+En la siguiente pantalla tenemos la opción de seleccionar:
+e Un Tipo de Proceso de Negocio para realizar la búsqueda.
+e El resultado de la búsqueda será una lista los números de Procesos encontrados,
+los remitentes, las referencias, y la actividad en la que se encuentra. (Ver figura
+85).
+ProcesosiTrámites Concluidos
+Tipo de proceso :: [- Selecciona—r 0)
+| - Selecolonar —
+| Corraspondencias
+: Solicitud de Compras Menores
+Figura 85
+62.
+
+============================================================
+PÁGINA 49 de 65
+============================================================
+
+ProcesosiTrámites Concluidos
+Tipdoe proceso 2 ::| Solicdiet vuiajdes
+dá and — Tia "Tv | 1-3 de3 Siguiente> Fina»l
+" REMITENTE VER DATOS
+REFERENCIAS
+Nombre del Funcio: Pnauala Mririaonda
+Sv.5/2008 Contador Fecha de envio : 2008-08-08 i S n ol f ic o tu rd dd e e m v v i ia ae j j e e s Wer Datos
+Fecha de rece:p sinc reicoepcnion
+Nombre del Funcio: Rnafaael rReivoilla
+de viaje
+Fecha de envio : 2009-08-08 ¿obte él énlace
+Fecha de rece:p sinc reicoepcnion
+Nombre del Funcio: Rnafaael rReivoilla paverr maás
+swanoos titey Castro Destino : Sarta Cruz
+Fecha de envio : 2008-07-30 Í Wer Datos
+Fecha de rece:p sinc reicoepcnion
+Figura 86
+Al presionar sobre el enlace se muestra otra pantalla en la cual se lista los datos del
+Proceso de Negocio con más detalles. (Ver figura 87).
+Datos del proceso de negocio
+Vol ver
+8 PROCESO DE NEGOCIO ACTIVIDAD ACTUAL ESTADO ACTUAL
+SW5/2008 Solicitud de viajes Infodrem viaeje Concluido
+DATOS GENERALES
+Motivo de viaje Para realizar presentación de sistema
+Fecha de viaje 08/08/2008
+Fedce rhetoarno 12/08/2008
+Destino Santa Cruz
+DETALLE HISTÓRICO DEL PROCESO DE NEGOCIO
+Actividad Responsable Tiempo Estimado Tiempo Transcurrido Proveido Adjuntos
+> | Concluido
+— Be nutodrem viaeje e, ¡1 6) 08/08/2008 21:15
+pus ds Recibido 08/08/2008 21:14
+| Cargo 1 Día(s) 23 Segundos
+LA iníordem viaeje Unidad Enviado 08/08/2008 21:15
+| a Recibido 08/08/2008 21:14
+a MO regir de solici;t ud en contablidad UCanridgaod ¡1 Dia(s) 2E1n vSieagduon d0o8s/08/2008 21:14
+Recibido 08/08/2008 17:25
+de 3 Horas
+1 AR aprotación de viaje Gerencia Caabr go 1 Día(s) y4 7 Mfriinceuztaoss
+| Enviado 08/08/2008 21:13
+Li Recibido 08/08/2008 17:25
+Figura 87
+
+============================================================
+PÁGINA 50 de 65
+============================================================
+
+Manual Funcional
+Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+15. GRUPOS DE TRABAJO
+15.1. Administración de murales
+La Administración de Murales permite a un determinado usuario redactar noticias para
+publicarlo en el sistema y la misma puede ser vista por todo usuario que ingrese a la
+página principal del sistema. (Ver figura 88).
+Figura 88
+La siguiente pantalla muestra 2 noticias creadas, además se tiene las opciones de crear
+modificar y eliminar noticias. (Ver Figura 88).
+Mural parac rear nueva noticia. | a o
+de Nueva Noticia
+Aviso Comunicado
+La S a r n e t u a n i C ón r in , s e f l t u o c je io d n w a o l s e e s l l l ev in a t r e á g r a a c ca ió b n o d a e f í t a a d d o e s m lo e s s e c n o m la p a c ñ u e id ro ad s d d e e J : ” ) ar S t es 6 p m a irad c a ea 2 p IU ia i 30 a DA Mse r i t e e de ben h. sb E Negar su q s
+fodas las regiondael lpeaíss. * brrfe tral
+ha: Wvodificar E Eliminar
+3. Preseiol ennlaece
+para eliminalar
+noticia.
+
+============================================================
+PÁGINA 51 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+15.1.1. Registrar Nueva Noticia
+Con el enlace'stueva Notiáa, podemos publicar nuevas noticias, avisos, comunicados, etc.
+para compartir con los demás usuarios del sistema.
+Para registrar los datos podemos utilizar el editor de texto como se muestra en la pantalla,
+el cual nos ayudará a nuestra redacción con el uso de sus diferentes opciones (Ver Figura
+89).
+[D vorver
+INTRODUZCA LOS DATOS 4. Registre los
+Título (*) [Comunicado A PG 2
+Ral (*) <= | Técnico de area 2]
+Tipo de aviso (*) ==
+Tipo de tablero (*) — =
+D)/B7U=x|E=Z 35 |-Su9] e-Fosma-- (MJ -Fomttamiy (| -Fomtszo8-]
+¿QUa Aij= E |= E 90|- ¿4 ESOMGO 2| y
+Mia" =1.+*+11232|—02BxxX/2=| 0/8
+dd 5144
+A c o t r o r d eo o s s p lo a s r a c se o r t m oma p da a s d e e ñl n A c er u e e ar n d t o a e ] Tse cnologías Emergentes debo comunicarles que las normas de programación fueron enviadas a sus
+Palir
+Figura 89
+
+============================================================
+PÁGINA 52 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+15.1.2. Modificar Noticia
+El enlace M]modificar nos permitirá realizar cambios a los datos de una determinada noticia,
+aviso, comunicado, etc. e incluso modificar la redacción utilizando el editor de texto. (Ver
+Figura 90).
+Usuario: Paula Miranda Rol: Técnico de area
+Mi escritorio Grupos de trabajo
+] INTRODUZCA LOS DATOS
+Nombre (*) — :: Paula Miranda
+Título (*) :: [Comunicado |
+Rol (1). = | Técnico de area a]
+Tipo de avis(o1 ) — [Aviso[MsI
+Tipo detabler(o1) — = [Administrativo |
+D|B7Usxj= == E |[-Su[WI]l Pearagrasph__-(W] - Fontfamiy- — 1WI| - Font size - [4
+DABdalatil== | /|90|- o du EJOm|BoQ|s»
+MS OIEA
+dd 4/14
+A todos los compañeros del Area de TemologEíams ergdeebno ctoems unicaqurel elass normas de programación fueron enviadas a sus
+correos para ser tomadas en cuenta
+Paula Mirandal
+Figura 90
+15.1.3. Eliminar Noticia
+Al presionar sobre el enlace [E Eliminar podrá eliminar en forma lógica de la base de datos la
+noticia creada como se muestra en la siguiente pantalla (Ver Figura 91).
+Eliminando Noticia
+Volver
+PAS ¿CONFIRMA ELIMLAI SNIGUAIENRTE NOTICIA?
+| Títdlo Comunicado
+A todos los compañesos del Area de Tecnologías Emesgentes debo comunicarles que las normas de programación fueron enviadas a sus comeos para ser
+Figura 91
+
+============================================================
+PÁGINA 53 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+15.2. Administración de hilos
+La administración de Hilos permite a los usuarios crear temas de trabajo con seguimientos
+consecutivos sobre el mismo tema. (Ver figura 92).
+Ni] Admin. Murales
+Figura 92
+Se desplegará la siguiente pantalla la cual muestra:
+e Los hilos enviados.
+e Los hilos recibidos.
+e Yla opción de crear nuevos hilos.(Ver Figura 93)
+Usuario: Paula Miranda Rol; Técnico de area
+Mi escritorio Grupos de trabajo -
+4 8 nuevo o o
+TIPO HILO ASUNTO
+En la Cámara de Diputadoses llevará a cabo la presentación del 09/08/2008 4 0 Y
+Administrador de 6 El informe semestral le haré llegar a su coreo en el transcurso del DÍ, 00/08/2008 0 0 Xx Eliminar
+kardex Recoidatoño Óracias 00:37
+Ratael Revilla Soroyeco El proyecto de Quinua se tra en el servidor para pruebas
+Hilos recibidos
+Y intorme pendiente 0048/2008 00:49 0 0
+Figur9a3
+
+============================================================
+PÁGINA 54 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+15.2.1. Crear nuevo Hilo de Trabajo
+Al presionar sobre el enlace il ]Nuevo, nos permite introducir los datos del asunto de
+trabajo, es decir el tema sobre el cual se hará seguimiento (Ver Figura 94).
+Nuevo hilo
+Q Volver
+INTRODUZCA LOS DATOS
+De -: Paula Miranda
+A e | Roberto Zambrana [we]
+Tipo de hilo FE | Dialogo [e]
+Privado :si O nO
+En la Cámara de Diputados se
+Asunto :|llevará a cabo la presentación
+Figura 94
+15.2.2. Eliminar Hilo de Trabajo
+Al seleccionar el enlace %X Eimn=Ínos permitirá esta opción hacer un borrado lógico de la
+base de datos. (Ver Figura 95).
+Usuario: Paula Miranda Rol; Técnico de ares
+Mi escritorio Grupos de trabajo
+Hilos enviados
+45% nuevo
+DESTINATARIOS TIPO HILO ASUNTO INICIO
+Mao Tas Obratogo Bolio de Diputados se llevará a cabo la presentación del Sanos
+Administrador de (43) El Informe semestral le haré llegar a su coreo en el transourso del Día, 00/08/2008
+kardex Recordatodo Ótaolas 00:37
+Rafael Revilla Drroyecto El proyecto de Quínua se encuentra en el servidor para pruebas +
+Hilos recibidos
+DE TIPO HILO ASUNTO INICIO MENSAJES NUEVOS
+Andreas Preisig' g lara, Prepara el informe pendiente 00/08/2008 00:40 0 0
+Figura 95
+
+============================================================
+PÁGINA 55 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+A continuación le desplegará la siguiente pantalla donde se puede confirmación la acción
+de borrado del Hilo. (Ver Figura 96).
+Eliminar Hilo
+Volver
+Asunto -: Enla Cámardae Diputados se llevará a cabo la presentaciódnel sistema
+¿Confirma eli minar la Tarea?
+[Wi] |Kno,
+15.2.3. Listado de Hilos Trabajo
+Cada hilo de trabajo enviado se lista como se muestra en la siguiente pantalla, cada uno
+cuenta con sus propios segmentos los cuales cada usuario puede administrarlos. (Ver
+Figura 97).
+Usuario: Paula Miranda Rol: Técnico de area EJCerrar e
+Mi escritorio Grupos de trabajo
+Hilos enviados A A
+4) nuevo
+DESTINATARIOS TIPO HILO ASUNTO INICIO MENSAJES NUEYOS
+Robarte ná (9) po de Diputadosse llevará a cabo la presentación dal ++ qua 4 o RX Elimi EN
+Administrador de 53) El informe semestral le haré llegar a su coreo en el transourso del Día, 09/08/2008 0 0 Xx e
+hardex Recordatodo Óracias 00:37 Eliminar
+Rafael Revilla Beroyecto aer orado de Ovinos se tra en el I PTU QUIAD00S | A Eliminar |
+Hilos recibidos
+DE TIPO HILO ASUNTO INICIO MENSAJES NUEVOS
+Andreas Preisig a 2 Preparar el informe pendiente 09/08/2008 00:40 0 0
+Figura 97
+
+============================================================
+PÁGINA 56 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+15.2.4. Crear nuevo segmento
+A continuación de seleccionar el hilo, el resultado se mostrará en la siguiente pantalla.
+(Ver Figura 98)
+Usuario: Paula Miranda Rol: Técnico de area
+Mi escritorio Grupos de trabajo
+Segmentos
+Asunto En la Cámara de Diputados se llevará a cabo la presentación del sistema
+MA Seleccione para
+Figura 98
+Al Presionar sobre el enlace Nuevo se desplegará la siguiente pantalla donde:
+e Debe seleccionar el destinatario
+e Registrar el tipo segmento que va enviar.
+e En la parte inferior se encuentra un editor de texto que ayudará a redactar en
+contenido del segmento. (Ver Figura 99).
+la Fa?
+
+============================================================
+PÁGINA 57 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+15.2.5. Lista de Segmentos
+A continuación de crear el segmento el detalle se lista como se muestra en la pantalla
+siguiente. (Ver Figura 100).
+Usuario: Paula Miranda Rol: Técnico de area
+Mi escritorio Grupos de trabajo
+RMS
+Asunto En la Cámara de Diputados se llevará a cabo la presentación del sistema
+Qva ver de Nuevo
+DETALLE...
+El entrega de informe
+La presentación realizada en la Camara de diputadfouse muy 3
+P M a ir u a l n a d a p G o e s n it e iv ra a l , s e la c p o a n r t t o e c t o e n cn l i a c a p r d e e s e s n is c t ia e m de a t sy o d m o u c e h l o p e in rs te o r n e a s l e d n e q S u e e g r la e taria ¡ guia_rapida_kardex.dd%, | Adjuntar E
+plataforma se implemente en la institución |
+2008-08-09 00:42
+Figura 100
+15.2.6. Adjuntar archivos
+Al seleccionar la opción de Adjuntar nos aparecerá la siguiente pantalla en la cual se puede
+subir documentos de la siguiente forma. (Ver Figura 101)
+Usuario: Paula Miranda Rol: Técnico de area
+Mi escritorio Grupos de trabajo
+Adjuntar Archivos
+O volver
+| decidi a aan
+| Dirección :: Ls
+
+============================================================
+PÁGINA 58 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+16. CORRESPONDENCIA
+16.1. Recepción de Correspondencia
+En la Categoría “Mi escritorio”, se encuentra el enlace que nos permite acceder e iniciar el
+registro en el sistema de una correspondencia. (Ver figura 102).
+Mi escritorio | Administración Ar
+Al seleccionar el enlace Recepción de Correspondencia, se desplegará un formulario para
+registrar los dato, seguidamente presionar sobre el botón [W Aoeptar| para confirmar la
+creación de la correspondencia. (Ver Figura 103).
+Destinatario | Dirección Ejecuiva-PAULA JANETH MIRANDA ROJAS. O)
+Fecha = 30/10/2008 Hora = [11:22:11] - s
+Nro. HojasíAnexos 25 ] E
+Tipo de corres: | SOLICITUD E]
+(Solicitud de entrega de viaticos del viaje L———— 2. Registrlaors
+Referencia realizado a Tarija. ) Aca
+OTROS DESTINATARIOS :
+Asesoría del Pleno -Merardo Vargas Cruz Seleccionsia ers
+| Asesoría Económica de la Comisión de Desarrollo Económico-Pedro LLanos necesario otros
+Asesoría Jurídica de la Comisión de Desarrolo EconómicoMdo Montaño Bravo
+Asesoría Jurídica 1! de la Comisiódne Desarrolo Económico-Guido Aparivi destinatarios
+Asesoría Jurídica IV de la Comisión de Desarrollo Humano-Jose Luis Sanchez Trn
+
+============================================================
+PÁGINA 59 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+16.1.1. Hoja de Ruta
+Una hoja de ruta es un listado de todos los clientes, donde se clasifican según la
+periodicidad de visitas que requiere cada cliente en particular.
+Una vez presionado el botón [7 aoeprar | se desplazará una pantalla para ser impresa de la
+Hoja de Ruta, que fue diseñada con anterioridad con el formato requerido por la
+institución. (Ver figura 105)
+Presione sobre el
+- botón para realizar
+Ja impresión
+4 «Í
+O vor ¡a mprimir htm! ») taprimir par
+HOJA DE RUTA WN CM-11
+Educación para el Desarrollo VENTANILLA UNICA Gestión: 2008
+FUNDACIÓN AUTAPO
+Fecha: [31 de octudbe 2r0e08 |Hora: |15:03| Mo. CITE: 1150/2008
+Tipo de correspondencia: SOLICITUD
+Remitente: Juan Perez
+Referencia: lc
+Hiro. Hojas y Anexos: 12345
+Fecha de ingreso] [Hora] | lo. Hojas y Anexos:|
+PRIMER DESTMULTARE
+[Jrs e mens [Jesvasa hTme []rrsecicind e Tia le []raasuconcctneno []rseraa [ Jraa:acmagamere
+yo atender ho solito y Bectoha
+Plazo:
+tota
+Figura 105
+
+============================================================
+PÁGINA 60 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+16.1.2. Adjuntar archivos
+En la parte derecha se muestra una opción para registrar el proveído, además en la parte
+inferior se lista un histórico de los proveídos, detalles como quien escribió el proveído,
+cuál es su cargo, la unidad a la que pertenece, en qué fecha se envió, y el texto del
+Proveído (esta lista se va formando a medida que pasan las correspondencia. (Ver Figura
+106)
+PROVEIDO
+Cra)
+REMITENTE 'PROVEIDO EREE RESPUESA
+Pinto de Escalier María Graciela AS ——__—-
+Fecha 27/10/2008 18-36
+LlaCanba Joovansna
+Cargo Responsable Wentanilla Única 11
+Unidad Ventanilla Única
+Fecha 27/10/2008 18:23
+Figúra 106
+Al presionar sobre el botón Adjuntar nos permite subir diferentes documentos para que
+los usuarios lo puedan utilizar. (Ver Figura 107).
+Adjuntando Archivos
+Volver
+Dirección :: [CADooumeanntds $]
+Dirección ::; a ad
+Figura 107
+
+============================================================
+PÁGINA 61 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Si los documentos se adjuntaron correctamente, el sistema le mostrará a continuación el
+siguiente mensaje de confirmación de que el documento subió correctamente (Ver figura
+108).
+djuntando Archivos
+¡Aviso!
+| Losarchivos se adjuntaron correctamente |
+Figura 108
+16.1.3. Descargar archivos adjuntos
+Para descargar los documentos se debe presionar el botón Descargar Adjuntos como se
+muestra en la siguiente pantalla. (Ver Figura 109)
+ADJUNTOS
+| 2 Guia_rapida_wayka.doo
+; 1: Presione el enlace para —
+2 a mia aid) bajarel documento
+Figura 109
+
+============================================================
+PÁGINA 62 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka
+Educación para el Desarrollo
+Si presionó sobre el nombre del documento a bajar, aparecerá la siguiente ventana donde
+le permitirá realizar las opciones de abrir o guardar el documento. (Ver Figura 110)
+Abriendo 2006-0/.29.23.31.43 3961.p01
+Ha decidido abrir
+(2) 2008_07_29_23_31_43_3961.pdf
+que es: PDF Document
+desde: http://www.cadenauvavinosingani.bo:8080
+- ¿Qué debería hacer Firefox con este archivo?
+(9 Abrciomri | Foxit Reader, Best Reader for EverydUasyel (predeter.... 4
+(O) Guardar archivo |
+[_] Hacer ésto automáticamente para los archivos como éste de ahora en más. |
+|_AAcceepptatra r_ , andes
+Figura 110
+16.2. Avanzar una correspondencia
+Una vez creada la correspondencia el siguiente paso es avanzar al/los siguientes
+destinatarios para su atención.(Ver Figura 111).
+FAUTAPO O trámites Recibidos O) Trámites Despachados (O) Correspondencias Recibidas O correspondencias Despachadas
+Mis pendientes
+CORR 2 ES POND 2 E NCIAS RECIBIDAS REMITENTE D E E R S A T S INATARIO REFERENCIAS HOJA FORMULARIO
+Nro. Hojas/inex:o 2s5
+Tipo de cor:r SOeLICsITU.D
+Rem: Ciartmeen Cnalle tBlaenco
+as AS nsable Vertanila (sica 11 MIRANDA ROJAS PAULA JANETH R N e r f o e . r e C n it c e i a ; a2 : 4 S 5 o /2 lic 0 i 0 tu 8 d de estrega de vízticas del viaje realizado 2 TL, ona Formato
+Instrucción:
+Fedac reshpuesata :
+Fecde henviao :
+Fecha de recep: sine relcoepcnion
+Nro. Hojasíinex;o Ys
+Tipo da corr: SeOLIsCIT.U:D
+Resri: tPaeutar Mdiraneda
+R M ed o e . r C e i n t c a i a ; 7 : 6 S 0 o /2 b 0 ct 0 u 3 d de pago de Mativos Original
+importancia:
+Instr: uAzncderc lo iSóolicitnado
+Fedec reshpuesata :
+Fecha de envio : 2008-10-27
+Fecha de rece:p sinc reicoepcnion
+Figura 111
+”nQ
+
+============================================================
+PÁGINA 63 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+16.3. Mis pendientes
+En la categoría Mi escritorio tenemos el enlace “Mis Pendientes” nos muestra en la
+siguiente pantalla como acceder a las correspondencias recibidas. (Ver figura 112).
+SY Recepción de correspondencia
+Figura 112
+Al presionar sobre este enlace se desplegará una pantalla, de esta manera la información
+que nos muestra es la siguiente:
+e En la parte superior se listan las opciones para seleccionar los
+(9 correspondencias Recibidas con los estados de las correspondencia a enviar, en
+atención, y por recibir.
+| neo dé Comespondencia NES
+e También tenemos la opción ' (8 FineY odo en
+caso que se tenga muchas correspondencias en el escritorio y necesite filtrar uno
+especificamente.
+e Posteriormente se muestra un listado de las correspondencias creadas y las
+recibidas, características que se muestran en las pantallas siguientes. (Ver figura
+113).
+
+============================================================
+PÁGINA 64 de 65
+============================================================
+
+Manual Funcional Fundación AUTAPO
+Sistema Workflow Wayka Educación para el Desarrollo
+Otra característica de las correspondencias es cuando se encuentra en color rojo que nos
+indica que la fecha de respuesta de la correspondencia se está venciendo (Ver figura 114)
+FAUTAPO. O trámites Recibidos O) Trámites Despactados () Correspondencias Recibidas Ú Correspondencias Despachadas
+Mis pendientes |
+COR N R y E SPO ? N DENCIAS R R EC EM IB I I T D E A N S TE DESTINATARIO REFERENCIAS HOJA FORMULARIO
+SD) avanzar.
+Figura 114
+Y el estado de las O Cerrespondencias Despachadas por recibir como se muestra en la
+pantalla (Ver figura 115).
+FAUTAPO O trámites Recibidos. O Trámites Despachados O Correspondencias Recibidas O Comespondendas Departa
+/ E
+ds CPien o q (7 Fritar| [Y Todo|
+Mis pendientes
+C N O _ R C R O E R S R P E O L N M D II E V N O C IAS DES D P E A S C T H IN A A D T A A S RIO REFERENCIAS
+Nro. Hojas/Anexos:25
+Tipo de corres. SOLICITUD
+3 ps
+AP uafers asncaiar:S,o lciud de estraga de visticas del2 iaje. realizaa Tdaroja. Origpio;nal
+Instrucción1
+Fedec rehspueasta:
+Fecha de envio-2008-10-30
+Fecha de recepcion:sin recepcion
+Figura 115
+
+============================================================
+PÁGINA 65 de 65
+============================================================
+
+Manual Funcional
+Fundación AUTAPO
+Sistema Workflow Wayka
+Educación para el Desarrollo
+Si presiono sobre el enlace '*"“*"", de la pantalla “Mis Pendientes”, podrá nuevamente
+atender la correspondencia y registrar los datos necesarioos realizar cambioys enviar
+nuevamente a otros destinatarios, posteriormente grabar los datos y avanzar la
+correspondencia.
+En otro caso puede archivar la correspondencia. (Ver figura 116).
+Formulario
+Q volver
+Destinatarlo | - Selecolone —
+Fecha = 30/10/2008 Hora =[14:59:59]
+Nro. Hojasitnero9s4
+Tidpe corores- SOLICITUD
+Instrucción [Atender lo Solokad Er a
+¡Asesoría del Pleno -Merardo Vargas Cruz és
+Asesoría Económica de la Comisión de Desarrollo Económico-Pedro Llanos Almendras ¡3
+Asesoría Jurídica de la Comisión de Desarrollo Económico-Aldo MontaÑio Bravo a
+¡Asesoría Jurídica 11 de la Comisión de Desarrollo Económico-Guido Apariolo Mercado
+Asesoría Jurídica IV de la Comisión de Desarrollo Humano-Jose Luis Sanchez Choque
+¡Asesoría Técnico Civil de la Comisión de Planificación Ana Rosa Vera Guzmán
