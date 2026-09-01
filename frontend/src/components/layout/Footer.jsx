@@ -1,35 +1,32 @@
 import React from 'react';
-import { Layers, Database, Server, Globe } from 'lucide-react';
+import { Landmark, Server, Database, Globe } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="footer">
+    <footer className="footer-sucre">
       <div className="footer-content">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <Layers size={18} color="#3b82f6" />
-          <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
-            WAYKA MVP 2026
-          </span>
-          <span>— Sistema de Gestión Documental y Workflow</span>
+        <div className="footer-brand">
+          <Landmark size={20} color="#FFC107" />
+          <span>GACETA MUNICIPAL DE SUCRE — SISTEMA WAYKA</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Globe size={14} color="#06b6d4" />
-            <span>React + Vite SPA</span>
+        <div className="footer-links">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Globe size={14} color="#81D4FA" />
+            <span>Frontend React 19</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Server size={14} color="#3b82f6" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Server size={14} color="#A5D6A7" />
             <span>Node.js / Express</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Database size={14} color="#f59e0b" />
-            <span>MySQL 8.0+</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Database size={14} color="#FFE082" />
+            <span>MySQL 8.0</span>
           </div>
         </div>
 
-        <div>
-          <span>Sprint 1: Fundación & Entorno</span>
+        <div style={{ fontSize: '0.8rem', color: '#CBD5E1' }}>
+          <span>Sprint 1: Fundación del Sistema | Gestión 2026</span>
         </div>
       </div>
     </footer>
