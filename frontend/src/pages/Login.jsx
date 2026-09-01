@@ -20,8 +20,8 @@ export default function Login() {
       return;
     }
 
-    if (password.length < 6 || password.length > 10) {
-      setErrorMsg('La clave/PIN debe contener entre 6 y 10 caracteres.');
+    if (password.length < 6) {
+      setErrorMsg('La clave/PIN debe contener al menos 6 caracteres.');
       return;
     }
 
@@ -112,7 +112,7 @@ export default function Login() {
 
             <div className="form-group">
               <label className="form-label" htmlFor="password">
-                Clave / PIN (6 a 10 caracteres)
+                Clave / PIN de Acceso (mínimo 6 caracteres)
               </label>
               <input
                 id="password"
@@ -123,7 +123,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 minLength={6}
-                maxLength={10}
+                maxLength={50}
                 required
               />
             </div>

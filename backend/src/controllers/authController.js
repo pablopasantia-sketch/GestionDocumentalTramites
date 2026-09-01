@@ -175,8 +175,8 @@ async function changePassword(req, res) {
       return error(res, 'Debe especificar la contraseña actual y la nueva contraseña', 400);
     }
 
-    if (newPassword.length < 6 || newPassword.length > 10) {
-      return error(res, 'La nueva clave debe tener entre 6 y 10 caracteres', 400);
+    if (newPassword.length < 6 || newPassword.length > 50) {
+      return error(res, 'La nueva clave debe tener entre 6 y 50 caracteres', 400);
     }
 
     const [usuarios] = await pool.query('SELECT password_hash FROM usuarios WHERE id = ?', [userId]);
