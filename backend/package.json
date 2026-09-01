@@ -7,8 +7,12 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "migrate": "node src/database/migrator.js up",
+    "migrate:status": "node src/database/migrator.js status",
+    "migrate:reset": "node src/database/migrator.js reset",
     "db:init": "node src/database/initDb.js",
-    "db:seed": "node src/database/seedDb.js"
+    "db:seed": "node src/database/seedDb.js",
+    "test:model": "node src/database/testDataModel.js"
   },
   "keywords": [
     "wayka",

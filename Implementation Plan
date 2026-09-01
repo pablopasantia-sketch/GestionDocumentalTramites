@@ -1,0 +1,79 @@
+Plan de Implementación — Modelo de Datos y Migraciones (Flujo Unificado)
+Este plan detalla el diseño, la estructura modular y la implementación del Modelo de Datos y Sistema de Migraciones (Flujo Unificado) para el Sistema Wayka MVP, correspondiente al Sprint 1 según 
+REQUERIMIENTOS_WAYKA_ANALISIS.md
+.
+
+1. Objetivos del Modelo de Datos (Flujo Unificado)
+Unificación de Trámites y Correspondencias:
+
+Consolidar en la entidad tramites y su historial movimientos tanto los procesos internos (ej: Solicitudes, Compras) como las correspondencias externas e internas.
+Soporte para derivación libre a destinatario, múltiples destinatarios adicionales, instructivos, referencias y fechas de vencimiento.
+Máquina de estados completa: CREADO, EN_ATENCION, ATENDIDO, EN_TRANSITO, POR_RECIBIR, RECIBIDO, BLOQUEADO, CONCLUIDO, ANULADO.
+Sistema de Migraciones Versionadas (backend/src/database/migrations/):
+
+Motor de migraciones en Node.js (migrator.js) con registro en tabla _migrations.
+Archivos SQL incrementales ordenados cronológicamente (001_...sql a 011_...sql).
+Soporte para comandos npm run migrate, npm run migrate:status, npm run migrate:reset.
+Capa de Modelos y Acceso a Datos (Data Access Layer / DAO):
+
+Clases de modelo en JavaScript para cada entidad con métodos de consulta, inserción, actualización, validación de reglas de negocio y borrado lógico (activo = 0).
+Regla de inmutabilidad en movimientos (historial append-only).
+Generador atómico de correlativos ([CÓDIGO]-[NÚMERO]/[GESTIÓN]).
+2. Entidades del Modelo de Datos
+#	Tabla	Descripción / Reglas Clave
+1	personas	Datos personales (CI único, nombres, apellidos, teléfono, email, sexo, estado civil). Borrado lógico.
+2	ubicaciones_org	Organigrama jerárquico (padre-hijo padre_id, nivel, código único, sigla).
+3	roles	Catálogo de roles (ADMIN_SISTEMA, ADMIN_WAYKA, VENTANILLA_UNICA, FUNCIONARIO).
+4	usuarios	Cuentas vinculadas a persona (login único, password_hash, estado activo).
+5	usuario_roles	Relación multi-rol con oficina ubicacion_org_id, nivel de acceso, fecha de expiración y filtro.
+6	tipos_proceso	Catálogo de trámites/correspondencias (TRAMITE, CORRESPONDENCIA, código, tiempo SLA en horas).
+7	correlativos	Control secuencial atómico por gestión y proceso/oficina.
+8	tramites	Proceso unificado (correlativo, gestión, remitente, referencia, nro hojas/anexos, usuario/oficina actual, estado).
+9	movimientos	Historial inmutable (orden secuencial, derivaciones, retrocesos justificados, proveídos, timestamps, cálculo de tiempos).
+10	adjuntos	Documentos digitales (PDFs, nombre original/almacenado, tamaño, tipo mime, subido por).
+11	parametros	Variables del sistema y configuración institucional.
+3. Estructura de Archivos a Crear / Modificar
+
+backend/
+├── package.json (añadir scripts de migración)
+└── src/
+    ├── database/
+    │   ├── migrator.js (Motor de ejecución de migraciones)
+    │   ├── testDataModel.js (Script de pruebas de integridad del modelo)
+    │   └── migrations/
+    │       ├── 001_create_personas.sql
+    │       ├── 002_create_ubicaciones_org.sql
+    │       ├── 003_create_roles.sql
+    │       ├── 004_create_usuarios.sql
+    │       ├── 005_create_usuario_roles.sql
+    │       ├── 006_create_tipos_proceso.sql
+    │       ├── 007_create_correlativos.sql
+    │       ├── 008_create_tramites.sql
+    │       ├── 009_create_movimientos.sql
+    │       ├── 010_create_adjuntos.sql
+    │       └── 011_create_parametros.sql
+    └── models/
+        ├── Persona.js
+        ├── UbicacionOrg.js
+        ├── Rol.js
+        ├── Usuario.js
+        ├── UsuarioRol.js
+        ├── TipoProceso.js
+        ├── Correlativo.js
+        ├── Tramite.js
+        ├── Movimiento.js
+        ├── Adjunto.js
+        └── Parametro.js
+4. Plan de Verificación
+Ejecución de Migraciones:
+Ejecutar npm run migrate y comprobar la creación de la tabla _migrations y las 11 tablas del modelo.
+Ejecutar npm run migrate:status para verificar que todas las migraciones están registradas y al día.
+Prueba Integral de Modelos y Reglas de Negocio:
+Ejecutar node src/database/testDataModel.js para validar:
+Inserción y consulta en todas las entidades.
+Generación correlativa secuencial (SV-1/2026, SV-2/2026).
+Creación de trámite con derivación libre e historial inmutable en movimientos.
+Validación de borrado lógico y protección contra eliminación con dependencias activas.
+Cálculo de tiempo transcurrido.
+Verificación de Semillas:
+Ejecutar npm run db:seed para asegurar compatibilidad con datos iniciales.
