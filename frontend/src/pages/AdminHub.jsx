@@ -989,7 +989,11 @@ export default function AdminHub() {
                                 style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                                 title={`Oficina: ${r.ubicacion_nombre} • Nivel: ${r.nivel_acceso}`}
                               >
-                                {r.es_principal && <Star size={10} />}
+                                {Boolean(r.es_principal) ? (
+                                  <Star size={10} style={{ fill: 'currentColor' }} />
+                                ) : (
+                                  <Shield size={10} />
+                                )}
                                 {r.rol_nombre} ({r.ubicacion_codigo || 'OF'})
                               </span>
                             ))
@@ -1198,7 +1202,7 @@ export default function AdminHub() {
                             >
                               <Edit2 size={14} />
                             </button>
-                            {u.activo && (
+                            {Boolean(u.activo) && (
                               <button
                                 onClick={() => { setDeleteModalError(null); setConfirmDelete({ type: 'ubicacion', item: u }); }}
                                 className="btn btn-outline-danger btn-sm"

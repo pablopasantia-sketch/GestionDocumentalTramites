@@ -484,6 +484,26 @@ a:hover {
   border: 1px solid #c7d8f5;
 }
 
+/* Badge Dorado / Secundario */
+.badge-gold {
+  background-color: #fef9e7;
+  color: #8c5b05;
+  border: 1px solid #f6e05e;
+}
+
+/* Badge Vigente / Activo / Inactivo */
+.badge-active {
+  background-color: var(--color-status-vigente-bg);
+  color: var(--color-status-vigente-text);
+  border: 1px solid var(--color-status-vigente-border);
+}
+
+.badge-inactive {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+}
+
 .status-dot {
   width: 8px;
   height: 8px;
