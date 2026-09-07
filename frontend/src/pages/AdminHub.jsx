@@ -15,7 +15,12 @@ import {
   X,
   Star,
   RefreshCw,
-  UserCheck
+  UserCheck,
+  Network,
+  ChevronRight,
+  ChevronDown,
+  FolderOpen,
+  Folder
 } from 'lucide-react';
 import {
   personasService,
@@ -28,7 +33,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function AdminHub() {
   const { user: currentUser } = useAuth();
-  const [activeTab, setActiveTab] = useState('personas'); // 'personas' | 'usuarios' | 'roles'
+  const [activeTab, setActiveTab] = useState('personas'); // 'personas' | 'usuarios' | 'roles' | 'ubicaciones'
 
   // Datos del backend
   const [personas, setPersonas] = useState([]);
@@ -82,12 +87,25 @@ export default function AdminHub() {
     es_principal: false
   });
 
-  const [confirmDelete, setConfirmDelete] = useState(null); // { type: 'persona' | 'usuario', item: {} }
+  const [confirmDelete, setConfirmDelete] = useState(null); // { type: 'persona' | 'usuario' | 'ubicacion', item: {} }
   const [deleteModalError, setDeleteModalError] = useState(null);
   const [personaModalError, setPersonaModalError] = useState(null);
   const [usuarioModalError, setUsuarioModalError] = useState(null);
   const [passwordModalError, setPasswordModalError] = useState(null);
   const [rolesModalError, setRolesModalError] = useState(null);
+
+  // Estado para Ubicaciones Orgánicas
+  const [showUbicacionModal, setShowUbicacionModal] = useState(false);
+  const [ubicacionEditing, setUbicacionEditing] = useState(null);
+  const [ubicacionForm, setUbicacionForm] = useState({
+    codigo: '',
+    nombre: '',
+    sigla: '',
+    padre_id: '',
+    descripcion: ''
+  });
+  const [ubicacionModalError, setUbicacionModalError] = useState(null);
+  const [expandedNodes, setExpandedNodes] = useState(new Set());
 
   // Carga inicial
   useEffect(() => {
@@ -388,6 +406,178 @@ export default function AdminHub() {
   };
 
   // ----------------------------------------------------
+  // MANEJADORES: UBICACIONES ORGÁNICAS
+  // ----------------------------------------------------
+  const handleOpenUbicacionModal = (ubicacion = null) => {
+    setUbicacionModalError(null);
+    if (ubicacion) {
+      setUbicacionEditing(ubicacion);
+      setUbicacionForm({
+        codigo: ubicacion.codigo || '',
+        nombre: ubicacion.nombre || '',
+        sigla: ubicacion.sigla || '',
+        padre_id: ubicacion.padre_id ? String(ubicacion.padre_id) : '',
+        descripcion: ubicacion.descripcion || ''
+      });
+    } else {
+      setUbicacionEditing(null);
+      setUbicacionForm({ codigo: '', nombre: '', sigla: '', padre_id: '', descripcion: '' });
+    }
+    setShowUbicacionModal(true);
+  };
+
+  const handleSaveUbicacion = async (e) => {
+    e.preventDefault();
+    setActionLoading(true);
+    setUbicacionModalError(null);
+    try {
+      const payload = {
+        codigo: ubicacionForm.codigo.trim().toUpperCase(),
+        nombre: ubicacionForm.nombre.trim(),
+        sigla: ubicacionForm.sigla.trim() || null,
+        padre_id: ubicacionForm.padre_id ? parseInt(ubicacionForm.padre_id, 10) : null,
+        descripcion: ubicacionForm.descripcion.trim() || null
+      };
+
+      if (ubicacionEditing) {
+        const res = await ubicacionesService.update(ubicacionEditing.id, payload);
+        if (res.success) {
+          showFeedbackMsg('success', `Unidad orgánica "${payload.nombre}" actualizada exitosamente.`);
+        }
+      } else {
+        const res = await ubicacionesService.create(payload);
+        if (res.success) {
+          showFeedbackMsg('success', `Unidad orgánica "${payload.nombre}" creada exitosamente.`);
+        }
+      }
+      setShowUbicacionModal(false);
+      const resUbic = await ubicacionesService.getAll();
+      if (resUbic.success) setUbicaciones(resUbic.data || []);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Error al guardar la unidad orgánica.';
+      setUbicacionModalError(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteUbicacion = async (ubicacion) => {
+    setActionLoading(true);
+    setDeleteModalError(null);
+    try {
+      const res = await ubicacionesService.delete(ubicacion.id);
+      if (res.success) {
+        showFeedbackMsg('success', `La unidad "${ubicacion.nombre}" fue dada de baja.`);
+        setConfirmDelete(null);
+        setDeleteModalError(null);
+        const resUbic = await ubicacionesService.getAll();
+        if (resUbic.success) setUbicaciones(resUbic.data || []);
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'No se pudo eliminar la unidad.';
+      setDeleteModalError(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const toggleNode = (id) => {
+    setExpandedNodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // Render recursivo del árbol de organigrama
+  const renderTreeNode = (node, depth = 0) => {
+    const hasChildren = node.hijos && node.hijos.length > 0;
+    const isExpanded = expandedNodes.has(node.id);
+    return (
+      <div key={node.id}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '8px 12px',
+            paddingLeft: `${12 + depth * 24}px`,
+            borderBottom: '1px solid #F1F3F5',
+            backgroundColor: depth === 0 ? '#F8F9FA' : '#FFFFFF',
+            transition: 'background-color 0.15s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#EEF2F7'}
+          onMouseLeave={e => e.currentTarget.style.backgroundColor = depth === 0 ? '#F8F9FA' : '#FFFFFF'}
+        >
+          {/* Expand toggle */}
+          <button
+            onClick={() => hasChildren && toggleNode(node.id)}
+            style={{
+              background: 'none', border: 'none', cursor: hasChildren ? 'pointer' : 'default',
+              color: hasChildren ? '#1B365D' : '#CED4DA', padding: '0', flexShrink: 0
+            }}
+          >
+            {hasChildren ? (isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />) : <span style={{ display: 'inline-block', width: 14 }} />}
+          </button>
+
+          {/* Folder icon */}
+          {hasChildren
+            ? (isExpanded ? <FolderOpen size={16} style={{ color: '#1B365D', flexShrink: 0 }} /> : <Folder size={16} style={{ color: '#1B365D', flexShrink: 0 }} />)
+            : <Building2 size={16} style={{ color: '#800000', flexShrink: 0 }} />
+          }
+
+          {/* Info */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ fontWeight: depth === 0 ? 700 : 500, fontSize: '0.9rem', color: '#1B365D' }}>
+              {node.nombre}
+            </span>
+            {node.sigla && (
+              <span style={{ marginLeft: '6px', fontSize: '0.75rem', color: '#6C757D', fontStyle: 'italic' }}>
+                ({node.sigla})
+              </span>
+            )}
+          </div>
+
+          <span style={{
+            fontSize: '0.72rem', fontWeight: 700, color: '#800000',
+            background: '#FFF5F5', border: '1px solid #F5C6CB',
+            padding: '1px 6px', borderRadius: '3px', flexShrink: 0
+          }}>
+            {node.codigo}
+          </span>
+
+          <span style={{ fontSize: '0.72rem', color: '#6C757D', flexShrink: 0, minWidth: 55, textAlign: 'center' }}>
+            Niv. {node.nivel}
+          </span>
+
+          {/* Acciones */}
+          <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+            <button
+              onClick={() => handleOpenUbicacionModal(node)}
+              className="btn btn-secondary btn-sm"
+              title="Editar unidad"
+              style={{ padding: '3px 8px' }}
+            >
+              <Edit2 size={13} />
+            </button>
+            <button
+              onClick={() => { setDeleteModalError(null); setConfirmDelete({ type: 'ubicacion', item: node }); }}
+              className="btn btn-sm"
+              title="Dar de baja"
+              style={{ padding: '3px 8px', backgroundColor: '#DC3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
+        </div>
+        {/* Hijos recursivos */}
+        {hasChildren && isExpanded && node.hijos.map(hijo => renderTreeNode(hijo, depth + 1))}
+      </div>
+    );
+  };
+
+  // ----------------------------------------------------
   // FILTRADO
   // ----------------------------------------------------
   const filteredPersonas = personas.filter((p) => {
@@ -397,6 +587,11 @@ export default function AdminHub() {
 
   const filteredUsuarios = usuarios.filter((u) => {
     const full = `${u.login} ${u.nombres || ''} ${u.apellido_paterno || ''} ${u.cargo || ''} ${u.ci || ''}`.toLowerCase();
+    return full.includes(searchTerm.toLowerCase());
+  });
+
+  const filteredUbicaciones = ubicaciones.filter((u) => {
+    const full = `${u.codigo} ${u.nombre} ${u.sigla || ''} ${u.padre_nombre || ''}`.toLowerCase();
     return full.includes(searchTerm.toLowerCase());
   });
 
@@ -543,6 +738,30 @@ export default function AdminHub() {
           <Shield size={18} />
           <span>Roles del Sistema ({roles.length})</span>
         </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('ubicaciones');
+            setSearchTerm('');
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            color: activeTab === 'ubicaciones' ? '#800000' : '#6C757D',
+            borderBottom: activeTab === 'ubicaciones' ? '3px solid #800000' : '3px solid transparent',
+            marginBottom: '-2px'
+          }}
+        >
+          <Network size={18} />
+          <span>Organigrama ({ubicaciones.length})</span>
+        </button>
       </div>
 
       {/* Barra de Búsqueda y Botón de Acción */}
@@ -569,6 +788,8 @@ export default function AdminHub() {
                 ? 'Buscar por nombre o CI...'
                 : activeTab === 'usuarios'
                 ? 'Buscar por login, nombre, cargo...'
+                : activeTab === 'ubicaciones'
+                ? 'Buscar por código, nombre o sigla...'
                 : 'Buscar roles...'
             }
             value={searchTerm}
@@ -588,6 +809,13 @@ export default function AdminHub() {
           <button onClick={handleOpenUsuarioModal} className="btn btn-primary btn-sm">
             <Plus size={16} />
             <span>Nuevo Usuario</span>
+          </button>
+        )}
+
+        {activeTab === 'ubicaciones' && (
+          <button onClick={() => handleOpenUbicacionModal()} className="btn btn-primary btn-sm">
+            <Plus size={16} />
+            <span>Nueva Unidad</span>
           </button>
         )}
       </div>
@@ -856,6 +1084,261 @@ export default function AdminHub() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* PESTAÑA 4: ORGANIGRAMA - UBICACIONES ORGÁNICAS       */}
+      {/* ==================================================== */}
+      {activeTab === 'ubicaciones' && (
+        <div>
+          {/* Panel de Árbol Interactivo */}
+          <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: '1.5rem' }}>
+            <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #E9ECEF', background: '#F8F9FA', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Network size={18} color="#800000" />
+                <span style={{ fontWeight: 700, color: '#1B365D', fontSize: '0.95rem' }}>Vista de Árbol Jerárquico</span>
+                <span style={{ fontSize: '0.78rem', color: '#6C757D' }}>— Haga clic en las flechas para expandir/colapsar</span>
+              </div>
+              <button
+                className="btn btn-secondary btn-sm"
+                style={{ fontSize: '0.78rem', padding: '3px 10px' }}
+                onClick={() => setExpandedNodes(new Set(ubicaciones.map(u => u.id)))}
+              >
+                Expandir todo
+              </button>
+            </div>
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {loading ? (
+                <div style={{ padding: '2rem', textAlign: 'center', color: '#6C757D' }}>Cargando organigrama...</div>
+              ) : ubicaciones.length === 0 ? (
+                <div style={{ padding: '2rem', textAlign: 'center', color: '#6C757D' }}>
+                  No hay unidades orgánicas registradas. Cree la primera con el botón "Nueva Unidad".
+                </div>
+              ) : (() => {
+                // Build tree from flat ubicaciones for display
+                const map = new Map();
+                const roots = [];
+                ubicaciones.forEach(u => map.set(u.id, { ...u, hijos: [] }));
+                ubicaciones.forEach(u => {
+                  if (u.padre_id && map.has(u.padre_id)) map.get(u.padre_id).hijos.push(map.get(u.id));
+                  else roots.push(map.get(u.id));
+                });
+                return roots.map(root => renderTreeNode(root, 0));
+              })()}
+            </div>
+          </div>
+
+          {/* Tabla plana con búsqueda */}
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #E9ECEF', background: '#F8F9FA' }}>
+              <span style={{ fontWeight: 700, color: '#1B365D', fontSize: '0.95rem' }}>Vista de Lista</span>
+              <span style={{ fontSize: '0.8rem', color: '#6C757D', marginLeft: '8px' }}>
+                {filteredUbicaciones.length} unidad(es) encontrada(s)
+              </span>
+            </div>
+            <div className="table-container">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '100px' }}>Código</th>
+                    <th>Nombre de la Unidad</th>
+                    <th style={{ width: '90px' }}>Sigla</th>
+                    <th>Unidad Padre</th>
+                    <th style={{ width: '70px', textAlign: 'center' }}>Nivel</th>
+                    <th style={{ textAlign: 'center', width: '80px' }}>Estado</th>
+                    <th style={{ textAlign: 'right', width: '100px' }}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>Cargando...</td></tr>
+                  ) : filteredUbicaciones.length === 0 ? (
+                    <tr><td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: '#6C757D' }}>No se encontraron unidades.</td></tr>
+                  ) : (
+                    filteredUbicaciones.map((u) => (
+                      <tr key={u.id}>
+                        <td>
+                          <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#800000', fontSize: '0.85rem', background: '#FFF5F5', padding: '2px 6px', borderRadius: '3px', border: '1px solid #F5C6CB' }}>
+                            {u.codigo}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ fontWeight: 600, color: '#1B365D' }}>{u.nombre}</span>
+                          {u.descripcion && (
+                            <div style={{ fontSize: '0.78rem', color: '#6C757D', marginTop: '2px' }}>{u.descripcion}</div>
+                          )}
+                        </td>
+                        <td style={{ fontSize: '0.85rem', fontStyle: 'italic', color: '#495057' }}>{u.sigla || '—'}</td>
+                        <td style={{ fontSize: '0.85rem', color: '#495057' }}>
+                          {u.padre_nombre ? (
+                            <span>
+                              {u.padre_nombre}
+                              {u.padre_sigla && <span style={{ color: '#6C757D', marginLeft: '4px' }}>({u.padre_sigla})</span>}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#6C757D', fontStyle: 'italic' }}>Nivel raíz</span>
+                          )}
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1B365D' }}>{u.nivel}</span>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span className={`badge ${u.activo ? 'badge-active' : 'badge-inactive'}`}>
+                            {u.activo ? 'Activa' : 'Baja'}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', gap: '6px' }}>
+                            <button
+                              onClick={() => handleOpenUbicacionModal(u)}
+                              className="btn btn-secondary btn-sm"
+                              title="Editar unidad"
+                              style={{ padding: '4px 8px' }}
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            {u.activo && (
+                              <button
+                                onClick={() => { setDeleteModalError(null); setConfirmDelete({ type: 'ubicacion', item: u }); }}
+                                className="btn btn-outline-danger btn-sm"
+                                title="Dar de baja"
+                                style={{ padding: '4px 8px' }}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL: REGISTRAR / EDITAR UBICACIÓN ORGÁNICA         */}
+      {/* ==================================================== */}
+      {showUbicacionModal && (
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowUbicacionModal(false); }}>
+          <div className="modal-dialog" style={{ maxWidth: '560px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '4px', background: '#800000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                  <Network size={16} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, color: '#1B365D', fontSize: '1rem' }}>
+                    {ubicacionEditing ? 'Editar Unidad Orgánica' : 'Nueva Unidad Orgánica'}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#6C757D' }}>RF-02.6 — Estructura jerárquica del organigrama</div>
+                </div>
+              </div>
+              <button onClick={() => setShowUbicacionModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6C757D' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveUbicacion}>
+              <div className="modal-body">
+                {ubicacionModalError && (
+                  <div style={{
+                    marginBottom: '1rem', padding: '10px 14px', borderRadius: '4px',
+                    background: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB',
+                    display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '0.88rem'
+                  }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <span>{ubicacionModalError}</span>
+                  </div>
+                )}
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">Código <span style={{ color: '#DC3545' }}>*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={ubicacionForm.codigo}
+                      onChange={(e) => setUbicacionForm({ ...ubicacionForm, codigo: e.target.value.toUpperCase() })}
+                      placeholder="Ej: GAM, ALCAL, RRHH"
+                      maxLength={20}
+                      required
+                    />
+                    <small style={{ color: '#6C757D', fontSize: '0.75rem' }}>Identificador único (automáticamente en mayúsculas)</small>
+                  </div>
+
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">Sigla / Abrev.</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={ubicacionForm.sigla}
+                      onChange={(e) => setUbicacionForm({ ...ubicacionForm, sigla: e.target.value.toUpperCase() })}
+                      placeholder="Ej: RRHH, TI"
+                      maxLength={15}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label">Nombre de la Unidad <span style={{ color: '#DC3545' }}>*</span></label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={ubicacionForm.nombre}
+                    onChange={(e) => setUbicacionForm({ ...ubicacionForm, nombre: e.target.value })}
+                    placeholder="Ej: Recursos Humanos, Alcaldía Municipal"
+                    required
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label">Unidad Padre (opcional)</label>
+                  <select
+                    className="form-control"
+                    value={ubicacionForm.padre_id}
+                    onChange={(e) => setUbicacionForm({ ...ubicacionForm, padre_id: e.target.value })}
+                  >
+                    <option value="">— Sin padre (Nivel raíz) —</option>
+                    {ubicaciones
+                      .filter(u => u.activo && (!ubicacionEditing || u.id !== ubicacionEditing.id))
+                      .map(u => (
+                        <option key={u.id} value={u.id}>
+                          {'\u00a0'.repeat((u.nivel - 1) * 2)}{u.nivel > 1 ? '└ ' : ''}{u.nombre} ({u.codigo})
+                        </option>
+                      ))
+                    }
+                  </select>
+                  <small style={{ color: '#6C757D', fontSize: '0.75rem' }}>El nivel se calculará automáticamente según el padre seleccionado</small>
+                </div>
+
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label">Descripción (opcional)</label>
+                  <textarea
+                    className="form-control"
+                    value={ubicacionForm.descripcion}
+                    onChange={(e) => setUbicacionForm({ ...ubicacionForm, descripcion: e.target.value })}
+                    placeholder="Descripción de las funciones o área de responsabilidad..."
+                    rows={3}
+                    style={{ resize: 'vertical' }}
+                  />
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" onClick={() => setShowUbicacionModal(false)} className="btn btn-secondary btn-sm" disabled={actionLoading}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary btn-sm" disabled={actionLoading}>
+                  {actionLoading ? 'Guardando...' : (ubicacionEditing ? 'Actualizar Unidad' : 'Registrar Unidad')}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
@@ -1509,6 +1992,18 @@ export default function AdminHub() {
                   </span>
                 </p>
               )}
+
+              {confirmDelete.type === 'ubicacion' && (
+                <p style={{ fontSize: '0.9rem', color: '#495057', margin: 0 }}>
+                  ¿Está seguro de que desea dar de baja la unidad orgánica{' '}
+                  <strong>{confirmDelete.item.nombre}</strong>{' '}({confirmDelete.item.codigo})?
+                  <br />
+                  <br />
+                  <span style={{ fontSize: '0.82rem', color: '#6C757D' }}>
+                    Nota: No se puede eliminar si tiene sub-unidades activas o funcionarios con roles asignados (RF-02.9).
+                  </span>
+                </p>
+              )}
             </div>
 
             <div className="modal-footer">
@@ -1526,6 +2021,7 @@ export default function AdminHub() {
                   onClick={() => {
                     if (confirmDelete.type === 'persona') handleDeletePersona(confirmDelete.item);
                     if (confirmDelete.type === 'usuario') handleDeleteUsuario(confirmDelete.item);
+                    if (confirmDelete.type === 'ubicacion') handleDeleteUbicacion(confirmDelete.item);
                   }}
                   className="btn btn-primary btn-sm"
                   style={{ backgroundColor: '#DC3545', borderColor: '#DC3545' }}

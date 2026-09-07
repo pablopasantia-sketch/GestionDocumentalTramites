@@ -270,11 +270,14 @@ export default function Home() {
             <span className="badge badge-vigente">COMPLETADA</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--color-table-zebra)', border: '1px solid var(--color-border)', borderRadius: '4px' }}>
-            <span style={{ color: 'var(--color-text-main)', fontSize: '0.9rem' }}>
-              Tarea 5: CRUD Ubicaciones Orgánicas (Estructura Jerárquica / Organigrama)
-            </span>
-            <span className="badge badge-azul">SIGUIENTE</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--color-status-vigente-bg)', border: '1px solid var(--color-status-vigente-border)', borderRadius: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <CheckCircle size={18} color="#1E7E34" />
+              <strong style={{ color: '#1E7E34', fontSize: '0.9rem' }}>
+                Tarea 5: CRUD Ubicaciones Orgánicas (Estructura Jerárquica / Organigrama)
+              </strong>
+            </div>
+            <span className="badge badge-vigente">COMPLETADA</span>
           </div>
         </div>
       </div>

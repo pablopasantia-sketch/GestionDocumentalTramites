@@ -169,7 +169,7 @@ export const usuarioRolesService = {
   },
 };
 
-// Servicios de Ubicaciones Orgánicas (Oficinas / Organigrama)
+// Servicios de Ubicaciones Orgánicas (Oficinas / Organigrama) — RF-02.6
 export const ubicacionesService = {
   getAll: async (params = {}) => {
     const response = await api.get('/ubicaciones', { params });
@@ -177,6 +177,22 @@ export const ubicacionesService = {
   },
   getArbol: async () => {
     const response = await api.get('/ubicaciones/arbol');
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await api.get(`/ubicaciones/${id}`);
+    return response.data;
+  },
+  create: async (data) => {
+    const response = await api.post('/ubicaciones', data);
+    return response.data;
+  },
+  update: async (id, data) => {
+    const response = await api.put(`/ubicaciones/${id}`, data);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/ubicaciones/${id}`);
     return response.data;
   },
 };
