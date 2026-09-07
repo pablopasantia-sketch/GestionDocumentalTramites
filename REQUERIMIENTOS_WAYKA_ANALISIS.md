@@ -513,7 +513,7 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 - [x] Configuración del entorno (React + backend) y BD MySQL 8.0+
 - [x] Modelo de datos y migraciones (flujo unificado)
 - [x] Autenticación JWT (login, logout, cambio clave)
-- [ ] CRUD Personas, Usuarios, Roles, Usuario-Rol
+- [x] CRUD Personas, Usuarios, Roles, Usuario-Rol
 - [ ] CRUD Ubicaciones Orgánicas (organigrama)
 
 ### Sprint 2 (15 Sep - 28 Sep): Core del proceso

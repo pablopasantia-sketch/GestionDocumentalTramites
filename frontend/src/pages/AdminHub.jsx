@@ -83,6 +83,11 @@ export default function AdminHub() {
   });
 
   const [confirmDelete, setConfirmDelete] = useState(null); // { type: 'persona' | 'usuario', item: {} }
+  const [deleteModalError, setDeleteModalError] = useState(null);
+  const [personaModalError, setPersonaModalError] = useState(null);
+  const [usuarioModalError, setUsuarioModalError] = useState(null);
+  const [passwordModalError, setPasswordModalError] = useState(null);
+  const [rolesModalError, setRolesModalError] = useState(null);
 
   // Carga inicial
   useEffect(() => {
@@ -122,6 +127,7 @@ export default function AdminHub() {
   // MANEJADORES: PERSONAS
   // ----------------------------------------------------
   const handleOpenPersonaModal = (persona = null) => {
+    setPersonaModalError(null);
     if (persona) {
       setPersonaEditing(persona);
       setPersonaForm({
@@ -159,6 +165,7 @@ export default function AdminHub() {
   const handleSavePersona = async (e) => {
     e.preventDefault();
     setActionLoading(true);
+    setPersonaModalError(null);
     try {
       if (personaEditing) {
         const res = await personasService.update(personaEditing.id, personaForm);
@@ -176,7 +183,7 @@ export default function AdminHub() {
       if (resPers.success) setPersonas(resPers.data || []);
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Error al guardar persona.';
-      showFeedbackMsg('error', msg);
+      setPersonaModalError(msg);
     } finally {
       setActionLoading(false);
     }
@@ -184,17 +191,19 @@ export default function AdminHub() {
 
   const handleDeletePersona = async (persona) => {
     setActionLoading(true);
+    setDeleteModalError(null);
     try {
       const res = await personasService.delete(persona.id);
       if (res.success) {
         showFeedbackMsg('success', `La persona ${persona.nombres} ${persona.apellido_paterno} fue dada de baja.`);
         setConfirmDelete(null);
+        setDeleteModalError(null);
         const resPers = await personasService.getAll({ search: searchTerm });
         if (resPers.success) setPersonas(resPers.data || []);
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'No se pudo dar de baja a la persona.';
-      showFeedbackMsg('error', msg);
+      setDeleteModalError(msg);
     } finally {
       setActionLoading(false);
     }
@@ -204,6 +213,7 @@ export default function AdminHub() {
   // MANEJADORES: USUARIOS
   // ----------------------------------------------------
   const handleOpenUsuarioModal = () => {
+    setUsuarioModalError(null);
     const activePersonas = personas.filter((p) => p.activo);
     setUsuarioForm({
       persona_id: activePersonas[0]?.id || '',
@@ -217,6 +227,7 @@ export default function AdminHub() {
   const handleSaveUsuario = async (e) => {
     e.preventDefault();
     setActionLoading(true);
+    setUsuarioModalError(null);
     try {
       const res = await usuariosService.create(usuarioForm);
       if (res.success) {
@@ -227,7 +238,7 @@ export default function AdminHub() {
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Error al registrar el usuario.';
-      showFeedbackMsg('error', msg);
+      setUsuarioModalError(msg);
     } finally {
       setActionLoading(false);
     }
@@ -236,13 +247,15 @@ export default function AdminHub() {
   const handleOpenPasswordModal = (usuario) => {
     setUserForPassword(usuario);
     setNewPassword('');
+    setPasswordModalError(null);
     setShowPasswordModal(true);
   };
 
   const handleSavePassword = async (e) => {
     e.preventDefault();
+    setPasswordModalError(null);
     if (!newPassword || newPassword.length < 6) {
-      showFeedbackMsg('error', 'La contraseña debe tener al menos 6 caracteres.');
+      setPasswordModalError('La contraseña debe tener al menos 6 caracteres.');
       return;
     }
     setActionLoading(true);
@@ -254,7 +267,7 @@ export default function AdminHub() {
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Error al restablecer contraseña.';
-      showFeedbackMsg('error', msg);
+      setPasswordModalError(msg);
     } finally {
       setActionLoading(false);
     }
@@ -262,17 +275,19 @@ export default function AdminHub() {
 
   const handleDeleteUsuario = async (usuario) => {
     setActionLoading(true);
+    setDeleteModalError(null);
     try {
       const res = await usuariosService.delete(usuario.id);
       if (res.success) {
         showFeedbackMsg('success', `El usuario '${usuario.login}' fue dado de baja.`);
         setConfirmDelete(null);
+        setDeleteModalError(null);
         const resUsr = await usuariosService.getAll({ search: searchTerm });
         if (resUsr.success) setUsuarios(resUsr.data || []);
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'No se pudo dar de baja al usuario.';
-      showFeedbackMsg('error', msg);
+      setDeleteModalError(msg);
     } finally {
       setActionLoading(false);
     }
@@ -283,6 +298,7 @@ export default function AdminHub() {
   // ----------------------------------------------------
   const handleOpenRolesModal = async (usuario) => {
     setUserForRoles(usuario);
+    setRolesModalError(null);
     setNewRoleForm({
       rol_id: roles[0]?.id || '',
       ubicacion_org_id: ubicaciones[0]?.id || '',
@@ -306,6 +322,7 @@ export default function AdminHub() {
   const handleAssignRole = async (e) => {
     e.preventDefault();
     setActionLoading(true);
+    setRolesModalError(null);
     try {
       const payload = {
         usuario_id: userForRoles.id,
@@ -328,7 +345,7 @@ export default function AdminHub() {
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Error al asignar rol.';
-      showFeedbackMsg('error', msg);
+      setRolesModalError(msg);
     } finally {
       setActionLoading(false);
     }
@@ -648,7 +665,10 @@ export default function AdminHub() {
                           </button>
                           {p.activo ? (
                             <button
-                              onClick={() => setConfirmDelete({ type: 'persona', item: p })}
+                              onClick={() => {
+                                setConfirmDelete({ type: 'persona', item: p });
+                                setDeleteModalError(null);
+                              }}
                               className="btn btn-outline-danger btn-sm"
                               title="Dar de baja"
                               style={{ padding: '4px 8px' }}
@@ -778,7 +798,10 @@ export default function AdminHub() {
                           </button>
                           {u.activo && u.id !== currentUser?.userId ? (
                             <button
-                              onClick={() => setConfirmDelete({ type: 'usuario', item: u })}
+                              onClick={() => {
+                                setConfirmDelete({ type: 'usuario', item: u });
+                                setDeleteModalError(null);
+                              }}
                               className="btn btn-outline-danger btn-sm"
                               title="Dar de baja usuario"
                               style={{ padding: '4px 8px' }}
@@ -858,6 +881,12 @@ export default function AdminHub() {
 
             <form onSubmit={handleSavePersona}>
               <div className="modal-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {personaModalError && (
+                  <div style={{ gridColumn: 'span 2', padding: '10px 14px', borderRadius: '4px', backgroundColor: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                    <span>{personaModalError}</span>
+                  </div>
+                )}
                 <div style={{ gridColumn: 'span 2' }}>
                   <label className="form-label required">Nombres</label>
                   <input
@@ -1031,6 +1060,12 @@ export default function AdminHub() {
 
             <form onSubmit={handleSaveUsuario}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {usuarioModalError && (
+                  <div style={{ padding: '10px 14px', borderRadius: '4px', backgroundColor: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                    <span>{usuarioModalError}</span>
+                  </div>
+                )}
                 <div>
                   <label className="form-label required">Seleccionar Persona Vinculada</label>
                   <select
@@ -1127,6 +1162,12 @@ export default function AdminHub() {
 
             <form onSubmit={handleSavePassword}>
               <div className="modal-body">
+                {passwordModalError && (
+                  <div style={{ marginBottom: '1rem', padding: '10px 14px', borderRadius: '4px', backgroundColor: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                    <span>{passwordModalError}</span>
+                  </div>
+                )}
                 <p style={{ fontSize: '0.88rem', color: '#495057', marginBottom: '1rem' }}>
                   Restablecer credencial de acceso para el usuario: <strong>{userForPassword?.login}</strong> (
                   {userForPassword?.nombres} {userForPassword?.apellido_paterno}).
@@ -1293,6 +1334,13 @@ export default function AdminHub() {
                   <span>Asignar Nuevo Rol al Usuario</span>
                 </h4>
 
+                {rolesModalError && (
+                  <div style={{ marginBottom: '10px', padding: '10px 14px', borderRadius: '4px', backgroundColor: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                    <span>{rolesModalError}</span>
+                  </div>
+                )}
+
                 <form onSubmit={handleAssignRole}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <div>
@@ -1392,21 +1440,49 @@ export default function AdminHub() {
       {/* MODAL: CONFIRMACIÓN DE BAJA LÓGICA */}
       {/* ==================================================== */}
       {confirmDelete && (
-        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setConfirmDelete(null); }}>
-          <div className="modal-dialog" style={{ maxWidth: '420px' }} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) { setConfirmDelete(null); setDeleteModalError(null); } }}>
+          <div className="modal-dialog" style={{ maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header" style={{ borderBottomColor: '#F5C6CB' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#DC3545' }}>
                 <AlertCircle size={20} />
                 <h2 className="modal-title" style={{ color: '#DC3545' }}>
-                  Confirmar Baja Lógica
+                  {deleteModalError ? 'Operación Denegada' : 'Confirmar Baja Lógica'}
                 </h2>
               </div>
-              <button onClick={() => setConfirmDelete(null)} className="modal-close-btn" title="Cerrar">
+              <button onClick={() => { setConfirmDelete(null); setDeleteModalError(null); }} className="modal-close-btn" title="Cerrar">
                 <X size={18} />
               </button>
             </div>
 
             <div className="modal-body">
+              {/* Alerta de Error Prominente dentro del Modal */}
+              {deleteModalError && (
+                <div
+                  style={{
+                    marginBottom: '1.25rem',
+                    padding: '12px 14px',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '10px',
+                    backgroundColor: '#F8D7DA',
+                    color: '#721C24',
+                    border: '1px solid #F5C6CB',
+                    animation: 'modalFadeIn 0.2s ease-out'
+                  }}
+                >
+                  <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#DC3545' }} />
+                  <div>
+                    <strong style={{ display: 'block', marginBottom: '3px', fontSize: '0.9rem' }}>
+                      No se puede dar de baja (Regla RF-02.9):
+                    </strong>
+                    <div style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
+                      {deleteModalError}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {confirmDelete.type === 'persona' && (
                 <p style={{ fontSize: '0.9rem', color: '#495057', margin: 0 }}>
                   ¿Está seguro de que desea dar de baja a la persona{' '}
@@ -1438,24 +1514,26 @@ export default function AdminHub() {
             <div className="modal-footer">
               <button
                 type="button"
-                onClick={() => setConfirmDelete(null)}
+                onClick={() => { setConfirmDelete(null); setDeleteModalError(null); }}
                 className="btn btn-secondary btn-sm"
                 disabled={actionLoading}
               >
-                Cancelar
+                {deleteModalError ? 'Entendido / Cerrar' : 'Cancelar'}
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirmDelete.type === 'persona') handleDeletePersona(confirmDelete.item);
-                  if (confirmDelete.type === 'usuario') handleDeleteUsuario(confirmDelete.item);
-                }}
-                className="btn btn-primary btn-sm"
-                style={{ backgroundColor: '#DC3545', borderColor: '#DC3545' }}
-                disabled={actionLoading}
-              >
-                {actionLoading ? 'Procesando...' : 'Confirmar Baja'}
-              </button>
+              {!deleteModalError && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirmDelete.type === 'persona') handleDeletePersona(confirmDelete.item);
+                    if (confirmDelete.type === 'usuario') handleDeleteUsuario(confirmDelete.item);
+                  }}
+                  className="btn btn-primary btn-sm"
+                  style={{ backgroundColor: '#DC3545', borderColor: '#DC3545' }}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? 'Procesando...' : 'Confirmar Baja'}
+                </button>
+              )}
             </div>
           </div>
         </div>
