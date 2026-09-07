@@ -15,7 +15,7 @@ import {
   X,
   Star,
   RefreshCw,
-  Eye
+  UserCheck
 } from 'lucide-react';
 import {
   personasService,
@@ -30,7 +30,7 @@ export default function AdminHub() {
   const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('personas'); // 'personas' | 'usuarios' | 'roles'
 
-  // Datos principales
+  // Datos del backend
   const [personas, setPersonas] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -82,7 +82,7 @@ export default function AdminHub() {
     es_principal: false
   });
 
-  const [confirmDelete, setConfirmDelete] = useState(null); // { type: 'persona' | 'usuario' | 'rol' | 'usuarioRol', item: {} }
+  const [confirmDelete, setConfirmDelete] = useState(null); // { type: 'persona' | 'usuario', item: {} }
 
   // Carga inicial
   useEffect(() => {
@@ -204,8 +204,9 @@ export default function AdminHub() {
   // MANEJADORES: USUARIOS
   // ----------------------------------------------------
   const handleOpenUsuarioModal = () => {
+    const activePersonas = personas.filter((p) => p.activo);
     setUsuarioForm({
-      persona_id: personas[0]?.id || '',
+      persona_id: activePersonas[0]?.id || '',
       login: '',
       password: '',
       cargo: ''
@@ -839,13 +840,18 @@ export default function AdminHub() {
       {/* MODAL: REGISTRAR / EDITAR PERSONA */}
       {/* ==================================================== */}
       {showPersonaModal && (
-        <div className="modal-backdrop">
-          <div className="modal-dialog" style={{ maxWidth: '650px' }}>
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowPersonaModal(false); }}>
+          <div className="modal-dialog" style={{ maxWidth: '650px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">
-                {personaEditing ? 'Editar Datos de Persona' : 'Registrar Nueva Persona'}
-              </h2>
-              <button onClick={() => setShowPersonaModal(false)} className="modal-close-btn">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '4px', background: '#800000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                  <Users size={16} />
+                </div>
+                <h2 className="modal-title">
+                  {personaEditing ? 'Editar Datos de Persona' : 'Registrar Nueva Persona'}
+                </h2>
+              </div>
+              <button onClick={() => setShowPersonaModal(false)} className="modal-close-btn" title="Cerrar">
                 <X size={18} />
               </button>
             </div>
@@ -1009,11 +1015,16 @@ export default function AdminHub() {
       {/* MODAL: CREAR USUARIO VINCULADO */}
       {/* ==================================================== */}
       {showUsuarioModal && (
-        <div className="modal-backdrop">
-          <div className="modal-dialog" style={{ maxWidth: '520px' }}>
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowUsuarioModal(false); }}>
+          <div className="modal-dialog" style={{ maxWidth: '520px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">Crear Cuenta de Usuario</h2>
-              <button onClick={() => setShowUsuarioModal(false)} className="modal-close-btn">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '4px', background: '#1B365D', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                  <UserPlus size={16} />
+                </div>
+                <h2 className="modal-title">Crear Cuenta de Usuario</h2>
+              </div>
+              <button onClick={() => setShowUsuarioModal(false)} className="modal-close-btn" title="Cerrar">
                 <X size={18} />
               </button>
             </div>
@@ -1100,11 +1111,16 @@ export default function AdminHub() {
       {/* MODAL: RESTABLECER CONTRASEÑA DE USUARIO */}
       {/* ==================================================== */}
       {showPasswordModal && (
-        <div className="modal-backdrop">
-          <div className="modal-dialog" style={{ maxWidth: '440px' }}>
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowPasswordModal(false); }}>
+          <div className="modal-dialog" style={{ maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">Restablecer Contraseña</h2>
-              <button onClick={() => setShowPasswordModal(false)} className="modal-close-btn">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '4px', background: '#800000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                  <KeyRound size={16} />
+                </div>
+                <h2 className="modal-title">Restablecer Contraseña</h2>
+              </div>
+              <button onClick={() => setShowPasswordModal(false)} className="modal-close-btn" title="Cerrar">
                 <X size={18} />
               </button>
             </div>
@@ -1151,25 +1167,31 @@ export default function AdminHub() {
       {/* MODAL: GESTIÓN DE ROLES Y OFICINAS DE USUARIO */}
       {/* ==================================================== */}
       {showRolesModal && (
-        <div className="modal-backdrop">
-          <div className="modal-dialog" style={{ maxWidth: '780px' }}>
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowRolesModal(false); }}>
+          <div className="modal-dialog" style={{ maxWidth: '800px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div>
-                <h2 className="modal-title">Roles y Oficinas de Usuario</h2>
-                <div style={{ fontSize: '0.82rem', color: '#6C757D' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '4px', background: '#1B365D', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                    <Shield size={16} />
+                  </div>
+                  <h2 className="modal-title">Roles y Oficinas de Usuario</h2>
+                </div>
+                <div style={{ fontSize: '0.82rem', color: '#6C757D', marginTop: '2px', marginLeft: '40px' }}>
                   Usuario: <strong>{userForRoles?.login}</strong> • {userForRoles?.nombres}{' '}
                   {userForRoles?.apellido_paterno}
                 </div>
               </div>
-              <button onClick={() => setShowRolesModal(false)} className="modal-close-btn">
+              <button onClick={() => setShowRolesModal(false)} className="modal-close-btn" title="Cerrar">
                 <X size={18} />
               </button>
             </div>
 
             <div className="modal-body">
               {/* Listado de roles actualmente asignados */}
-              <h4 style={{ fontSize: '0.95rem', color: '#1B365D', marginBottom: '8px' }}>
-                Asignaciones Actuales ({userAssignedRoles.length})
+              <h4 style={{ fontSize: '0.95rem', color: '#1B365D', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <UserCheck size={16} color="#800000" />
+                <span>Asignaciones Actuales ({userAssignedRoles.length})</span>
               </h4>
 
               {userAssignedRoles.length === 0 ? (
@@ -1266,8 +1288,9 @@ export default function AdminHub() {
                   border: '1px solid #E9ECEF'
                 }}
               >
-                <h4 style={{ fontSize: '0.92rem', color: '#800000', margin: '0 0 10px 0' }}>
-                  Asignar Nuevo Rol al Usuario
+                <h4 style={{ fontSize: '0.92rem', color: '#800000', margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Plus size={16} />
+                  <span>Asignar Nuevo Rol al Usuario</span>
                 </h4>
 
                 <form onSubmit={handleAssignRole}>
@@ -1369,8 +1392,8 @@ export default function AdminHub() {
       {/* MODAL: CONFIRMACIÓN DE BAJA LÓGICA */}
       {/* ==================================================== */}
       {confirmDelete && (
-        <div className="modal-backdrop">
-          <div className="modal-dialog" style={{ maxWidth: '420px' }}>
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setConfirmDelete(null); }}>
+          <div className="modal-dialog" style={{ maxWidth: '420px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header" style={{ borderBottomColor: '#F5C6CB' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#DC3545' }}>
                 <AlertCircle size={20} />
@@ -1378,7 +1401,7 @@ export default function AdminHub() {
                   Confirmar Baja Lógica
                 </h2>
               </div>
-              <button onClick={() => setConfirmDelete(null)} className="modal-close-btn">
+              <button onClick={() => setConfirmDelete(null)} className="modal-close-btn" title="Cerrar">
                 <X size={18} />
               </button>
             </div>
