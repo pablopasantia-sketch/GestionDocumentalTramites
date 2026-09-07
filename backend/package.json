@@ -12,7 +12,8 @@
     "migrate:reset": "node src/database/migrator.js reset",
     "db:init": "node src/database/initDb.js",
     "db:seed": "node src/database/seedDb.js",
-    "test:model": "node src/database/testDataModel.js"
+    "test:model": "node src/database/testDataModel.js",
+    "test:auth": "node src/database/testAuth.js"
   },
   "keywords": [
     "wayka",

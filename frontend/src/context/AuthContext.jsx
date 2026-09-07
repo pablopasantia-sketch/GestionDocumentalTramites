@@ -66,12 +66,42 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('wayka_user');
   };
 
-  const switchRole = (newRole) => {
-    if (!user) return;
-    const updatedUser = { ...user, activeRole: newRole };
-    setUser(updatedUser);
-    setActiveRole(newRole);
-    localStorage.setItem('wayka_user', JSON.stringify(updatedUser));
+  const switchRole = async (rolId, ubicacionOrgId) => {
+    if (!user) return { success: false, message: 'Usuario no autenticado' };
+    try {
+      const res = await authService.switchRole({ rolId, ubicacionOrgId });
+      if (res.success && res.data) {
+        const { token: newToken, activeRole: newActiveRole } = res.data;
+        setToken(newToken);
+        setActiveRole(newActiveRole);
+
+        const updatedUser = { ...user, activeRole: newActiveRole };
+        setUser(updatedUser);
+
+        localStorage.setItem('wayka_token', newToken);
+        localStorage.setItem('wayka_user', JSON.stringify(updatedUser));
+
+        return { success: true, activeRole: newActiveRole };
+      }
+      return { success: false, message: res.message || 'No se pudo cambiar de rol' };
+    } catch (err) {
+      const message = err.response?.data?.message || 'Error al cambiar de rol';
+      return { success: false, message };
+    }
+  };
+
+  const changePassword = async ({ currentPassword, newPassword, confirmPassword }) => {
+    try {
+      const res = await authService.changePassword({
+        currentPassword,
+        newPassword,
+        confirmPassword
+      });
+      return res;
+    } catch (err) {
+      const message = err.response?.data?.message || 'Error al cambiar la contraseña';
+      return { success: false, message };
+    }
   };
 
   return (
@@ -85,6 +115,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         switchRole,
+        changePassword,
       }}
     >
       {children}

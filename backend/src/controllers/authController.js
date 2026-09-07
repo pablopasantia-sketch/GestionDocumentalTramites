@@ -169,14 +169,26 @@ async function getProfile(req, res) {
 async function changePassword(req, res) {
   try {
     const userId = req.user.userId;
-    const { currentPassword, newPassword } = req.body;
+    const { currentPassword, newPassword, confirmPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
       return error(res, 'Debe especificar la contraseña actual y la nueva contraseña', 400);
     }
 
-    if (newPassword.length < 6 || newPassword.length > 50) {
-      return error(res, 'La nueva clave debe tener entre 6 y 50 caracteres', 400);
+    if (confirmPassword && newPassword !== confirmPassword) {
+      return error(res, 'La confirmación de la nueva clave no coincide', 400);
+    }
+
+    // Regla RF-01.1 y RF-01.3: Mínimo 6 caracteres, máximo 15 caracteres
+    if (newPassword.length < 6 || newPassword.length > 20) {
+      return error(res, 'La nueva clave debe tener entre 6 y 20 caracteres (PIN)', 400);
+    }
+
+    // Regla: Combinar letras con números
+    const hasLetter = /[a-zA-Z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+    if (!hasLetter || !hasNumber) {
+      return error(res, 'La nueva clave debe combinar al menos una letra y un número', 400);
     }
 
     const [usuarios] = await pool.query('SELECT password_hash FROM usuarios WHERE id = ?', [userId]);
@@ -199,8 +211,87 @@ async function changePassword(req, res) {
   }
 }
 
+/**
+ * Cambiar rol activo para usuarios Multi-Rol (RF-01.2 y Regla 5.3)
+ */
+async function switchRole(req, res) {
+  try {
+    const userId = req.user.userId;
+    const { rolId, ubicacionOrgId } = req.body;
+
+    if (!rolId || !ubicacionOrgId) {
+      return error(res, 'Debe especificar el rol y la ubicación orgánica a activar', 400);
+    }
+
+    // Verificar que el usuario tenga asignado este rol y ubicación
+    const [roles] = await pool.query(`
+      SELECT 
+        ur.id AS usuario_rol_id,
+        ur.rol_id,
+        r.codigo AS rol_codigo,
+        r.nombre AS rol_nombre,
+        ur.ubicacion_org_id,
+        uo.codigo AS ubicacion_codigo,
+        uo.nombre AS ubicacion_nombre,
+        ur.nivel_acceso,
+        ur.fecha_expiracion,
+        ur.filtro,
+        ur.es_principal
+      FROM usuario_roles ur
+      INNER JOIN roles r ON ur.rol_id = r.id
+      INNER JOIN ubicaciones_org uo ON ur.ubicacion_org_id = uo.id
+      WHERE ur.usuario_id = ? AND ur.rol_id = ? AND ur.ubicacion_org_id = ?
+        AND ur.activo = 1 AND r.activo = 1 AND uo.activo = 1
+        AND (ur.fecha_expiracion IS NULL OR ur.fecha_expiracion >= CURDATE())
+    `, [userId, rolId, ubicacionOrgId]);
+
+    if (roles.length === 0) {
+      return error(res, 'El rol seleccionado no está asignado o se encuentra inactivo/expirado', 403);
+    }
+
+    const rolActivo = roles[0];
+
+    // Obtener datos del usuario
+    const [usuarios] = await pool.query(`
+      SELECT u.id, u.persona_id, u.login, p.nombres, p.apellido_paterno, p.apellido_materno
+      FROM usuarios u
+      INNER JOIN personas p ON u.persona_id = p.id
+      WHERE u.id = ?
+    `, [userId]);
+
+    const usuario = usuarios[0];
+
+    const tokenPayload = {
+      userId: usuario.id,
+      personaId: usuario.persona_id,
+      username: usuario.login,
+      nombreCompleto: `${usuario.nombres} ${usuario.apellido_paterno} ${usuario.apellido_materno || ''}`.trim(),
+      roleId: rolActivo.rol_id,
+      roleCode: rolActivo.rol_codigo,
+      roleName: rolActivo.rol_nombre,
+      ubicacionOrgId: rolActivo.ubicacion_org_id,
+      ubicacionOrgNombre: rolActivo.ubicacion_nombre,
+      ubicacionOrgCodigo: rolActivo.ubicacion_codigo,
+      nivelAcceso: rolActivo.nivel_acceso,
+      filtro: rolActivo.filtro,
+      fechaExpiracion: rolActivo.fecha_expiracion
+    };
+
+    const token = generateToken(tokenPayload);
+
+    return success(res, {
+      token,
+      activeRole: rolActivo
+    }, `Rol activo cambiado a ${rolActivo.rol_nombre}`);
+  } catch (err) {
+    console.error('Error en switchRole:', err);
+    return error(res, 'Error al cambiar de rol activo', 500);
+  }
+}
+
 module.exports = {
   login,
   getProfile,
-  changePassword
+  changePassword,
+  switchRole
 };

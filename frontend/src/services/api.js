@@ -59,6 +59,10 @@ export const authService = {
     const response = await api.post('/auth/change-password', data);
     return response.data;
   },
+  switchRole: async (data) => {
+    const response = await api.post('/auth/switch-role', data);
+    return response.data;
+  },
 };
 
 export default api;

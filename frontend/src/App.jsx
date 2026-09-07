@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import SystemStatus from './pages/SystemStatus';
 import Login from './pages/Login';
 import { Landmark, ArrowLeft } from 'lucide-react';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Componente para vistas en desarrollo con estilo Gaceta Sucre
 function PlaceholderView({ title, description, badge }) {
@@ -59,35 +60,41 @@ export default function App() {
             <Route path="/status" element={<SystemStatus />} />
             <Route path="/login" element={<Login />} />
             
-            {/* Rutas de módulos futuros */}
+            {/* Rutas de módulos protegidos según rol */}
             <Route 
               path="/ventanilla" 
               element={
-                <PlaceholderView 
-                  title="Módulo de Ventanilla Única" 
-                  description="Recepción centralizada de trámites y correspondencia, emisión de Hoja de Ruta institucional con correlativo automático."
-                  badge="Sprint 2: Core del Proceso"
-                />
+                <ProtectedRoute allowedRoles={['VENTANILLA_UNICA', 'ADMIN_SISTEMA', 'ADMIN_WAYKA']}>
+                  <PlaceholderView 
+                    title="Módulo de Ventanilla Única" 
+                    description="Recepción centralizada de trámites y correspondencia, emisión de Hoja de Ruta institucional con correlativo automático."
+                    badge="Sprint 2: Core del Proceso"
+                  />
+                </ProtectedRoute>
               } 
             />
             <Route 
               path="/escritorio" 
               element={
-                <PlaceholderView 
-                  title="Escritorio Virtual y Bandejas" 
-                  description="Bandejas de pendientes, recibidos y despachados. Atención con proveídos y derivación libre a destinatarios."
-                  badge="Sprint 3: Flujo de Trabajo"
-                />
+                <ProtectedRoute allowedRoles={['FUNCIONARIO', 'VENTANILLA_UNICA', 'ADMIN_SISTEMA', 'ADMIN_WAYKA']}>
+                  <PlaceholderView 
+                    title="Escritorio Virtual y Bandejas" 
+                    description="Bandejas de pendientes, recibidos y despachados. Atención con proveídos y derivación libre a destinatarios."
+                    badge="Sprint 3: Flujo de Trabajo"
+                  />
+                </ProtectedRoute>
               } 
             />
             <Route 
               path="/admin" 
               element={
-                <PlaceholderView 
-                  title="Panel de Administración Institucional" 
-                  description="Gestión de Personas, Usuarios, Roles, Usuario-Rol y Estructura Jerárquica del Organigrama de Sucre."
-                  badge="Sprint 1: Tareas 4 y 5"
-                />
+                <ProtectedRoute allowedRoles={['ADMIN_SISTEMA', 'ADMIN_WAYKA']}>
+                  <PlaceholderView 
+                    title="Panel de Administración Institucional" 
+                    description="Gestión de Personas, Usuarios, Roles, Usuario-Rol y Estructura Jerárquica del Organigrama de Sucre."
+                    badge="Sprint 1: Tareas 4 y 5"
+                  />
+                </ProtectedRoute>
               } 
             />
 
