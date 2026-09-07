@@ -510,8 +510,8 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 **Cronograma:** 01 de Septiembre al 19 de Noviembre (6 Sprints de 2 semanas)
 
 ### Sprint 1 (01 Sep - 14 Sep): Fundación
-- [ ] Configuración del entorno (React + backend) y BD MySQL 8.0+
-- [ ] Modelo de datos y migraciones (flujo unificado)
+- [x] Configuración del entorno (React + backend) y BD MySQL 8.0+
+- [x] Modelo de datos y migraciones (flujo unificado)
 - [ ] Autenticación JWT (login, logout, cambio clave)
 - [ ] CRUD Personas, Usuarios, Roles, Usuario-Rol
 - [ ] CRUD Ubicaciones Orgánicas (organigrama)
