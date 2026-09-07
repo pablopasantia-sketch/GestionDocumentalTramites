@@ -8,6 +8,8 @@ import Login from './pages/Login';
 import { Landmark, ArrowLeft } from 'lucide-react';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
+import AdminHub from './pages/AdminHub';
+
 // Componente para vistas en desarrollo con estilo Gaceta Sucre
 function PlaceholderView({ title, description, badge }) {
   return (
@@ -89,11 +91,7 @@ export default function App() {
               path="/admin" 
               element={
                 <ProtectedRoute allowedRoles={['ADMIN_SISTEMA', 'ADMIN_WAYKA']}>
-                  <PlaceholderView 
-                    title="Panel de Administración Institucional" 
-                    description="Gestión de Personas, Usuarios, Roles, Usuario-Rol y Estructura Jerárquica del Organigrama de Sucre."
-                    badge="Sprint 1: Tareas 4 y 5"
-                  />
+                  <AdminHub />
                 </ProtectedRoute>
               } 
             />
