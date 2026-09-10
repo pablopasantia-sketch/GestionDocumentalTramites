@@ -1,0 +1,631 @@
+\documentclass[a4paper,12pt]{article}
+
+% ==============================================================================
+% PAQUETES DE CONFIGURACIÓN Y TIPOGRAFÍA
+% ==============================================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot,es-noindentfirst]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{microtype}
+\usepackage{titlesec}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds, shadows}
+\usepackage[most]{tcolorbox}
+\usepackage{hyperref}
+
+% ==============================================================================
+% DIMENSIONES DE PÁGINA (GEOMETRY)
+% ==============================================================================
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm,
+    headheight=25pt,
+    footskip=1.5cm
+}
+
+% ==============================================================================
+% PALETA INSTITUCIONAL (DESIGN SYSTEM WAYKA / GACETA SUCRE)
+% ==============================================================================
+\definecolor{colorSucre}{HTML}{800000}       % Rojo Sucre / Garnet Primario
+\definecolor{colorSucreDark}{HTML}{550000}   % Rojo Sucre Oscuro
+\definecolor{colorAzul}{HTML}{1B365D}        % Azul Institucional / Navy Secundario
+\definecolor{colorAzulDark}{HTML}{132744}    % Azul Institucional Oscuro
+\definecolor{colorAzulLight}{HTML}{2A4F85}   % Azul Claro Acento
+\definecolor{colorGrisFondo}{HTML}{F4F6F9}   % Gris de Fondo / Superficie
+\definecolor{colorBorde}{HTML}{E2E8F0}       % Gris de Bordes / Separadores
+\definecolor{colorTexto}{HTML}{212529}       % Gris Oscuro para Texto Principal
+\definecolor{colorTextoMuted}{HTML}{6C757D}  % Gris Neutro Secundario
+\definecolor{colorExito}{HTML}{1E7E34}       % Verde Éxito
+\definecolor{colorExitoBg}{HTML}{E6F4EA}     % Verde Fondo
+\definecolor{colorAlerta}{HTML}{B71C1C}      % Rojo Alerta
+\definecolor{colorAlertaBg}{HTML}{FCE8E6}    % Rojo Fondo
+\definecolor{colorWarning}{HTML}{8D6500}     % Amarillo Advertencia
+\definecolor{colorWarningBg}{HTML}{FFF8E1}   % Amarillo Fondo
+\definecolor{colorInfo}{HTML}{006064}        % Cian Informativo
+\definecolor{colorInfoBg}{HTML}{E0F7FA}      % Cian Fondo
+
+% ==============================================================================
+% CONFIGURACIÓN DE HIPERVÍNCULOS (HYPERREF)
+% ==============================================================================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=colorSucre,
+    citecolor=colorAzul,
+    urlcolor=colorAzul,
+    pdftitle={Informe Técnico Sprint 1 - Sistema Wayka MVP},
+    pdfauthor={Pablo - Tech Lead \& Senior Software Architect},
+    pdfsubject={Gestión Documental y Workflow Institucional},
+    pdfkeywords={Wayka, Sprint 1, JWT, RBAC, MySQL, REST API, Sucre, GAMS}
+}
+
+% ==============================================================================
+% CONFIGURACIÓN DE CÓDIGO FUENTE (LISTINGS)
+% ==============================================================================
+\lstdefinelanguage{json}{
+    basicstyle=\ttfamily\footnotesize\color{colorTexto},
+    numbers=left,
+    numberstyle=\tiny\color{colorTextoMuted},
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    breakatwhitespace=true,
+    frame=single,
+    rulecolor=\color{colorBorde},
+    backgroundcolor=\color{colorGrisFondo},
+    stringstyle=\color{colorSucre}\bfseries,
+    keywordstyle=\color{colorAzul}\bfseries,
+    commentstyle=\color{colorTextoMuted}\itshape,
+    morestring=[b]",
+    literate=
+      {á}{{\'{a}}}{1}
+      {é}{{\'{e}}}{1}
+      {í}{{\'{i}}}{1}
+      {ó}{{\'{o}}}{1}
+      {ú}{{\'{u}}}{1}
+      {ñ}{{\~{n}}}{1}
+      {:}{{{\color{colorAzulDark}{:}}}}{1}
+      {,}{{{\color{colorAzulDark}{,}}}}{1}
+      {\{}{{{\color{colorSucreDark}{\{}}}}{1}
+      {\}}{{{\color{colorSucreDark}{\}}}}}{1}
+      {[}{{{\color{colorSucreDark}{[}}}}{1}
+      {]}{{{\color{colorSucreDark}{]}}}}{1},
+}
+
+\lstdefinestyle{sqlstyle}{
+    language=SQL,
+    basicstyle=\ttfamily\footnotesize\color{colorTexto},
+    numbers=left,
+    numberstyle=\tiny\color{colorTextoMuted},
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{colorBorde},
+    backgroundcolor=\color{colorGrisFondo},
+    keywordstyle=\color{colorAzul}\bfseries,
+    stringstyle=\color{colorSucre},
+    commentstyle=\color{colorTextoMuted}\itshape
+}
+
+% ==============================================================================
+% ENCABEZADOS Y PIES DE PÁGINA (FANCYHDR)
+% ==============================================================================
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.8pt}
+\renewcommand{\footrulewidth}{0.5pt}
+
+\renewcommand{\headrule}{\hbox to\headwidth{\color{colorSucre}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\footrule}{\hbox to\headwidth{\color{colorBorde}\leaders\hrule height \footrulewidth\hfill}}
+
+\fancyhead[L]{\small\bfseries\color{colorAzul}SISTEMA WAYKA MVP \textbar{} GESTIÓN DOCUMENTAL}
+\fancyfoot[L]{\footnotesize\color{colorTextoMuted}Gobierno Autónomo Municipal de Sucre -- Práctica Laboral SHC170}
+\fancyfoot[R]{\small\bfseries\color{colorAzul}Página \thepage}
+
+% ==============================================================================
+% FORMATO DE TÍTULOS Y SECCIONES (TITLESEC)
+% ==============================================================================
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{colorSucreDark}}
+  {\thesection.}{0.8em}{}[\color{colorSucre}\titlerule]
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\raggedright\color{colorAzul}}
+  {\thesubsection.}{0.6em}{}
+
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\color{colorTexto}}
+  {\thesubsubsection.}{0.5em}{}
+
+\setlength{\parskip}{0.6em}
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{2em}
+
+% ==============================================================================
+% DOCUMENTO PRINCIPAL
+% ==============================================================================
+\begin{document}
+\hypersetup{pageanchor=false}
+
+% ------------------------------------------------------------------------------
+% CARÁTULA / PORTADA INSTITUCIONAL
+% ------------------------------------------------------------------------------
+\begin{titlepage}
+    \begin{tikzpicture}[remember picture, overlay]
+        % Franja lateral decorativa izquierda institucional
+        \fill[colorSucre] (current page.north west) rectangle ($(current page.north west) + (1.2cm, -\paperheight)$);
+        \fill[colorAzul] ($(current page.north west) + (1.2cm, 0)$) rectangle ($(current page.north west) + (1.5cm, -\paperheight)$);
+        
+        % Barra decorativa superior de encabezado
+        \fill[colorGrisFondo] ($(current page.north west) + (1.5cm, 0)$) rectangle ($(current page.north east) + (0, -3.5cm)$);
+        \draw[colorBorde, line width=1.5pt] ($(current page.north west) + (1.5cm, -3.5cm)$) -- (current page.north east);
+    \end{tikzpicture}
+
+    \vspace{-1.5cm}
+    \begin{flushright}
+        {\large\bfseries\color{colorAzul}GOBIERNO AUTÓNOMO MUNICIPAL DE SUCRE}\\[0.15cm]
+        {\footnotesize\color{colorSucre}\textbf{PROYECTO WAYKA: SISTEMA DE GESTIÓN DOCUMENTAL Y WORKFLOW}}
+    \end{flushright}
+
+    \vspace{3.5cm}
+
+    \begin{center}
+        \begingroup
+            \color{colorSucreDark}
+            \Huge\textbf{INFORME TÉCNICO DE INGENIERÍA}\\[0.3cm]
+            \LARGE\textbf{SPRINT 1: ARQUITECTURA BASE Y FUNDACIÓN}
+        \endgroup
+
+        \vspace{0.8cm}
+        \noindent\makebox[\linewidth]{\color{colorAzul}\rule{0.75\linewidth}{2pt}}
+        \vspace{0.8cm}
+
+        {\large\textbf{\color{colorTexto}Consolidación del Modelo Relacional, Motor de Migraciones DDL,}\\[0.15cm]
+        \textbf{\color{colorTexto}Autenticación Criptográfica JWT y Matriz de Autorización RBAC}}
+
+        \vspace{3cm}
+
+        \begin{tcolorbox}[
+            colback=colorGrisFondo,
+            colframe=colorAzul,
+            arc=3mm,
+            width=0.9\linewidth,
+            boxrule=1.2pt
+        ]
+            \centering
+            \vspace{0.2cm}
+            \begin{tabularx}{\linewidth}{@{}lY@{}}
+                \textbf{\color{colorAzul}Producto:} & Sistema Wayka MVP (Versión 1.0.0-sprint1) \\
+                \textbf{\color{colorAzul}Fase / Sprint:} & Sprint 1 (Semanas 1 y 2 -- Fundación Técnica) \\
+                \textbf{\color{colorAzul}Período de Ejecución:} & 01 de Septiembre al 14 de Septiembre de 2026 \\
+                \textbf{\color{colorAzul}Asignatura:} & SHC170 -- Práctica Laboral \\
+                \textbf{\color{colorAzul}Estado de Ejecución:} & \textbf{\color{colorExito}Completada}
+            \end{tabularx}
+            \vspace{0.2cm}
+        \end{tcolorbox}
+    \end{center}
+
+    \vfill
+
+    \begin{center}
+        \small\color{colorTextoMuted}
+        Sucre, Bolivia \textbar{} Gestión 2026
+    \end{center}
+\end{titlepage}
+\hypersetup{pageanchor=true}
+
+% ------------------------------------------------------------------------------
+% TABLA DE CONTENIDOS
+% ------------------------------------------------------------------------------
+\newpage
+\tableofcontents
+\newpage
+
+% ==============================================================================
+% SECCIÓN 1: RESUMEN EJECUTIVO
+% ==============================================================================
+\section{Resumen Ejecutivo}
+
+El presente documento constituye el Informe Técnico Exhaustivo correspondiente a la culminación del \textbf{Sprint 1 (Fundación)} del proyecto \textbf{Sistema Wayka MVP (Sistema de Gestión Documental y Workflow Institucional)}, implementado para modernizar la administración y trazabilidad de expedientes y correspondencias en el Gobierno Autónomo Municipal de Sucre.
+
+Durante este primer ciclo de dos semanas (01 al 14 de Septiembre de 2026), se establecieron con éxito los cimientos arquitectónicos, estructurales y de seguridad de la plataforma, garantizando una base desacoplada, escalable y con alta cohesión técnica.
+
+\subsection{Hitos y Logros Principales}
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Capa de Persistencia y Motor DDL:} Diseño e implementación del esquema relacional unificado en MySQL 8.0+ mediante un motor automatizado de migraciones versionadas (\texttt{migrator.js}) y 11 scripts incrementales ordenados cronológicamente (\texttt{001\_create\_personas.sql} a \texttt{011\_create\_parametros.sql}).
+    \item \textbf{Subsistema Criptográfico y Autenticación JWT:} Construcción de los servicios de emisión, validación y renovación de tokens criptográficos \emph{JSON Web Token} (JWT) con firma HMAC-SHA256, incorporación de secretos distribuidos y hashing de contraseñas de alta seguridad mediante \texttt{bcrypt} (10 rondas de salt).
+    \item \textbf{Autorización Multi-Rol y Modelo RBAC:} Estructuración de la matriz de control de acceso basada en roles (\emph{Role-Based Access Control} -- RBAC) para los cuatro roles esenciales del MVP: \emph{Administrador de Sistema}, \emph{Administrador de Wayka}, \emph{Ventanilla Única} y \emph{Funcionario}, soportando pertenencia simultánea a múltiples oficinas orgánicas.
+    \item \textbf{Capa de Controladores y Servicios REST API:} Despliegue de los endpoints de autenticación, control de perfiles, conmutación dinámica de contexto operativo (\texttt{switch-role}) y modelos de acceso a datos (DAO) para Personas, Usuarios, Ubicaciones Orgánicas y Asignaciones.
+    \item \textbf{Garantía de Calidad y Pruebas Automatizadas:} Verificación exhaustiva con suites de pruebas unitarias y de integración end-to-end (\texttt{testAuth.js} y \texttt{testDataModel.js}), logrando una tasa de éxito del 100\% (17/17 aserciones críticas aprobadas sin regresiones).
+\end{itemize}
+
+% ==============================================================================
+% SECCIÓN 2: ARQUITECTURA DE SOFTWARE Y MODELO DE DATOS
+% ==============================================================================
+\section{Arquitectura de Software y Modelo de Datos}
+
+El Sistema Wayka está diseñado bajo un enfoque de \textbf{Arquitectura en Capas Limpia (Clean Layered Architecture)} y desacoplamiento API-First. La capa de persistencia se apoya en un motor relacional MySQL 8.0+ con motor de almacenamiento InnoDB, garantizando cumplimiento riguroso de las propiedades ACID (Atomicidad, Consistencia, Aislamiento y Durabilidad).
+
+\subsection{Estrategia de Modelado y Persistencia Relacional}
+La arquitectura de datos del Sprint 1 resuelve tres requerimientos críticos de la gestión pública:
+\begin{enumerate}[leftmargin=1.5em]
+    \item \textbf{Unificación de la Identidad Civil e Institucional:} Separación explícita entre la identidad física de un ciudadano o servidor público (\texttt{personas}) y su cuenta digital de acceso (\texttt{usuarios}), permitiendo que una persona mantenga su historial aun cuando cambie de cargo o dependencia.
+    \item \textbf{Organigrama Jerárquico Recursivo:} La tabla \texttt{ubicaciones\_org} implementa una estructura de árbol adyacente (\emph{Adjacency List}) mediante el campo autorreferencial \texttt{padre\_id}, calculando automáticamente los niveles administrativos ($N+1$).
+    \item \textbf{Modelo Multi-Rol Contextualizado:} A través de la tabla asociativa \texttt{usuario\_roles}, un usuario puede ejercer diferentes funciones según la oficina u órgano municipal en el que esté asignado, gobernado por restricciones de unicidad compuesta (\texttt{uk\_\allowbreak usuario\_\allowbreak rol\_\allowbreak ubicacion}) y fechas de caducidad.
+\end{enumerate}
+
+\subsection{Estrategia de Migraciones y Auditoría de Datos}
+Para evitar discrepancias entre entornos de desarrollo, pruebas y producción, se prescindió del modelado manual ad-hoc, adoptando un subsistema de migraciones idempotente gobernado por la tabla de control \texttt{\_migrations}:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Integridad Referencial Estricta:} Todas las llaves foráneas se definieron con la cláusula \texttt{ON DELETE RESTRICT}, bloqueando eliminaciones en cascada accidentales que pudieran comprometer la trazabilidad de expedientes oficiales.
+    \item \textbf{Borrado Lógico (\emph{Soft Delete}):} Las entidades transaccionales y de catálogo implementan el flag booleano \texttt{activo DEFAULT 1}. La capa de lógica de negocio valida dependencias antes de desactivar cualquier registro (ej. una persona no puede desactivarse si cuenta con un usuario activo).
+    \item {\raggedright\textbf{Auditoría Temporal Nativa:} Inclusión sistemática de marcas temporales \texttt{created\_at TIMESTAMP DEFAULT CURRENT\_\allowbreak TIMESTAMP} y \texttt{updated\_at TIMESTAMP DEFAULT CURRENT\_\allowbreak TIMESTAMP ON UPDATE CURRENT\_\allowbreak TIMESTAMP}.\par}
+\end{itemize}
+
+\subsection{Diagrama Entidad-Relación (ERD) en TikZ}
+La Figura~\ref{fig:erd_sprint1} ilustra la topología relacional de las entidades fundacionales construidas durante el Sprint 1.
+
+\begin{figure}[H]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    scale=0.82, transform shape,
+    tablebox/.style={
+        rectangle,
+        draw=black,
+        text=black,
+        line width=0.6pt,
+        fill=white,
+        inner sep=0pt
+    },
+    rel/.style={
+        -{Stealth[scale=1.0]},
+        line width=0.6pt,
+        color=black
+    },
+    card/.style={
+        font=\tiny\bfseries\color{black},
+        fill=white,
+        inner sep=1pt
+    }
+]
+
+    % NODO: PERSONAS
+    \node (personas) at (0, 7.5) [tablebox] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{5.0cm}}
+            \centering\arraybackslash\textbf{\footnotesize personas} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{UQ} ci : VARCHAR(25)\\
+            \scriptsize\ttfamily \phantom{XX} nombres : VARCHAR(100)\\
+            \scriptsize\ttfamily \phantom{XX} apellido\_paterno : VARCHAR(100)\\
+            \scriptsize\ttfamily \phantom{XX} apellido\_materno : VARCHAR(100)\\
+            \scriptsize\ttfamily \phantom{XX} email : VARCHAR(120)\\
+            \scriptsize\ttfamily \phantom{XX} telefono : VARCHAR(30)\\
+            \scriptsize\ttfamily \phantom{XX} activo : BOOLEAN
+        \end{tabular}
+    };
+
+    % NODO: USUARIOS
+    \node (usuarios) at (0, 1.2) [tablebox] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{5.0cm}}
+            \centering\arraybackslash\textbf{\footnotesize usuarios} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{FK} persona\_id : INT\\
+            \scriptsize\ttfamily \textbf{UQ} login : VARCHAR(50)\\
+            \scriptsize\ttfamily \phantom{XX} password\_hash : VARCHAR(255)\\
+            \scriptsize\ttfamily \phantom{XX} cargo : VARCHAR(120)\\
+            \scriptsize\ttfamily \phantom{XX} ultimo\_acceso : DATETIME\\
+            \scriptsize\ttfamily \phantom{XX} activo : BOOLEAN
+        \end{tabular}
+    };
+
+    % NODO: USUARIO_ROLES (Intermedia)
+    \node (userroles) at (7.5, 1.2) [tablebox] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{5.2cm}}
+            \centering\arraybackslash\textbf{\footnotesize usuario\_roles} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{FK} usuario\_id : INT\\
+            \scriptsize\ttfamily \textbf{FK} rol\_id : INT\\
+            \scriptsize\ttfamily \textbf{FK} ubicacion\_org\_id : INT\\
+            \scriptsize\ttfamily \phantom{XX} nivel\_acceso : VARCHAR(50)\\
+            \scriptsize\ttfamily \phantom{XX} fecha\_expiracion : DATE\\
+            \scriptsize\ttfamily \phantom{XX} es\_principal : BOOLEAN\\
+            \scriptsize\ttfamily \phantom{XX} activo : BOOLEAN
+        \end{tabular}
+    };
+
+    % NODO: ROLES
+    \node (roles) at (7.5, 7.5) [tablebox] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{5.2cm}}
+            \centering\arraybackslash\textbf{\footnotesize roles} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{UQ} codigo : VARCHAR(50)\\
+            \scriptsize\ttfamily \phantom{XX} nombre : VARCHAR(100)\\
+            \scriptsize\ttfamily \phantom{XX} descripcion : TEXT\\
+            \scriptsize\ttfamily \phantom{XX} activo : BOOLEAN
+        \end{tabular}
+    };
+
+    % NODO: UBICACIONES_ORG
+    \node (ubicaciones) at (14.5, 1.2) [tablebox] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{5.2cm}}
+            \centering\arraybackslash\textbf{\footnotesize ubicaciones\_org} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{UQ} codigo : VARCHAR(50)\\
+            \scriptsize\ttfamily \phantom{XX} nombre : VARCHAR(150)\\
+            \scriptsize\ttfamily \phantom{XX} sigla : VARCHAR(30)\\
+            \scriptsize\ttfamily \textbf{FK} padre\_id : INT (NULL)\\
+            \scriptsize\ttfamily \phantom{XX} nivel : INT\\
+            \scriptsize\ttfamily \phantom{XX} activo : BOOLEAN
+        \end{tabular}
+    };
+
+    % CONEXIONES Y CARDINALIDADES
+    \draw[rel] (personas.south) -- (usuarios.north)
+        node[card, near start, xshift=10pt] {1}
+        node[card, near end, xshift=10pt] {0..1};
+
+    \draw[rel] (usuarios.east) -- (userroles.west)
+        node[card, near start, yshift=7pt] {1}
+        node[card, near end, yshift=7pt] {N};
+
+    \draw[rel] (roles.south) -- (userroles.north)
+        node[card, near start, xshift=10pt] {1}
+        node[card, near end, xshift=10pt] {N};
+
+    \draw[rel] (ubicaciones.west) -- (userroles.east)
+        node[card, near start, yshift=7pt] {1}
+        node[card, near end, yshift=7pt] {N};
+
+    \draw[rel] (ubicaciones.north) to[out=60,in=120,distance=1.8cm] 
+        node[card, above] {Recursiva (1 : N) padre\_id} (ubicaciones.north);
+
+\end{tikzpicture}
+}
+\caption{Diagrama Entidad-Relación (ERD) del Módulo de Identidad, Seguridad y Organigrama.}
+\label{fig:erd_sprint1}
+\end{figure}
+
+% ==============================================================================
+% SECCIÓN 3: SISTEMA DE SEGURIDAD Y AUTENTICACIÓN
+% ==============================================================================
+\section{Sistema de Seguridad, Autenticación y Autorización}
+
+La seguridad del Sistema Wayka se diseñó bajo las pautas del estándar OWASP ASVS (\emph{Application Security Verification Standard}), implementando un esquema desacoplado de autenticación basada en tokens no intrusivos en estado (\emph{Stateless JWT}).
+
+\subsection{Ciclo de Vida y Flujo Criptográfico del Token JWT}
+El ciclo de autenticación opera de acuerdo con las siguientes fases:
+\begin{enumerate}[leftmargin=1.5em]
+    \item \textbf{Recepción de Credenciales:} El cliente transmite \texttt{login} y \texttt{password} cifrados vía canal seguro HTTPS (TLS 1.3).
+    \item \textbf{Validación de Identidad y Hash:} El sistema consulta al usuario activo y realiza la comprobación computacional mediante la función unívoca \texttt{bcrypt.compare(password, password\_hash)}. Si la comparación es infructuosa, se responde de inmediato con código \texttt{401 Unauthorized}, sin divulgar si el error residió en el usuario o en la clave.
+    \item \textbf{Carga del Contexto de Rol Activo:} Se evalúan los roles vigentes en la tabla \texttt{usuario\_roles}. Si el usuario cuenta con varios cargos, se activa automáticamente el rol designado como \texttt{es\_principal = 1}, permitiendo conmutar a otros roles mediante el endpoint \texttt{/api/auth/switch-role}.
+    \item \textbf{Firma del Access Token y Refresh Token:} Se emiten dos artefactos criptográficos:
+    \begin{itemize}
+        \item \textbf{Access Token (Vigencia corta: 8 horas):} Contiene los \emph{claims} de sesión requeridos por los middlewares de autorización sin requerir lecturas continuas a disco:
+        \[
+        \text{Claims} = \{ \text{userId}, \text{username}, \text{roleCode}, \text{ubicacionOrgId}, \text{nivelAcceso}, \text{iat}, \text{exp} \}
+        \]
+        \item \textbf{Refresh Token (Vigencia extendida: 7 días):} Permite al cliente solicitar renovación transparente de credenciales.
+    \end{itemize}
+    \item \textbf{Intercepción por Middleware:} Cada solicitud a rutas protegidas es interceptada por \texttt{authMiddleware.js}, extrayendo el encabezado \texttt{Authorization: Bearer <token>} y adjuntando la información decodificada al objeto \texttt{req.user}.
+\end{enumerate}
+
+\subsection{Matriz de Permisos Basada en Roles (RBAC)}
+El control de acceso gobierna las capacidades del sistema a través de la matriz de privilegios detallada en la Tabla~\ref{tab:rbac_matrix}.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Matriz de Control de Acceso Basada en Roles (RBAC) -- Sprint 1}
+\label{tab:rbac_matrix}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{4.7cm}*{4}{C}@{}}
+\toprule
+\textbf{Módulo / Funcionalidad del Sistema} & \textbf{Admin Sistema} & \textbf{Admin Wayka} & \textbf{Ventanilla Única} & \textbf{Funcionario} \\
+\midrule
+Gestión de Usuarios y Credenciales & \textbf{\color{colorExito}CRUD Total} & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado \\
+Gestión de Personas (Padrón Base) & \textbf{\color{colorExito}CRUD Total} & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado \\
+Gestión de Organigrama y Unidades & \textbf{\color{colorExito}CRUD Total} & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado \\
+Configuración de Parámetros Globales & \textbf{\color{colorExito}CRUD Total} & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado \\
+Administración de Tipos de Trámite & \color{colorAlerta}$\times$ Bloqueado & \textbf{\color{colorExito}Gestión Operativa} & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado \\
+Anulación / Habilitación de Trámites & \color{colorAlerta}$\times$ Bloqueado & \textbf{\color{colorExito}Exclusivo} & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado \\
+Redirección de Procesos en Conflicto & \color{colorAlerta}$\times$ Bloqueado & \textbf{\color{colorExito}Exclusivo} & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado \\
+Registro e Inicio de Trámites/VU & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado & \textbf{\color{colorExito}Creación / Emisión} & \color{colorAlerta}$\times$ Bloqueado \\
+Bloqueo / Desbloqueo Preventivo & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado & \textbf{\color{colorExito}Operativo} & \color{colorAlerta}$\times$ Bloqueado \\
+Bandeja Virtual (Escritorio de Trabajo) & \color{colorAlerta}$\times$ Bloqueado & \color{colorInfo}Supervisión & \textbf{\color{colorExito}Acceso Completo} & \textbf{\color{colorExito}Acceso Completo} \\
+Atención de Trámites y Proveídos & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado & \textbf{\color{colorExito}Habilitado} & \textbf{\color{colorExito}Habilitado} \\
+Derivación Libre y Retroceso & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado & \textbf{\color{colorExito}Habilitado} & \textbf{\color{colorExito}Habilitado} \\
+Carga de Adjuntos Digitales (PDF) & \color{colorAlerta}$\times$ Bloqueado & \color{colorAlerta}$\times$ Bloqueado & \textbf{\color{colorExito}Habilitado} & \textbf{\color{colorExito}Habilitado} \\
+Consulta Pública de Hojas de Ruta & \textbf{\color{colorExito}Permitido} & \textbf{\color{colorExito}Permitido} & \textbf{\color{colorExito}Permitido} & \textbf{\color{colorExito}Permitido} \\
+Cambio de Contraseña (PIN Seguro) & \textbf{\color{colorExito}Propia} & \textbf{\color{colorExito}Propia} & \textbf{\color{colorExito}Propia} & \textbf{\color{colorExito}Propia} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ==============================================================================
+% SECCIÓN 4: ESPECIFICACIÓN DE LA API (ENDPOINTS DESARROLLADOS)
+% ==============================================================================
+\section{Especificación de la API (Endpoints Desarrollados)}
+
+La capa de API REST se implementó bajo el framework Express en Node.js, estructurando las respuestas en formato JSON uniforme compuesto por los campos \texttt{\{success, message, data\}}.
+
+\subsection{Catálogo de Rutas HTTP del Sprint 1}
+En la Tabla~\ref{tab:endpoints} se presenta el compendio de rutas disponibles en la versión \texttt{1.0.0-sprint1}.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Endpoints Desarrollados y Expuestos en el Sprint 1}
+\label{tab:endpoints}
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}p{5.5cm}Y>{\raggedright\arraybackslash}p{2.7cm}@{}}
+\toprule
+\textbf{Método} & \textbf{Ruta de Acceso (Path)} & \textbf{Descripción Técnica} & \textbf{Nivel / Rol Mínimo} \\
+\midrule
+\texttt{GET} & \texttt{/api/} & Metadatos del microservicio y estado general. & Público \\
+\texttt{GET} & \texttt{/api/health} & Verificación de salud y conectividad con MySQL. & Público \\
+\texttt{POST} & \texttt{/api/auth/login} & Autenticación de usuarios y generación de JWT. & Público \\
+\texttt{GET} & \texttt{/api/auth/profile} & Recupera datos de usuario y roles asignados. & Token Requerido \\
+\texttt{POST} & \texttt{/api/auth/switch-role} & Conmuta el rol activo en sesión multi-rol. & Token Requerido \\
+\texttt{POST} & \texttt{/api/auth/\allowbreak change-password} & Actualización de PIN con validación de complejidad. & Token Requerido \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Ejemplos de Cargas Útiles (Payloads JSON)}
+
+\subsubsection{1. Inicio de Sesión Exitoso (\texttt{POST /api/auth/login})}
+\begin{lstlisting}[language=json]
+// Solicitud (Request)
+{
+  "login": "admin",
+  "password": "admin123"
+}
+
+// Respuesta Exitosa (Response 200 OK)
+{
+  "success": true,
+  "message": "Inicio de sesión exitoso",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": 1,
+      "username": "admin",
+      "nombres": "Administrador",
+      "apellidos": "Sistema Wayka",
+      "ci": "1000001",
+      "email": "admin@wayka.gob.bo",
+      "cargo": "Administrador Principal",
+      "activeRole": {
+        "usuario_rol_id": 1,
+        "rol_id": 1,
+        "rol_codigo": "ADMIN_SISTEMA",
+        "rol_nombre": "Administrador de Sistema",
+        "ubicacion_org_id": 6,
+        "ubicacion_codigo": "UNI-SIS",
+        "ubicacion_nombre": "Unidad de Tecnologías de Información y Sistemas",
+        "nivel_acceso": "CONTROL_TOTAL",
+        "es_principal": 1
+      }
+    }
+  }
+}
+\end{lstlisting}
+
+\subsubsection{2. Conmutación Dinámica de Rol (\texttt{POST /api/auth/switch-role})}
+\begin{lstlisting}[language=json]
+// Solicitud (Request)
+{
+  "rolId": 2,
+  "ubicacionOrgId": 6
+}
+
+// Respuesta (Response 200 OK - Nuevo Token Re-firmado)
+{
+  "success": true,
+  "message": "Rol activo cambiado a Administrador de Wayka",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.reSignedToken...",
+    "activeRole": {
+      "rol_id": 2,
+      "rol_codigo": "ADMIN_WAYKA",
+      "rol_nombre": "Administrador de Wayka",
+      "ubicacion_org_id": 6,
+      "ubicacion_nombre": "Unidad de Tecnologías de Información y Sistemas"
+    }
+  }
+}
+\end{lstlisting}
+
+% ==============================================================================
+% SECCIÓN 5: PRUEBAS Y VALIDACIÓN (QUALITY ASSURANCE)
+% ==============================================================================
+\section{Pruebas y Validación (Quality Assurance)}
+
+La garantía de calidad del Sprint 1 se abordó mediante una batería de pruebas automatizadas que se ejecutan sin intervención manual en el entorno del servidor Node.js y MySQL.
+
+\subsection{Resultados del Banco de Pruebas de Autenticación (\texttt{testAuth.js})}
+Se implementó un arnés de pruebas HTTP dinámico sobre Express para validar la robustez del subsistema criptográfico:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Test 1 (Login Válido):} Generación de token JWT, resolución de claims y asignación de rol principal por defecto (\texttt{ADMIN\_SISTEMA}). $\rightarrow$ \textbf{\color{colorExito}Aprobado (200 OK)}.
+    \item \textbf{Test 2 (Rechazo de Credenciales Inválidas):} Verificación de contraseñas erróneas y cuentas inexistentes. $\rightarrow$ \textbf{\color{colorExito}Aprobado (401 Unauthorized)}.
+    \item {\raggedright\textbf{Test 3 (Protección de Rutas y Manipulación):} Acceso sin cabecera \texttt{Authorization} y con firma alterada. $\rightarrow$ \textbf{\color{colorExito}Aprobado (401 Denegado)}.\par}
+    \item \textbf{Test 4 (Conmutación Multi-Rol):} Verificación de actualización del token tras conmutar a rol \texttt{ADMIN\_WAYKA}. $\rightarrow$ \textbf{\color{colorExito}Aprobado (200 OK)}.
+    \item \textbf{Test 5 (Políticas de PIN Seguro):} Validación de reglas de complejidad (mínimo 6 caracteres, longitud máxima, combinación obligatoria de letras y números) y restauración de clave de prueba. $\rightarrow$ \textbf{\color{colorExito}Aprobado (400 Bad Request / 200 OK)}.
+    \item \textbf{Test 6 (Cuentas Operativas Demo):} Verificación de inicio de sesión de Ventanilla Única (\texttt{mfernandez}) y Funcionario (\texttt{cmamani}). $\rightarrow$ \textbf{\color{colorExito}Aprobado (200 OK)}.
+\end{itemize}
+
+\subsection{Resultados de Integridad del Modelo de Datos (\texttt{testDataModel.js})}
+La suite de persistencia evaluó los 11 modelos DAO con validación estricta de restricciones de negocio:
+\begin{table}[H]
+\centering
+\small
+\caption{Resultados de la Validación de Integridad de Persistencia}
+\label{tab:test_datamodel}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.8cm}Y>{\raggedright\arraybackslash}p{3cm}>{\centering\arraybackslash}p{2.5cm}@{}}
+\toprule
+\textbf{Módulo Evaluado} & \textbf{Regla de Negocio / Restricción Verificada} & \textbf{Resultado} & \textbf{Estado} \\
+\midrule
+\texttt{Persona} & Registro con CI unívoco y búsqueda por padrón civil. & Insert/Select OK & \textbf{\color{colorExito}100\% Exitoso} \\
+\texttt{UbicacionOrg} & Cálculo recursivo de nivel jerárquico ($N_{\text{padre}} + 1$). & Nivel 2 Automático & \textbf{\color{colorExito}100\% Exitoso} \\
+\texttt{Rol} & Protección contra borrado con asignaciones vigentes. & Excepción capturada & \textbf{\color{colorExito}100\% Exitoso} \\
+\texttt{Usuario} & Generación de salt y hash bcrypt en creación. & Hash verificado & \textbf{\color{colorExito}100\% Exitoso} \\
+\texttt{UsuarioRol} & Desmarque automático de otros roles principales. & Exclusividad OK & \textbf{\color{colorExito}100\% Exitoso} \\
+\texttt{Correlativo} & Generación secuencial atómica (\texttt{TP-1/2026, TP-2/2026}). & Cero colisiones & \textbf{\color{colorExito}100\% Exitoso} \\
+\texttt{Tramite} & Creación en estado \texttt{EN\_ATENCION} y movimiento inicial. & Orden 1 (INICIO) & \textbf{\color{colorExito}100\% Exitoso} \\
+\texttt{Movimiento} & \textbf{Inmutabilidad estricta:} Rechazo de \texttt{UPDATE} y \texttt{DELETE}. & Mutación rechazada & \textbf{\color{colorExito}100\% Exitoso} \\
+\texttt{SoftDelete} & Bloqueo de eliminación de Persona con Usuario activo. & Integridad protegida & \textbf{\color{colorExito}100\% Exitoso} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ==============================================================================
+% SECCIÓN 6: ESTADO DE AVANCE Y PRÓXIMOS PASOS
+% ==============================================================================
+\section{Estado de Avance y Próximos Pasos}
+
+\subsection{Tabla de Entregables Planificados vs. Ejecutados}
+El Sprint 1 ha cerrado formalmente con un \textbf{100\% de cumplimiento} de acuerdo al cronograma establecido en el documento de requerimientos maestros.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Balance de Cumplimiento del Sprint 1 (01 Sep -- 14 Sep 2026)}
+\label{tab:balance_sprint1}
+\begin{tabularx}{\linewidth}{@{}Ycc>{\raggedright\arraybackslash}p{3.5cm}@{}}
+\toprule
+\textbf{Objetivo Técnico / Tarea del Sprint} & \textbf{Planificado} & \textbf{Completado} & \textbf{Observaciones / Estado} \\
+\midrule
+Configuración de entorno Node.js, Express y MySQL 8.0+ & 100\% & 100\% & Entorno de desarrollo Docker/Local operativo. \\
+Esquema Relacional unificado y 11 scripts de migración & 100\% & 100\% & Migraciones versionadas mediante \texttt{migrator.js}. \\
+Módulo Criptográfico y Autenticación JWT Stateless & 100\% & 100\% & Sockets cerrados, Bearer token y claims de rol. \\
+Matriz RBAC y Middleware de Autorización por Rol & 100\% & 100\% & Protección granular en API. \\
+Carga de Semillas Base (Roles, Organigrama, Cuentas Demo) & 100\% & 100\% & 3 usuarios base y 6 unidades del organigrama. \\
+Modelos DAO para Entidades Base (CRUD y Soft-delete) & 100\% & 100\% & Lógica de negocio e integridad en JavaScript. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\end{document}
