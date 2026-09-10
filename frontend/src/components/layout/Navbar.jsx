@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  FileText, 
-  Activity, 
+  Home, 
   Shield, 
   Inbox, 
   LogIn, 
@@ -72,11 +71,6 @@ export default function Navbar() {
             </div>
           </Link>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span className="badge badge-vigente" style={{ fontSize: '11px', background: '#FFFFFF', color: '#800000', border: '1px solid #FFFFFF' }}>
-              SPRINT 1: FUNDACIÓN & JWT
-            </span>
-          </div>
         </div>
       </div>
 
@@ -89,18 +83,8 @@ export default function Navbar() {
                 to="/" 
                 className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
               >
-                <FileText size={16} />
+                <Home size={16} />
                 <span>Inicio</span>
-              </Link>
-            </li>
-
-            <li>
-              <Link 
-                to="/status" 
-                className={`nav-link ${location.pathname === '/status' ? 'active' : ''}`}
-              >
-                <Activity size={16} />
-                <span>Diagnóstico & Base de Datos</span>
               </Link>
             </li>
 

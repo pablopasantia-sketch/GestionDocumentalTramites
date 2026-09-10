@@ -1,173 +1,245 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Activity, 
   ShieldCheck, 
   FileText, 
   Inbox, 
   ArrowRight, 
-  Server, 
-  Database, 
-  CheckCircle, 
   Lock, 
   Search,
   Building2,
   Calendar,
   Layers,
-  Landmark
+  Landmark,
+  Clock,
+  MapPin,
+  CheckCircle2,
+  HelpCircle
 } from 'lucide-react';
-import { healthService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function Home() {
-  const [health, setHealth] = useState(null);
-  const [loadingHealth, setLoadingHealth] = useState(true);
   const { isAuthenticated, user, activeRole } = useAuth();
+  const [searchCode, setSearchCode] = useState('');
+  const [searchYear, setSearchYear] = useState('2026');
+  const [searchResult, setSearchResult] = useState(null);
+  const [searching, setSearching] = useState(false);
 
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const data = await healthService.getHealth();
-        setHealth(data);
-      } catch (err) {
-        setHealth({ success: false, message: 'Backend no accesible' });
-      } finally {
-        setLoadingHealth(false);
-      }
-    };
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!searchCode.trim()) return;
 
-    checkStatus();
-  }, []);
+    setSearching(true);
+    // Simulación de consulta pública de trazabilidad de trámite
+    setTimeout(() => {
+      setSearchResult({
+        codigo: searchCode.trim().toUpperCase(),
+        gestion: searchYear,
+        estado: 'EN_ATENCION',
+        estadoNombre: 'En Atención',
+        fechaIngreso: '08/09/2026 09:30',
+        unidadActual: 'Dirección de Tecnologías de Información y Sistemas (UTIC)',
+        remitente: 'Secretaría de Obras Públicas',
+        referencia: 'Solicitud de informe técnico y peritaje informático'
+      });
+      setSearching(false);
+    }, 450);
+  };
 
   return (
     <div>
-      {/* Banner Principal / Encabezado de Sección */}
-      <div className="section-banner">
-        <div className="section-tag">Portal de Trámites y Workflow Documental</div>
-        <h1 style={{ marginBottom: '0.5rem' }}>Gaceta Municipal de Sucre — Sistema Wayka</h1>
-        <p style={{ color: 'var(--color-text-secondary)', maxWidth: '850px', fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.25rem' }}>
-          Plataforma oficial para la recepción, atención, derivación y seguimiento transparente de trámites 
-          y correspondencia institucional del Gobierno Autónomo Municipal de Sucre.
+      {/* Banner Principal / Hero Institucional */}
+      <div className="section-banner" style={{ padding: '2.5rem', marginBottom: '2.5rem' }}>
+        <div className="section-tag" style={{ background: '#1B365D', color: '#FFFFFF' }}>
+          GOBIERNO AUTÓNOMO MUNICIPAL DE SUCRE
+        </div>
+        <h1 style={{ marginBottom: '0.75rem', fontSize: '2.2rem', color: '#1B365D' }}>
+          Sistema Wayka — Gestión Documental y Workflow
+        </h1>
+        <p style={{ color: 'var(--color-text-secondary)', maxWidth: '850px', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
+          Plataforma oficial del Municipio de Sucre para la radicación, despacho, seguimiento transparente 
+          y custodia digital de trámites, expedientes y correspondencias institucionales.
         </p>
 
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <Link to="/status" className="btn btn-sucre">
-            <Activity size={16} />
-            <span>Diagnóstico de Base de Datos y Entorno</span>
-          </Link>
-
+        <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', alignItems: 'center' }}>
           {!isAuthenticated ? (
-            <Link to="/login" className="btn btn-primary">
+            <Link to="/login" className="btn btn-primary" style={{ padding: '10px 22px' }}>
               <Lock size={16} />
               <span>Ingresar al Sistema</span>
             </Link>
           ) : (
-            <Link to="/status" className="btn btn-secondary">
-              <ShieldCheck size={16} color="#800000" />
-              <span>Sesión Activa: {activeRole?.rol_nombre}</span>
-            </Link>
+            <>
+              {activeRole?.rol_codigo === 'VENTANILLA_UNICA' && (
+                <Link to="/ventanilla" className="btn btn-primary" style={{ padding: '10px 22px' }}>
+                  <Inbox size={16} />
+                  <span>Ir a Ventanilla Única</span>
+                </Link>
+              )}
+
+              {(activeRole?.rol_codigo === 'FUNCIONARIO' || !['VENTANILLA_UNICA', 'ADMIN_SISTEMA', 'ADMIN_WAYKA'].includes(activeRole?.rol_codigo)) && (
+                <Link to="/escritorio" className="btn btn-primary" style={{ padding: '10px 22px' }}>
+                  <Layers size={16} />
+                  <span>Ir a mi Escritorio Virtual</span>
+                </Link>
+              )}
+
+              {(activeRole?.rol_codigo === 'ADMIN_SISTEMA' || activeRole?.rol_codigo === 'ADMIN_WAYKA') && (
+                <Link to="/admin" className="btn btn-primary" style={{ padding: '10px 22px' }}>
+                  <Building2 size={16} />
+                  <span>Panel de Administración</span>
+                </Link>
+              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'var(--color-status-vigente-bg)', borderRadius: '4px', border: '1px solid var(--color-status-vigente-border)', fontSize: '0.88rem', color: '#1E7E34' }}>
+                <CheckCircle2 size={16} />
+                <span>Sesión activa: <strong>{user?.nombres} ({activeRole?.rol_nombre})</strong></span>
+              </div>
+            </>
+          )}
+
+          <a href="#consulta-tramite" className="btn btn-secondary" style={{ padding: '10px 20px' }}>
+            <Search size={16} />
+            <span>Consultar Hoja de Ruta</span>
+          </a>
+        </div>
+      </div>
+
+      {/* Módulo de Consulta Pública de Trámites (Búsqueda por Hoja de Ruta) */}
+      <div id="consulta-tramite" className="card" style={{ marginBottom: '2.5rem', borderLeft: '4px solid #800000' }}>
+        <div className="card-header" style={{ background: '#FAFBFD' }}>
+          <div>
+            <h2 style={{ fontSize: '1.25rem', color: '#1B365D', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Search size={20} color="#800000" />
+              <span>Consulta y Seguimiento de Trámites</span>
+            </h2>
+            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
+              Verifique en tiempo real la ubicación, estado y funcionario responsable de su expediente municipal.
+            </span>
+          </div>
+        </div>
+
+        <div style={{ padding: '1.5rem' }}>
+          <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <div style={{ flex: '1 1 280px' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#1B365D', marginBottom: '0.35rem' }}>
+                Número de Trámite o Hoja de Ruta:
+              </label>
+              <input 
+                type="text" 
+                placeholder="Ejemplo: HR-0012/2026 o SV-0005/2026"
+                value={searchCode}
+                onChange={(e) => setSearchCode(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '4px',
+                  border: '1px solid var(--color-border)',
+                  fontSize: '0.95rem'
+                }}
+              />
+            </div>
+
+            <div style={{ width: '130px' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#1B365D', marginBottom: '0.35rem' }}>
+                Gestión:
+              </label>
+              <select 
+                value={searchYear}
+                onChange={(e) => setSearchYear(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid var(--color-border)',
+                  fontSize: '0.95rem',
+                  background: '#FFFFFF'
+                }}
+              >
+                <option value="2026">2026</option>
+                <option value="2025">2025</option>
+              </select>
+            </div>
+
+            <div>
+              <button 
+                type="submit" 
+                className="btn btn-sucre"
+                disabled={searching || !searchCode.trim()}
+                style={{ height: '42px', padding: '0 24px' }}
+              >
+                {searching ? (
+                  <span>Buscando...</span>
+                ) : (
+                  <>
+                    <Search size={16} />
+                    <span>Buscar Trámite</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* Resultado de Consulta Simulado */}
+          {searchResult && (
+            <div style={{ marginTop: '1.5rem', padding: '1.25rem', background: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0', animation: 'fadeIn 0.2s ease' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <span className="badge badge-sucre" style={{ fontSize: '0.85rem' }}>
+                    {searchResult.codigo}
+                  </span>
+                  <span className="badge badge-modificada">
+                    {searchResult.estadoNombre}
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.8rem', color: '#6C757D' }}>
+                  Fecha de Ingreso: {searchResult.fechaIngreso}
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', fontSize: '0.88rem' }}>
+                <div>
+                  <span style={{ color: '#6C757D', display: 'block', fontSize: '0.78rem' }}>UBICACIÓN ACTUAL:</span>
+                  <strong style={{ color: '#1B365D' }}>{searchResult.unidadActual}</strong>
+                </div>
+                <div>
+                  <span style={{ color: '#6C757D', display: 'block', fontSize: '0.78rem' }}>REMITENTE:</span>
+                  <strong style={{ color: '#212529' }}>{searchResult.remitente}</strong>
+                </div>
+                <div>
+                  <span style={{ color: '#6C757D', display: 'block', fontSize: '0.78rem' }}>REFERENCIA:</span>
+                  <span style={{ color: '#495057' }}>{searchResult.referencia}</span>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Monitor de Estado en Formato de Tabla Institucional */}
-      <div style={{ marginBottom: '2.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ fontSize: '1.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Activity size={20} color="#800000" />
-            <span>Estado de Servicios e Infraestructura (Sprint 1)</span>
-          </h2>
-          <Link to="/status" className="btn btn-secondary btn-sm">
-            <span>Ver Diagnóstico Completo</span>
-            <ArrowRight size={14} />
-          </Link>
-        </div>
-
-        <div className="table-container">
-          <table className="table-sucre">
-            <thead>
-              <tr>
-                <th>Componente</th>
-                <th>Tecnología / Motor</th>
-                <th>Configuración / Puerto</th>
-                <th>Estado Actual</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Frontend Cliente</strong></td>
-                <td>React 19 + Vite 6 (Vanilla CSS)</td>
-                <td>http://localhost:5173</td>
-                <td>
-                  <span className="badge badge-vigente">
-                    <span className="status-dot online"></span> VIGENTE / OPERATIVO
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Backend API REST</strong></td>
-                <td>Node.js Express</td>
-                <td>http://localhost:4000/api</td>
-                <td>
-                  {loadingHealth ? (
-                    <span className="badge badge-azul">Consultando...</span>
-                  ) : health?.success ? (
-                    <span className="badge badge-vigente">
-                      <span className="status-dot online"></span> VIGENTE / CONECTADO
-                    </span>
-                  ) : (
-                    <span className="badge badge-alerta">
-                      <span className="status-dot offline"></span> NO DISPONIBLE
-                    </span>
-                  )}
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Base de Datos Relacional</strong></td>
-                <td>MySQL Server 8.0+ (utf8mb4)</td>
-                <td>127.0.0.1:3306 (wayka_db)</td>
-                <td>
-                  {loadingHealth ? (
-                    <span className="badge badge-azul">Verificando...</span>
-                  ) : health?.data?.database?.connected ? (
-                    <span className="badge badge-vigente">
-                      <span className="status-dot online"></span> VIGENTE / CONECTADA
-                    </span>
-                  ) : (
-                    <span className="badge badge-modificada">
-                      <span className="status-dot warning"></span> EN ESPERA DE SERVICIO
-                    </span>
-                  )}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Tarjetas de Normas y Módulos Institucionales (UI Components 3.2) */}
-      <div style={{ marginBottom: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.35rem', marginBottom: '0.25rem' }}>Módulos Funcionales del Sistema</h2>
-        <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.25rem' }}>
-          Estructura del flujo de correspondencia y atención según roles institucionales.
+      {/* Servicios y Módulos Institucionales (UI Components 3.2) */}
+      <div style={{ marginBottom: '3rem' }}>
+        <h2 style={{ fontSize: '1.35rem', color: '#1B365D', marginBottom: '0.35rem' }}>
+          Servicios y Módulos Institucionales
+        </h2>
+        <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
+          Acceso a los componentes de workflow y administración según el nivel de autorización funcional.
         </p>
 
         <div className="grid-3">
           {/* Tarjeta 1: Ventanilla Única */}
           <div className="norm-card">
             <div className="norm-card-header">
-              <span className="badge badge-sucre">MÓDULO DE INGRESO</span>
-              <span className="badge badge-vigente">ESTADO: VIGENTE</span>
+              <span className="badge badge-sucre">RADICACIÓN OFICIAL</span>
+              <span className="badge badge-vigente">HABILITADO</span>
             </div>
-            <h3 style={{ fontSize: '1.1rem', color: '#1B365D', marginBottom: '0.5rem' }}>
-              Ventanilla Única de Trámites
+            <h3 style={{ fontSize: '1.15rem', color: '#1B365D', marginBottom: '0.5rem' }}>
+              Ventanilla Única de Correspondencia
             </h3>
-            <p style={{ fontSize: '0.88rem', color: '#6C757D', lineHeight: '1.5', minHeight: '60px' }}>
-              Recepción centralizada, emisión de Hoja de Ruta institucional con correlativo automático y registro de adjuntos PDF.
+            <p style={{ fontSize: '0.88rem', color: '#6C757D', lineHeight: '1.5', minHeight: '65px' }}>
+              Ingreso centralizado de correspondencia externa y trámites internos, asignación de código correlativo único y digitalización de anexos.
             </p>
             <div className="norm-card-footer">
-              <Link to="/status" className="btn btn-primary btn-sm">
-                <span>Ver Más</span>
+              <Link to="/ventanilla" className="btn btn-primary btn-sm">
+                <span>Acceder a Ventanilla</span>
                 <ArrowRight size={14} />
               </Link>
             </div>
@@ -176,38 +248,38 @@ export default function Home() {
           {/* Tarjeta 2: Escritorio Virtual */}
           <div className="norm-card">
             <div className="norm-card-header">
-              <span className="badge badge-azul">ATENCIÓN FUNCIONARIO</span>
-              <span className="badge badge-vigente">ESTADO: VIGENTE</span>
+              <span className="badge badge-azul">FLUJO Y DESPACHO</span>
+              <span className="badge badge-vigente">HABILITADO</span>
             </div>
-            <h3 style={{ fontSize: '1.1rem', color: '#1B365D', marginBottom: '0.5rem' }}>
+            <h3 style={{ fontSize: '1.15rem', color: '#1B365D', marginBottom: '0.5rem' }}>
               Escritorio Virtual de Trabajo
             </h3>
-            <p style={{ fontSize: '0.88rem', color: '#6C757D', lineHeight: '1.5', minHeight: '60px' }}>
-              Bandejas de pendientes, recibidos y despachados. Atención de trámites, proveídos y derivación libre a destinatarios.
+            <p style={{ fontSize: '0.88rem', color: '#6C757D', lineHeight: '1.5', minHeight: '65px' }}>
+              Bandejas de correspondencia pendiente, recibida y despachada. Registro de proveídos, adjuntos PDF y derivación libre a destinatarios.
             </p>
             <div className="norm-card-footer">
-              <Link to="/status" className="btn btn-primary btn-sm">
-                <span>Ver Más</span>
+              <Link to="/escritorio" className="btn btn-primary btn-sm">
+                <span>Acceder a Bandejas</span>
                 <ArrowRight size={14} />
               </Link>
             </div>
           </div>
 
-          {/* Tarjeta 3: Administración y Organigrama */}
+          {/* Tarjeta 3: Administración y Estructura */}
           <div className="norm-card">
             <div className="norm-card-header">
               <span className="badge badge-sucre">ADMINISTRACIÓN</span>
-              <span className="badge badge-vigente">ESTADO: VIGENTE</span>
+              <span className="badge badge-vigente">HABILITADO</span>
             </div>
-            <h3 style={{ fontSize: '1.1rem', color: '#1B365D', marginBottom: '0.5rem' }}>
-              Organigrama y Usuarios
+            <h3 style={{ fontSize: '1.15rem', color: '#1B365D', marginBottom: '0.5rem' }}>
+              Organigrama y Seguridad RBAC
             </h3>
-            <p style={{ fontSize: '0.88rem', color: '#6C757D', lineHeight: '1.5', minHeight: '60px' }}>
-              Gestión de personas, usuarios, roles, organigrama jerárquico de Sucre y parámetros globales del sistema.
+            <p style={{ fontSize: '0.88rem', color: '#6C757D', lineHeight: '1.5', minHeight: '65px' }}>
+              Estructura jerárquica municipal, catálogo de dependencias, administración de usuarios, asignación multi-rol y auditoría de accesos.
             </p>
             <div className="norm-card-footer">
-              <Link to="/status" className="btn btn-primary btn-sm">
-                <span>Ver Más</span>
+              <Link to="/admin" className="btn btn-primary btn-sm">
+                <span>Gestión de Sistema</span>
                 <ArrowRight size={14} />
               </Link>
             </div>
@@ -215,69 +287,64 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Plan de Trabajo - Cronograma Sprint 1 */}
-      <div className="card">
-        <div className="card-header">
+      {/* Información Institucional y Canales de Atención */}
+      <div className="card" style={{ marginBottom: '2rem' }}>
+        <div className="card-header" style={{ background: '#F8F9FA' }}>
           <div>
-            <h3 style={{ fontSize: '1.15rem', color: '#800000' }}>
-              Cronograma Institucional — Sprint 1: Fundación del Sistema
+            <h3 style={{ fontSize: '1.15rem', color: '#800000', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Landmark size={18} color="#800000" />
+              <span>Canales Oficiales y Atención Municipal</span>
             </h3>
             <span style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
-              Periodo: 01 de Septiembre al 14 de Septiembre de 2026
+              Información de contacto institucional del Gobierno Autónomo Municipal de Sucre.
             </span>
           </div>
-          <span className="badge badge-modificada">EN EJECUCIÓN</span>
         </div>
 
-        <div style={{ display: 'grid', gap: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--color-status-vigente-bg)', border: '1px solid var(--color-status-vigente-border)', borderRadius: '4px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <CheckCircle size={18} color="#1E7E34" />
-              <strong style={{ color: '#1E7E34', fontSize: '0.9rem' }}>
-                Tarea 1: Configuración del Entorno (React + Node.js) y BD MySQL 8.0
-              </strong>
+        <div style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+            <div style={{ padding: '10px', background: 'var(--color-primary-sucre-light)', borderRadius: '6px', color: '#800000' }}>
+              <MapPin size={22} />
             </div>
-            <span className="badge badge-vigente">COMPLETADA</span>
+            <div>
+              <strong style={{ color: '#1B365D', fontSize: '0.95rem', display: 'block', marginBottom: '0.2rem' }}>
+                Ventanilla Única Central
+              </strong>
+              <p style={{ fontSize: '0.85rem', color: '#6C757D', margin: 0 }}>
+                Plaza 25 de Mayo N° 1, Palacio Consistorial<br />
+                Sucre, Capital Constitucional de Bolivia
+              </p>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--color-status-vigente-bg)', border: '1px solid var(--color-status-vigente-border)', borderRadius: '4px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <CheckCircle size={18} color="#1E7E34" />
-              <strong style={{ color: '#1E7E34', fontSize: '0.9rem' }}>
-                Tarea 2: Modelo de datos y migraciones (Flujo unificado de trámites y correspondencias)
-              </strong>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+            <div style={{ padding: '10px', background: 'rgba(27, 54, 93, 0.08)', borderRadius: '6px', color: '#1B365D' }}>
+              <Clock size={22} />
             </div>
-            <span className="badge badge-vigente">COMPLETADA</span>
+            <div>
+              <strong style={{ color: '#1B365D', fontSize: '0.95rem', display: 'block', marginBottom: '0.2rem' }}>
+                Horario de Atención Oficial
+              </strong>
+              <p style={{ fontSize: '0.85rem', color: '#6C757D', margin: 0 }}>
+                Lunes a Viernes: 08:00 a 12:00 y 14:00 a 18:00<br />
+                Recepción continua de correspondencia institucional
+              </p>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--color-status-vigente-bg)', border: '1px solid var(--color-status-vigente-border)', borderRadius: '4px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <CheckCircle size={18} color="#1E7E34" />
-              <strong style={{ color: '#1E7E34', fontSize: '0.9rem' }}>
-                Tarea 3: Autenticación JWT (login con PIN, logout, cambio de clave, expiración de roles)
-              </strong>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+            <div style={{ padding: '10px', background: 'var(--color-status-vigente-bg)', borderRadius: '6px', color: '#1E7E34' }}>
+              <HelpCircle size={22} />
             </div>
-            <span className="badge badge-vigente">COMPLETADA</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--color-status-vigente-bg)', border: '1px solid var(--color-status-vigente-border)', borderRadius: '4px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <CheckCircle size={18} color="#1E7E34" />
-              <strong style={{ color: '#1E7E34', fontSize: '0.9rem' }}>
-                Tarea 4: CRUD Personas, Usuarios, Roles y Asignación Usuario-Rol
+            <div>
+              <strong style={{ color: '#1B365D', fontSize: '0.95rem', display: 'block', marginBottom: '0.2rem' }}>
+                Soporte y Asistencia Técnica
               </strong>
+              <p style={{ fontSize: '0.85rem', color: '#6C757D', margin: 0 }}>
+                Dirección de Tecnologías de Información (UTIC)<br />
+                Mesa de Ayuda interna para funcionarios municipales
+              </p>
             </div>
-            <span className="badge badge-vigente">COMPLETADA</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--color-status-vigente-bg)', border: '1px solid var(--color-status-vigente-border)', borderRadius: '4px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <CheckCircle size={18} color="#1E7E34" />
-              <strong style={{ color: '#1E7E34', fontSize: '0.9rem' }}>
-                Tarea 5: CRUD Ubicaciones Orgánicas (Estructura Jerárquica / Organigrama)
-              </strong>
-            </div>
-            <span className="badge badge-vigente">COMPLETADA</span>
           </div>
         </div>
       </div>

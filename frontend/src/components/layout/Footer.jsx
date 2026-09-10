@@ -1,5 +1,5 @@
 import React from 'react';
-import { Landmark, Server, Database, Globe } from 'lucide-react';
+import { Landmark, MapPin, Shield } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -12,21 +12,17 @@ export default function Footer() {
 
         <div className="footer-links">
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Globe size={14} color="#81D4FA" />
-            <span>Frontend React 19</span>
+            <MapPin size={14} color="#81D4FA" />
+            <span>Plaza 25 de Mayo N° 1, Sucre - Bolivia</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Server size={14} color="#A5D6A7" />
-            <span>Node.js / Express</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Database size={14} color="#FFE082" />
-            <span>MySQL 8.0</span>
+            <Shield size={14} color="#A5D6A7" />
+            <span>Plataforma Oficial de Workflow y Gestión Documental</span>
           </div>
         </div>
 
         <div style={{ fontSize: '0.8rem', color: '#CBD5E1' }}>
-          <span>Sprint 1: Fundación del Sistema | Gestión 2026</span>
+          <span>Gobierno Autónomo Municipal de Sucre | Gestión 2026</span>
         </div>
       </div>
     </footer>
