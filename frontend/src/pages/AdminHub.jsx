@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Users,
   UserPlus,
@@ -20,7 +21,9 @@ import {
   ChevronRight,
   ChevronDown,
   FolderOpen,
-  Folder
+  Folder,
+  Landmark,
+  ArrowLeft
 } from 'lucide-react';
 import {
   personasService,
@@ -30,14 +33,55 @@ import {
   ubicacionesService
 } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import AdminWaykaHub from './AdminWaykaHub';
+// Componente de supervisión Wayka pre-construido para ser activado en Sprint 4:
+// import AdminWaykaHub from './AdminWaykaHub';
 
 export default function AdminHub() {
   const { user: currentUser, activeRole } = useAuth();
 
-  // Si el rol activo es Administrador de Wayka, renderizar el panel de flujos y supervisión Wayka
+  // Si el rol activo es Administrador de Wayka, se muestra la interfaz planificada para Sprint 4
+  // (AdminWaykaHub.jsx ya está desarrollado y listo en src/pages/ para activarse en dicho sprint)
   if (activeRole?.rol_codigo === 'ADMIN_WAYKA') {
-    return <AdminWaykaHub />;
+    return (
+      <div style={{ maxWidth: '800px', margin: '2rem auto', textAlign: 'center' }}>
+        <div className="card" style={{ padding: '3rem 2rem', borderTop: '5px solid #800000' }}>
+          <div style={{ 
+            width: '56px', 
+            height: '56px', 
+            borderRadius: '4px', 
+            background: '#800000', 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            color: 'white',
+            marginBottom: '1rem',
+            boxShadow: '0 2px 8px rgba(128, 0, 0, 0.25)'
+          }}>
+            <Landmark size={28} />
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <span className="badge badge-sucre">Sprint 4: Administración y Hoja de Ruta</span>
+          </div>
+          <h1 style={{ fontSize: '1.6rem', color: '#1B365D', marginBottom: '0.75rem' }}>
+            Módulo de Supervisión de Wayka
+          </h1>
+          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem', fontSize: '1rem', maxWidth: '550px', margin: '0 auto 1.5rem' }}>
+            Supervisión global de trámites, configuración de tipos de proceso y SLA, operaciones especiales de anulación justificada y trazabilidad institucional.
+          </p>
+          
+          <div style={{ background: 'var(--color-bg-container)', padding: '12px 20px', borderRadius: '4px', border: '1px solid var(--color-border)', display: 'inline-block', fontSize: '0.85rem', color: '#6C757D', marginBottom: '1.5rem' }}>
+            Este módulo está planificado en el cronograma institucional de Wayka (Sprint 4: 13 Oct - 26 Oct).
+          </div>
+
+          <div>
+            <Link to="/" className="btn btn-primary btn-sm">
+              <ArrowLeft size={14} />
+              <span>Volver a Inicio</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const [activeTab, setActiveTab] = useState('personas'); // 'personas' | 'usuarios' | 'roles' | 'ubicaciones'

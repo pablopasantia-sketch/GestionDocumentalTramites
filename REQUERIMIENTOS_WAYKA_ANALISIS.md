@@ -327,6 +327,8 @@ El sistema consolida el motor de **Trámites y Correspondencias en un solo flujo
 
 ### 4.10 RF-10: Administración de Trámites (Admin Wayka)
 
+> 📌 **Estado de Avance (Pre-construcción):** El componente de interfaz [`AdminWaykaHub.jsx`](file:///home/pablo/Universidad/SHC170%20-%20PR%C3%81CTICA%20LABORAL/GestionDocumentalTramites/frontend/src/pages/AdminWaykaHub.jsx) y los controladores backend asociados (`tramiteController.anular`, `tramiteController.obtenerEstadisticas`, `tipoProcesoController`) ya se encuentran implementados en el código base. Actualmente la vista del rol `ADMIN_WAYKA` en `AdminHub.jsx` muestra una interfaz informativa (placeholder) que indica que el módulo pertenece al **Sprint 4**, momento en el cual se activará y revisará formalmente sin necesidad de reescribir código.
+
 | ID | Requerimiento | Prioridad |
 |---|---|---|
 | RF-10.1 | **Anular** un trámite en estado "En atención": buscar por gestión + código, revisar datos, confirmar anulación | ALTA |
@@ -532,10 +534,11 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 
 ### Sprint 4 (13 Oct - 26 Oct): Administración y Hoja de Ruta
 - [ ] Bloquear / Desbloquear procesos
-- [ ] Anular proceso (Admin Wayka)
+- [ ] Anular proceso (Admin Wayka) *(Nota: Controladores backend y lógica modal ya pre-construidos en `tramiteController.js` y `AdminWaykaHub.jsx`, pendientes de activación formal en este sprint)*
 - [ ] Habilitar proceso concluido
 - [ ] Redireccionar procesos entre usuarios
 - [ ] Generación de Hoja de Ruta imprimible (HTML/PDF)
+- [ ] Supervisión integral de Wayka y tiempos SLA *(Nota: Componente dashboard completo pre-construido en `frontend/src/pages/AdminWaykaHub.jsx`; vista activa actualmente muestra interfaz placeholder de desarrollo con badge de Sprint 4)*
 
 ### Sprint 5 (27 Oct - 09 Nov): Reportes y Transparencia
 - [ ] Búsqueda pública de trámites (sin login) mediante Hoja de Ruta

@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Search, 
-  FileText, 
-  Clock, 
-  MapPin, 
-  CheckCircle2, 
+import {
+  Search,
+  FileText,
+  Clock,
+  MapPin,
+  CheckCircle2,
   HelpCircle,
   Shield,
-  Building2, 
+  Building2,
   Landmark,
   ArrowRight,
   AlertCircle,
@@ -60,11 +60,11 @@ export default function Home() {
   return (
     <div>
       {/* 1. HERO INSTITUCIONAL CIUDADANO */}
-      <div 
-        className="section-banner" 
-        style={{ 
-          padding: '3rem 2rem', 
-          marginBottom: '2rem', 
+      <div
+        className="section-banner"
+        style={{
+          padding: '3rem 2rem',
+          marginBottom: '2rem',
           textAlign: 'center',
           background: 'linear-gradient(180deg, #FFFFFF 0%, #F4F6F9 100%)',
           borderBottom: '3px solid #800000'
@@ -213,11 +213,10 @@ export default function Home() {
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                  <span className={`badge ${
-                    searchResult.estado === 'CONCLUIDO' ? 'badge-vigente' :
-                    searchResult.estado === 'ANULADO' ? 'badge-alerta' :
-                    searchResult.estado === 'EN_TRANSITO' ? 'badge-azul' : 'badge-modificada'
-                  }`} style={{ fontSize: '12px' }}>
+                  <span className={`badge ${searchResult.estado === 'CONCLUIDO' ? 'badge-vigente' :
+                      searchResult.estado === 'ANULADO' ? 'badge-alerta' :
+                        searchResult.estado === 'EN_TRANSITO' ? 'badge-azul' : 'badge-modificada'
+                    }`} style={{ fontSize: '12px' }}>
                     {searchResult.estado}
                   </span>
                   <div style={{ fontSize: '0.78rem', color: '#6C757D', marginTop: '4px' }}>
@@ -259,12 +258,12 @@ export default function Home() {
                   </div>
                   <div style={{ display: 'grid', gap: '8px' }}>
                     {searchResult.historial.map((mov, idx) => (
-                      <div 
-                        key={idx} 
-                        style={{ 
-                          padding: '10px 14px', 
-                          background: '#FFFFFF', 
-                          border: '1px solid #E2E8F0', 
+                      <div
+                        key={idx}
+                        style={{
+                          padding: '10px 14px',
+                          background: '#FFFFFF',
+                          border: '1px solid #E2E8F0',
                           borderRadius: '4px',
                           display: 'flex',
                           alignItems: 'flex-start',
@@ -272,15 +271,15 @@ export default function Home() {
                           fontSize: '0.85rem'
                         }}
                       >
-                        <div style={{ 
-                          width: '24px', 
-                          height: '24px', 
-                          borderRadius: '50%', 
-                          background: '#1B365D', 
-                          color: 'white', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
+                        <div style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          background: '#1B365D',
+                          color: 'white',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           fontSize: '11px',
                           fontWeight: 700,
                           flexShrink: 0
