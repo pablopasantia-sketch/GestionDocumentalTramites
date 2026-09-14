@@ -191,10 +191,52 @@ export const ubicacionesService = {
     const response = await api.put(`/ubicaciones/${id}`, data);
     return response.data;
   },
-  delete: async (id) => {
-    const response = await api.delete(`/ubicaciones/${id}`);
+};
+
+// Servicios de Trámites y Workflow (RF-09.1, RF-10)
+export const tramitesService = {
+  consultaPublica: async (correlativo, gestion) => {
+    const response = await api.get('/tramites/public/consulta', {
+      params: { correlativo, gestion }
+    });
     return response.data;
   },
+  getAll: async (params = {}) => {
+    const response = await api.get('/tramites', { params });
+    return response.data;
+  },
+  getStats: async (gestion) => {
+    const response = await api.get('/tramites/stats', { params: { gestion } });
+    return response.data;
+  },
+  anular: async (id, motivo) => {
+    const response = await api.post(`/tramites/${id}/anular`, { motivo });
+    return response.data;
+  }
+};
+
+// Servicios de Tipos de Proceso (Admin Wayka)
+export const tiposProcesoService = {
+  getAll: async (params = {}) => {
+    const response = await api.get('/tipos-proceso', { params });
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await api.get(`/tipos-proceso/${id}`);
+    return response.data;
+  },
+  create: async (data) => {
+    const response = await api.post('/tipos-proceso', data);
+    return response.data;
+  },
+  update: async (id, data) => {
+    const response = await api.put(`/tipos-proceso/${id}`, data);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/tipos-proceso/${id}`);
+    return response.data;
+  }
 };
 
 export default api;

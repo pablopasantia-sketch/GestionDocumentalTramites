@@ -30,9 +30,16 @@ import {
   ubicacionesService
 } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import AdminWaykaHub from './AdminWaykaHub';
 
 export default function AdminHub() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, activeRole } = useAuth();
+
+  // Si el rol activo es Administrador de Wayka, renderizar el panel de flujos y supervisión Wayka
+  if (activeRole?.rol_codigo === 'ADMIN_WAYKA') {
+    return <AdminWaykaHub />;
+  }
+
   const [activeTab, setActiveTab] = useState('personas'); // 'personas' | 'usuarios' | 'roles' | 'ubicaciones'
 
   // Datos del backend

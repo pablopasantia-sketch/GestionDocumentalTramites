@@ -13,7 +13,10 @@ import {
   ChevronDown,
   KeyRound,
   Check,
-  Briefcase
+  Briefcase,
+  GitBranch,
+  Activity,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import ChangePasswordModal from '../auth/ChangePasswordModal';
@@ -70,7 +73,6 @@ export default function Navbar() {
               <span className="header-sub-title">GACETA MUNICIPAL DE SUCRE | WORKFLOW INSTITUCIONAL</span>
             </div>
           </Link>
-
         </div>
       </div>
 
@@ -90,7 +92,7 @@ export default function Navbar() {
 
             {isAuthenticated && (
               <>
-                {(activeRole?.rol_codigo === 'VENTANILLA_UNICA' || activeRole?.rol_codigo === 'ADMIN_SISTEMA' || activeRole?.rol_codigo === 'ADMIN_WAYKA') && (
+                {(activeRole?.rol_codigo === 'VENTANILLA_UNICA' || activeRole?.rol_codigo === 'ADMIN_WAYKA') && (
                   <li>
                     <Link 
                       to="/ventanilla" 
@@ -102,7 +104,7 @@ export default function Navbar() {
                   </li>
                 )}
 
-                {(activeRole?.rol_codigo === 'FUNCIONARIO' || activeRole?.rol_codigo === 'VENTANILLA_UNICA') && (
+                {(activeRole?.rol_codigo === 'FUNCIONARIO' || activeRole?.rol_codigo === 'VENTANILLA_UNICA' || activeRole?.rol_codigo === 'ADMIN_WAYKA') && (
                   <li>
                     <Link 
                       to="/escritorio" 
@@ -114,17 +116,39 @@ export default function Navbar() {
                   </li>
                 )}
 
-                {(activeRole?.rol_codigo === 'ADMIN_SISTEMA' || activeRole?.rol_codigo === 'ADMIN_WAYKA') && (
+                {activeRole?.rol_codigo === 'ADMIN_SISTEMA' && (
                   <li>
                     <Link 
                       to="/admin" 
                       className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}
                     >
                       <Shield size={16} />
-                      <span>Administración</span>
+                      <span>Admin. Sistemas</span>
                     </Link>
                   </li>
                 )}
+
+                {activeRole?.rol_codigo === 'ADMIN_WAYKA' && (
+                  <li>
+                    <Link 
+                      to="/admin" 
+                      className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}
+                    >
+                      <GitBranch size={16} />
+                      <span>Supervisión Wayka</span>
+                    </Link>
+                  </li>
+                )}
+
+                <li>
+                  <Link 
+                    to="/status" 
+                    className={`nav-link ${location.pathname === '/status' ? 'active' : ''}`}
+                  >
+                    <Activity size={16} />
+                    <span>Diagnóstico BD</span>
+                  </Link>
+                </li>
               </>
             )}
           </ul>
@@ -313,6 +337,86 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
+
+      {/* Franja de Contexto de Modo de Trabajo (Adaptación Multi-Rol) */}
+      {isAuthenticated && (
+        <div style={{
+          background: activeRole?.rol_codigo === 'ADMIN_WAYKA' 
+            ? 'linear-gradient(90deg, #1B365D 0%, #2A4D80 100%)' 
+            : activeRole?.rol_codigo === 'ADMIN_SISTEMA'
+            ? 'linear-gradient(90deg, #4A0E17 0%, #800000 100%)'
+            : '#F1F5F9',
+          color: (activeRole?.rol_codigo === 'ADMIN_WAYKA' || activeRole?.rol_codigo === 'ADMIN_SISTEMA') ? '#FFFFFF' : '#1E293B',
+          padding: '6px 1.5rem',
+          fontSize: '0.8rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+          flexWrap: 'wrap',
+          gap: '8px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              background: 'rgba(255, 255, 255, 0.22)',
+              padding: '2px 8px',
+              borderRadius: '3px',
+              fontWeight: 700,
+              fontSize: '0.7rem',
+              letterSpacing: '0.5px'
+            }}>
+              MODO ACTIVO
+            </span>
+            <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {activeRole?.rol_codigo === 'ADMIN_SISTEMA' && '🔒 Administración de Sistemas (Cuentas, Roles y Organigrama)'}
+              {activeRole?.rol_codigo === 'ADMIN_WAYKA' && '⚙️ Supervisión de Wayka (Flujos, Tiempos SLA y Trámites)'}
+              {activeRole?.rol_codigo === 'VENTANILLA_UNICA' && '📥 Ventanilla Única Municipal (Recepción y Hoja de Ruta)'}
+              {activeRole?.rol_codigo === 'FUNCIONARIO' && '💼 Escritorio Virtual del Funcionario (Atención y Proveídos)'}
+            </span>
+            <span style={{ opacity: 0.85, fontSize: '0.75rem' }}>
+              • {activeRole?.ubicacion_nombre || 'Sede Central'}
+            </span>
+          </div>
+
+          {/* Selector Rápido Multi-Rol (1 clic) */}
+          {user?.roles && user.roles.length > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.74rem', opacity: 0.9 }}>Alternar rol:</span>
+              {user.roles
+                .filter(r => !(r.rol_id === activeRole?.rol_id && r.ubicacion_org_id === activeRole?.ubicacion_org_id))
+                .map(altRole => (
+                  <button
+                    key={`${altRole.rol_id}-${altRole.ubicacion_org_id}`}
+                    onClick={() => handleRoleSwitch(altRole)}
+                    disabled={switchingRole}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.25)',
+                      color: 'white',
+                      border: '1px solid rgba(255, 255, 255, 0.4)',
+                      borderRadius: '3px',
+                      padding: '2px 10px',
+                      fontSize: '0.74rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.4)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)'}
+                    title={`Cambiar de rol activo a ${altRole.rol_nombre}`}
+                  >
+                    <RefreshCw size={11} className={switchingRole ? 'spin' : ''} />
+                    <span>Cambiar a {altRole.rol_nombre}</span>
+                  </button>
+                ))
+              }
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Modal de Cambio de Clave */}
       <ChangePasswordModal 

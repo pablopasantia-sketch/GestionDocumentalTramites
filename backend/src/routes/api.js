@@ -6,6 +6,8 @@ const usuarioRoutes = require('./usuarioRoutes');
 const rolRoutes = require('./rolRoutes');
 const usuarioRolRoutes = require('./usuarioRolRoutes');
 const ubicacionOrgRoutes = require('./ubicacionOrgRoutes');
+const tramiteRoutes = require('./tramiteRoutes');
+const tipoProcesoRoutes = require('./tipoProcesoRoutes');
 
 const apiRouter = Router();
 
@@ -23,7 +25,9 @@ apiRouter.get('/', (req, res) => {
       usuarios: '/api/usuarios',
       roles: '/api/roles',
       usuarioRoles: '/api/usuario-roles',
-      ubicaciones: '/api/ubicaciones'
+      ubicaciones: '/api/ubicaciones',
+      tramites: '/api/tramites',
+      tiposProceso: '/api/tipos-proceso'
     }
   });
 });
@@ -36,6 +40,8 @@ apiRouter.use('/usuarios', usuarioRoutes);
 apiRouter.use('/roles', rolRoutes);
 apiRouter.use('/usuario-roles', usuarioRolRoutes);
 apiRouter.use('/ubicaciones', ubicacionOrgRoutes);
+apiRouter.use('/tramites', tramiteRoutes);
+apiRouter.use('/tipos-proceso', tipoProcesoRoutes);
 
 module.exports = apiRouter;
 
