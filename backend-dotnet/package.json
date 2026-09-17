@@ -1,0 +1,25 @@
+{
+  "name": "backend-dotnet",
+  "version": "1.0.0",
+  "description": "Backend API REST en ASP.NET Core (.NET 8 LTS) para Sistema de Gestión Documental y Trámites",
+  "scripts": {
+    "start": "dotnet run --project GestionDocumental.Api --launch-profile http",
+    "dev": "dotnet watch --project GestionDocumental.Api --launch-profile http",
+    "build": "dotnet build GestionDocumental.sln",
+    "migrate": "dotnet run --project GestionDocumental.Api -- migrate up",
+    "migrate:status": "dotnet run --project GestionDocumental.Api -- migrate status",
+    "migrate:reset": "dotnet run --project GestionDocumental.Api -- migrate reset",
+    "db:init": "dotnet run --project GestionDocumental.Api -- db init",
+    "db:seed": "dotnet run --project GestionDocumental.Api -- db seed"
+  },
+  "keywords": [
+    "tramites",
+    "workflow",
+    "gestion-documental",
+    "aspnetcore",
+    "dotnet8",
+    "mysql8"
+  ],
+  "author": "Municipalidad de Sucre",
+  "license": "ISC"
+}

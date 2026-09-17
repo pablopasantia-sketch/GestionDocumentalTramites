@@ -26,7 +26,7 @@ import {
 import { tramitesService, tiposProcesoService, ubicacionesService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-export default function AdminWaykaHub() {
+export default function AdminTramitesHub() {
   const { user, activeRole } = useAuth();
   const [activeTab, setActiveTab] = useState('supervision'); // 'supervision' | 'tipos' | 'metricas'
 
@@ -86,7 +86,7 @@ export default function AdminWaykaHub() {
       if (resStats.success) setStats(resStats.data || null);
       if (resUbic.success) setUbicaciones(resUbic.data || []);
     } catch (err) {
-      console.error('Error al cargar datos de supervisión Wayka:', err);
+      console.error('Error al cargar datos de supervisión de trámites:', err);
       showFeedbackMsg('error', 'No se pudieron cargar los datos de supervisión institucional.');
     } finally {
       setLoading(false);
@@ -291,7 +291,7 @@ export default function AdminWaykaHub() {
               padding: '2px 8px', 
               borderRadius: '4px' 
             }}>
-              SUPERVISIÓN WAYKA
+              SUPERVISIÓN DE TRÁMITES
             </span>
             <span style={{ fontSize: '0.8rem', color: '#6C757D' }}>RF-03 • RF-08 • RF-10 • Flujo Unificado</span>
           </div>
@@ -299,7 +299,7 @@ export default function AdminWaykaHub() {
             Gestión de Procesos, Tiempos SLA y Supervisión de Trámites
           </h1>
           <p style={{ color: 'var(--color-text-secondary)', margin: 0, fontSize: '0.92rem' }}>
-            Panel de control operativo para el Administrador de Wayka: auditoría institucional, anulación controlada y configuración de trámites.
+            Panel de control operativo para el Administrador de Trámites: auditoría institucional, anulación controlada y configuración de trámites.
           </p>
         </div>
 
@@ -789,7 +789,7 @@ export default function AdminWaykaHub() {
               <span>Auditoría de Operaciones Especiales</span>
             </h2>
             <p style={{ fontSize: '0.85rem', color: '#6C757D', marginBottom: '1.25rem' }}>
-              El Administrador de Wayka es el único perfil facultado para la anulación de procesos con registro inmutable en auditoría.
+              El Administrador de Trámites es el único perfil facultado para la anulación de procesos con registro inmutable en auditoría.
             </p>
 
             <div style={{ background: '#FFF5F5', border: '1px solid #F5C6CB', borderRadius: '4px', padding: '12px' }}>

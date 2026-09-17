@@ -434,7 +434,7 @@ export default function Home() {
             Trámites y Servicios Municipales Frecuentes
           </h2>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.92rem', marginTop: '4px' }}>
-            Información de orientación general sobre los principales trámites gestionados a través del Sistema Wayka.
+            Información de orientación general sobre los principales trámites gestionados a través del Sistema de Gestión Documental y Trámites.
           </p>
         </div>
 
@@ -502,7 +502,7 @@ export default function Home() {
             Compromiso Institucional por un Trámite Ágil y Transparente
           </h3>
           <p style={{ color: '#6C757D', fontSize: '0.9rem', maxWidth: '600px', margin: '0 auto' }}>
-            El Sistema Wayka garantiza la custodia, inmutabilidad y control de tiempos en cada actuación municipal.
+            El Sistema de Gestión Documental garantiza la custodia, inmutabilidad y control de tiempos en cada actuación municipal.
           </p>
         </div>
 

@@ -33,15 +33,14 @@ import {
   ubicacionesService
 } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-// Componente de supervisión Wayka pre-construido para ser activado en Sprint 4:
-// import AdminWaykaHub from './AdminWaykaHub';
+// Componente de supervisión de trámites pre-construido para ser activado en Sprint 4:
+// import AdminTramitesHub from './AdminTramitesHub';
 
 export default function AdminHub() {
   const { user: currentUser, activeRole } = useAuth();
 
-  // Si el rol activo es Administrador de Wayka, se muestra la interfaz planificada para Sprint 4
-  // (AdminWaykaHub.jsx ya está desarrollado y listo en src/pages/ para activarse en dicho sprint)
-  if (activeRole?.rol_codigo === 'ADMIN_WAYKA') {
+  // Si el rol activo es Administrador de Trámites, se muestra la interfaz planificada para Sprint 4
+  if (activeRole?.rol_codigo === 'ADMIN_TRAMITES') {
     return (
       <div style={{ maxWidth: '800px', margin: '2rem auto', textAlign: 'center' }}>
         <div className="card" style={{ padding: '3rem 2rem', borderTop: '5px solid #800000' }}>
@@ -63,14 +62,14 @@ export default function AdminHub() {
             <span className="badge badge-sucre">Sprint 4: Administración y Hoja de Ruta</span>
           </div>
           <h1 style={{ fontSize: '1.6rem', color: '#1B365D', marginBottom: '0.75rem' }}>
-            Módulo de Supervisión de Wayka
+            Módulo de Supervisión de Trámites
           </h1>
           <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem', fontSize: '1rem', maxWidth: '550px', margin: '0 auto 1.5rem' }}>
             Supervisión global de trámites, configuración de tipos de proceso y SLA, operaciones especiales de anulación justificada y trazabilidad institucional.
           </p>
           
           <div style={{ background: 'var(--color-bg-container)', padding: '12px 20px', borderRadius: '4px', border: '1px solid var(--color-border)', display: 'inline-block', fontSize: '0.85rem', color: '#6C757D', marginBottom: '1.5rem' }}>
-            Este módulo está planificado en el cronograma institucional de Wayka (Sprint 4: 13 Oct - 26 Oct).
+            Este módulo está planificado en el cronograma institucional (Sprint 4: 13 Oct - 26 Oct).
           </div>
 
           <div>
@@ -1135,7 +1134,7 @@ export default function AdminHub() {
                 }}
               >
                 <span>Estado: <strong>{rol.activo ? 'Activo' : 'Inactivo'}</strong></span>
-                <span className="badge badge-sucre">Base Wayka</span>
+                <span className="badge badge-sucre">Base Institucional</span>
               </div>
             </div>
           ))}

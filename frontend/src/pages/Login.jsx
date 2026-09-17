@@ -69,7 +69,7 @@ export default function Login() {
             Acceso Institucional
           </h1>
           <p style={{ color: '#6C757D', fontSize: '0.85rem', margin: '0' }}>
-            Gobierno Autónomo Municipal de Sucre — Sistema Wayka
+            Gobierno Autónomo Municipal de Sucre — Gestión Documental y Trámites
           </p>
         </div>
 

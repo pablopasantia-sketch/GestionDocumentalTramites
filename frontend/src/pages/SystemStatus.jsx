@@ -161,7 +161,7 @@ export default function SystemStatus() {
               <tr>
                 <td><strong>3. Base de Datos</strong></td>
                 <td>Servidor MySQL 8.0</td>
-                <td>{healthData?.database?.host || '127.0.0.1'}:{healthData?.database?.port || '3306'} (wayka_db)</td>
+                <td>{healthData?.database?.host || '127.0.0.1'}:{healthData?.database?.port || '3306'} (gestion_documental_db)</td>
                 <td>
                   {healthData?.database?.connected ? (
                     <span className="badge badge-vigente">CONECTADO</span>

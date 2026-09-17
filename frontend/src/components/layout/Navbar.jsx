@@ -69,7 +69,7 @@ export default function Navbar() {
               <Landmark size={26} />
             </div>
             <div className="header-titles">
-              <span className="header-main-title">WAYKA — GESTIÓN DOCUMENTAL</span>
+              <span className="header-main-title">GESTIÓN DOCUMENTAL Y TRÁMITES</span>
               <span className="header-sub-title">GACETA MUNICIPAL DE SUCRE | WORKFLOW INSTITUCIONAL</span>
             </div>
           </Link>
@@ -92,7 +92,7 @@ export default function Navbar() {
 
             {isAuthenticated && (
               <>
-                {(activeRole?.rol_codigo === 'VENTANILLA_UNICA' || activeRole?.rol_codigo === 'ADMIN_WAYKA') && (
+                {(activeRole?.rol_codigo === 'VENTANILLA_UNICA' || activeRole?.rol_codigo === 'ADMIN_TRAMITES') && (
                   <li>
                     <Link 
                       to="/ventanilla" 
@@ -104,7 +104,7 @@ export default function Navbar() {
                   </li>
                 )}
 
-                {(activeRole?.rol_codigo === 'FUNCIONARIO' || activeRole?.rol_codigo === 'VENTANILLA_UNICA' || activeRole?.rol_codigo === 'ADMIN_WAYKA') && (
+                {(activeRole?.rol_codigo === 'FUNCIONARIO' || activeRole?.rol_codigo === 'VENTANILLA_UNICA' || activeRole?.rol_codigo === 'ADMIN_TRAMITES') && (
                   <li>
                     <Link 
                       to="/escritorio" 
@@ -128,14 +128,14 @@ export default function Navbar() {
                   </li>
                 )}
 
-                {activeRole?.rol_codigo === 'ADMIN_WAYKA' && (
+                {activeRole?.rol_codigo === 'ADMIN_TRAMITES' && (
                   <li>
                     <Link 
                       to="/admin" 
                       className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}
                     >
                       <GitBranch size={16} />
-                      <span>Supervisión Wayka</span>
+                      <span>Supervisión de Trámites</span>
                     </Link>
                   </li>
                 )}

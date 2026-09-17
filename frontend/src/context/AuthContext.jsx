@@ -5,14 +5,14 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('wayka_token') || null);
+  const [token, setToken] = useState(localStorage.getItem('gestion_doc_token') || null);
   const [activeRole, setActiveRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const initAuth = async () => {
-      const storedToken = localStorage.getItem('wayka_token');
-      const storedUser = localStorage.getItem('wayka_user');
+      const storedToken = localStorage.getItem('gestion_doc_token');
+      const storedUser = localStorage.getItem('gestion_doc_user');
 
       if (storedToken && storedUser) {
         try {
@@ -46,8 +46,8 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setActiveRole(userData.activeRole);
 
-        localStorage.setItem('wayka_token', newToken);
-        localStorage.setItem('wayka_user', JSON.stringify(userData));
+        localStorage.setItem('gestion_doc_token', newToken);
+        localStorage.setItem('gestion_doc_user', JSON.stringify(userData));
 
         return { success: true, user: userData };
       }
@@ -62,8 +62,8 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
     setActiveRole(null);
-    localStorage.removeItem('wayka_token');
-    localStorage.removeItem('wayka_user');
+    localStorage.removeItem('gestion_doc_token');
+    localStorage.removeItem('gestion_doc_user');
   };
 
   const switchRole = async (rolId, ubicacionOrgId) => {
@@ -78,8 +78,8 @@ export const AuthProvider = ({ children }) => {
         const updatedUser = { ...user, activeRole: newActiveRole };
         setUser(updatedUser);
 
-        localStorage.setItem('wayka_token', newToken);
-        localStorage.setItem('wayka_user', JSON.stringify(updatedUser));
+        localStorage.setItem('gestion_doc_token', newToken);
+        localStorage.setItem('gestion_doc_user', JSON.stringify(updatedUser));
 
         return { success: true, activeRole: newActiveRole };
       }

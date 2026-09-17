@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="footer-content">
         <div className="footer-brand">
           <Landmark size={20} color="#FFC107" />
-          <span>GACETA MUNICIPAL DE SUCRE — SISTEMA WAYKA</span>
+          <span>GACETA MUNICIPAL DE SUCRE — GESTIÓN DOCUMENTAL Y TRÁMITES</span>
         </div>
 
         <div className="footer-links">

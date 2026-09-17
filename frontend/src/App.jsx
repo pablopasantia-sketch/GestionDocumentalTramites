@@ -38,7 +38,7 @@ function PlaceholderView({ title, description, badge }) {
         </p>
         
         <div style={{ background: 'var(--color-bg-container)', padding: '12px 20px', borderRadius: '4px', border: '1px solid var(--color-border)', display: 'inline-block', fontSize: '0.85rem', color: '#6C757D', marginBottom: '1.5rem' }}>
-          Este módulo está planificado en el cronograma institucional de Wayka (Sprint 1 / Sprint 2).
+          Este módulo está planificado en el cronograma institucional (Sprint 1 / Sprint 2).
         </div>
 
         <div>
@@ -66,7 +66,7 @@ export default function App() {
             <Route 
               path="/ventanilla" 
               element={
-                <ProtectedRoute allowedRoles={['VENTANILLA_UNICA', 'ADMIN_SISTEMA', 'ADMIN_WAYKA']}>
+                <ProtectedRoute allowedRoles={['VENTANILLA_UNICA', 'ADMIN_SISTEMA', 'ADMIN_TRAMITES']}>
                   <PlaceholderView 
                     title="Módulo de Ventanilla Única" 
                     description="Recepción centralizada de trámites y correspondencia, emisión de Hoja de Ruta institucional con correlativo automático."
@@ -78,7 +78,7 @@ export default function App() {
             <Route 
               path="/escritorio" 
               element={
-                <ProtectedRoute allowedRoles={['FUNCIONARIO', 'VENTANILLA_UNICA', 'ADMIN_SISTEMA', 'ADMIN_WAYKA']}>
+                <ProtectedRoute allowedRoles={['FUNCIONARIO', 'VENTANILLA_UNICA', 'ADMIN_SISTEMA', 'ADMIN_TRAMITES']}>
                   <PlaceholderView 
                     title="Escritorio Virtual y Bandejas" 
                     description="Bandejas de pendientes, recibidos y despachados. Atención con proveídos y derivación libre a destinatarios."
@@ -90,7 +90,7 @@ export default function App() {
             <Route 
               path="/admin" 
               element={
-                <ProtectedRoute allowedRoles={['ADMIN_SISTEMA', 'ADMIN_WAYKA']}>
+                <ProtectedRoute allowedRoles={['ADMIN_SISTEMA', 'ADMIN_TRAMITES']}>
                   <AdminHub />
                 </ProtectedRoute>
               } 

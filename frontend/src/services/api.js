@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -13,7 +13,7 @@ const api = axios.create({
 // Interceptor para inyectar token JWT automáticamente
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('wayka_token');
+    const token = localStorage.getItem('gestion_doc_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,8 +29,8 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // Si la sesión expiró y no estamos ya en login, limpiar storage
       if (window.location.pathname !== '/login') {
-        localStorage.removeItem('wayka_token');
-        localStorage.removeItem('wayka_user');
+        localStorage.removeItem('gestion_doc_token');
+        localStorage.removeItem('gestion_doc_user');
       }
     }
     return Promise.reject(error);
@@ -215,7 +215,7 @@ export const tramitesService = {
   }
 };
 
-// Servicios de Tipos de Proceso (Admin Wayka)
+// Servicios de Tipos de Proceso (Admin Trámites)
 export const tiposProcesoService = {
   getAll: async (params = {}) => {
     const response = await api.get('/tipos-proceso', { params });

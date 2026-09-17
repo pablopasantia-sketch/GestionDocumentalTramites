@@ -1,0 +1,45 @@
+## ====================================================================
+## .gitignore para proyectos .NET / ASP.NET Core
+## ====================================================================
+
+# Archivos y carpetas de compilación
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Archivos de usuario y estado de Visual Studio / JetBrains / VS Code
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.user
+*.userprefs
+*.suo
+*.userosscache
+*.sln.docstates
+.idea/
+*.DotSettings.user
+
+# Paquetes NuGet y caché
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.assets.json
+
+# Archivos de cobertura de código y pruebas
+[Tt]est[Rr]esults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Archivos temporales del sistema operativo
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.tmp
