@@ -23,7 +23,8 @@ import {
   FolderOpen,
   Folder,
   Landmark,
-  ArrowLeft
+  ArrowLeft,
+  RotateCcw
 } from 'lucide-react';
 import {
   personasService,
@@ -96,6 +97,8 @@ export default function AdminHub() {
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState(null); // { type: 'success' | 'error', message: '' }
   const [searchTerm, setSearchTerm] = useState('');
+  const [personaFiltroActivo, setPersonaFiltroActivo] = useState('activos'); // 'activos' | 'inactivos' | 'todos'
+  const [usuarioFiltroActivo, setUsuarioFiltroActivo] = useState('activos'); // 'activos' | 'inactivos' | 'todos'
 
   // Modales
   const [showPersonaModal, setShowPersonaModal] = useState(false);
@@ -166,8 +169,8 @@ export default function AdminHub() {
     setLoading(true);
     try {
       const [resPers, resUsr, resRol, resUbic] = await Promise.all([
-        personasService.getAll({ search: '' }),
-        usuariosService.getAll({ search: '' }),
+        personasService.getAll({ search: '', activo: 'all' }),
+        usuariosService.getAll({ search: '', activo: 'all' }),
         rolesService.getAll(),
         ubicacionesService.getAll()
       ]);
@@ -247,7 +250,7 @@ export default function AdminHub() {
         }
       }
       setShowPersonaModal(false);
-      const resPers = await personasService.getAll({ search: searchTerm });
+      const resPers = await personasService.getAll({ search: '', activo: 'all' });
       if (resPers.success) setPersonas(resPers.data || []);
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Error al guardar persona.';
@@ -266,12 +269,33 @@ export default function AdminHub() {
         showFeedbackMsg('success', `La persona ${persona.nombres} ${persona.apellido_paterno} fue dada de baja.`);
         setConfirmDelete(null);
         setDeleteModalError(null);
-        const resPers = await personasService.getAll({ search: searchTerm });
+        const resPers = await personasService.getAll({ search: '', activo: 'all' });
         if (resPers.success) setPersonas(resPers.data || []);
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'No se pudo dar de baja a la persona.';
       setDeleteModalError(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReactivarPersona = async (persona) => {
+    if (!window.confirm(`¿Está seguro de reactivar a la persona ${persona.nombres} ${persona.apellido_paterno} (CI: ${persona.ci})?`)) {
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const res = await personasService.reactivar(persona.id);
+      if (res.success) {
+        showFeedbackMsg('success', `Persona ${persona.nombres} ${persona.apellido_paterno} reactivada exitosamente.`);
+        const resPers = await personasService.getAll({ search: '', activo: 'all' });
+        if (resPers.success) setPersonas(resPers.data || []);
+      } else {
+        showFeedbackMsg('error', res.message || 'No se pudo reactivar la persona.');
+      }
+    } catch (err) {
+      showFeedbackMsg('error', err.response?.data?.message || err.message || 'Error al reactivar la persona.');
     } finally {
       setActionLoading(false);
     }
@@ -301,7 +325,7 @@ export default function AdminHub() {
       if (res.success) {
         showFeedbackMsg('success', `Usuario '${usuarioForm.login}' creado exitosamente.`);
         setShowUsuarioModal(false);
-        const resUsr = await usuariosService.getAll({ search: searchTerm });
+        const resUsr = await usuariosService.getAll({ search: '', activo: 'all' });
         if (resUsr.success) setUsuarios(resUsr.data || []);
       }
     } catch (err) {
@@ -350,12 +374,33 @@ export default function AdminHub() {
         showFeedbackMsg('success', `El usuario '${usuario.login}' fue dado de baja.`);
         setConfirmDelete(null);
         setDeleteModalError(null);
-        const resUsr = await usuariosService.getAll({ search: searchTerm });
+        const resUsr = await usuariosService.getAll({ search: '', activo: 'all' });
         if (resUsr.success) setUsuarios(resUsr.data || []);
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'No se pudo dar de baja al usuario.';
       setDeleteModalError(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReactivarUsuario = async (usuario) => {
+    if (!window.confirm(`¿Está seguro de reactivar la cuenta del usuario "${usuario.login}"?`)) {
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const res = await usuariosService.reactivar(usuario.id);
+      if (res.success) {
+        showFeedbackMsg('success', `Usuario '${usuario.login}' reactivado exitosamente.`);
+        const resUsr = await usuariosService.getAll({ search: '', activo: 'all' });
+        if (resUsr.success) setUsuarios(resUsr.data || []);
+      } else {
+        showFeedbackMsg('error', res.message || 'No se pudo reactivar el usuario.');
+      }
+    } catch (err) {
+      showFeedbackMsg('error', err.response?.data?.message || err.message || 'Error al reactivar el usuario.');
     } finally {
       setActionLoading(false);
     }
@@ -408,7 +453,7 @@ export default function AdminHub() {
         const resRoles = await usuarioRolesService.getByUsuario(userForRoles.id);
         if (resRoles.success) setUserAssignedRoles(resRoles.data || []);
         // Recargar listado general de usuarios
-        const resUsr = await usuariosService.getAll();
+        const resUsr = await usuariosService.getAll({ search: '', activo: 'all' });
         if (resUsr.success) setUsuarios(resUsr.data || []);
       }
     } catch (err) {
@@ -427,7 +472,7 @@ export default function AdminHub() {
         showFeedbackMsg('success', 'Rol marcado como principal para el usuario.');
         const resRoles = await usuarioRolesService.getByUsuario(userForRoles.id);
         if (resRoles.success) setUserAssignedRoles(resRoles.data || []);
-        const resUsr = await usuariosService.getAll();
+        const resUsr = await usuariosService.getAll({ search: '', activo: 'all' });
         if (resUsr.success) setUsuarios(resUsr.data || []);
       }
     } catch (err) {
@@ -445,7 +490,7 @@ export default function AdminHub() {
         showFeedbackMsg('success', 'Rol desasignado del usuario.');
         const resRoles = await usuarioRolesService.getByUsuario(userForRoles.id);
         if (resRoles.success) setUserAssignedRoles(resRoles.data || []);
-        const resUsr = await usuariosService.getAll();
+        const resUsr = await usuariosService.getAll({ search: '', activo: 'all' });
         if (resUsr.success) setUsuarios(resUsr.data || []);
       }
     } catch (err) {
@@ -631,11 +676,15 @@ export default function AdminHub() {
   // FILTRADO
   // ----------------------------------------------------
   const filteredPersonas = personas.filter((p) => {
+    if (personaFiltroActivo === 'activos' && !p.activo) return false;
+    if (personaFiltroActivo === 'inactivos' && p.activo) return false;
     const full = `${p.nombres} ${p.apellido_paterno} ${p.apellido_materno || ''} ${p.ci}`.toLowerCase();
     return full.includes(searchTerm.toLowerCase());
   });
 
   const filteredUsuarios = usuarios.filter((u) => {
+    if (usuarioFiltroActivo === 'activos' && !u.activo) return false;
+    if (usuarioFiltroActivo === 'inactivos' && u.activo) return false;
     const full = `${u.login} ${u.nombres || ''} ${u.apellido_paterno || ''} ${u.cargo || ''} ${u.ci || ''}`.toLowerCase();
     return full.includes(searchTerm.toLowerCase());
   });
@@ -814,7 +863,7 @@ export default function AdminHub() {
         </button>
       </div>
 
-      {/* Barra de Búsqueda y Botón de Acción */}
+      {/* Barra de Búsqueda, Filtros y Botón de Acción */}
       <div
         style={{
           display: 'flex',
@@ -825,27 +874,55 @@ export default function AdminHub() {
           gap: '10px'
         }}
       >
-        <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
-          <Search
-            size={16}
-            style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#6C757D' }}
-          />
-          <input
-            type="text"
-            className="form-control"
-            placeholder={
-              activeTab === 'personas'
-                ? 'Buscar por nombre o CI...'
-                : activeTab === 'usuarios'
-                ? 'Buscar por login, nombre, cargo...'
-                : activeTab === 'ubicaciones'
-                ? 'Buscar por código, nombre o sigla...'
-                : 'Buscar roles...'
-            }
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ paddingLeft: '34px', fontSize: '0.88rem' }}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flex: 1, maxWidth: '650px' }}>
+          <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
+            <Search
+              size={16}
+              style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#6C757D' }}
+            />
+            <input
+              type="text"
+              className="form-control"
+              placeholder={
+                activeTab === 'personas'
+                  ? 'Buscar por nombre o CI...'
+                  : activeTab === 'usuarios'
+                  ? 'Buscar por login, nombre, cargo...'
+                  : activeTab === 'ubicaciones'
+                  ? 'Buscar por código, nombre o sigla...'
+                  : 'Buscar roles...'
+              }
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ paddingLeft: '34px', fontSize: '0.88rem' }}
+            />
+          </div>
+
+          {activeTab === 'personas' && (
+            <select
+              className="form-control"
+              value={personaFiltroActivo}
+              onChange={(e) => setPersonaFiltroActivo(e.target.value)}
+              style={{ width: 'auto', fontSize: '0.85rem', cursor: 'pointer', borderColor: '#CED4DA' }}
+            >
+              <option value="activos">Mostrar: Solo Vigentes (Activos)</option>
+              <option value="inactivos">Mostrar: Dados de Baja (Inactivos)</option>
+              <option value="todos">Mostrar: Todos los Registros</option>
+            </select>
+          )}
+
+          {activeTab === 'usuarios' && (
+            <select
+              className="form-control"
+              value={usuarioFiltroActivo}
+              onChange={(e) => setUsuarioFiltroActivo(e.target.value)}
+              style={{ width: 'auto', fontSize: '0.85rem', cursor: 'pointer', borderColor: '#CED4DA' }}
+            >
+              <option value="activos">Mostrar: Solo Vigentes (Activos)</option>
+              <option value="inactivos">Mostrar: Dados de Baja (Inactivos)</option>
+              <option value="todos">Mostrar: Todos los Registros</option>
+            </select>
+          )}
         </div>
 
         {activeTab === 'personas' && (
@@ -953,7 +1030,27 @@ export default function AdminHub() {
                             >
                               <Trash2 size={14} />
                             </button>
-                          ) : null}
+                          ) : (
+                            <button
+                              onClick={() => handleReactivarPersona(p)}
+                              className="btn btn-sm"
+                              title="Reactivar persona"
+                              style={{
+                                padding: '4px 8px',
+                                backgroundColor: '#E6F4EA',
+                                color: '#137333',
+                                border: '1px solid #CEEAD6',
+                                borderRadius: '4px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <RotateCcw size={14} />
+                              <span style={{ fontSize: '0.78rem', fontWeight: 600 }}>Reactivar</span>
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -1078,19 +1175,41 @@ export default function AdminHub() {
                           >
                             <KeyRound size={14} />
                           </button>
-                          {u.activo && u.id !== currentUser?.userId ? (
+                          {u.activo ? (
+                            u.id !== currentUser?.userId ? (
+                              <button
+                                onClick={() => {
+                                  setConfirmDelete({ type: 'usuario', item: u });
+                                  setDeleteModalError(null);
+                                }}
+                                className="btn btn-outline-danger btn-sm"
+                                title="Dar de baja usuario"
+                                style={{ padding: '4px 8px' }}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            ) : null
+                          ) : (
                             <button
-                              onClick={() => {
-                                setConfirmDelete({ type: 'usuario', item: u });
-                                setDeleteModalError(null);
+                              onClick={() => handleReactivarUsuario(u)}
+                              className="btn btn-sm"
+                              title="Reactivar usuario"
+                              style={{
+                                padding: '4px 8px',
+                                backgroundColor: '#E6F4EA',
+                                color: '#137333',
+                                border: '1px solid #CEEAD6',
+                                borderRadius: '4px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                cursor: 'pointer'
                               }}
-                              className="btn btn-outline-danger btn-sm"
-                              title="Dar de baja usuario"
-                              style={{ padding: '4px 8px' }}
                             >
-                              <Trash2 size={14} />
+                              <RotateCcw size={14} />
+                              <span style={{ fontSize: '0.78rem', fontWeight: 600 }}>Reactivar</span>
                             </button>
-                          ) : null}
+                          )}
                         </div>
                       </td>
                     </tr>

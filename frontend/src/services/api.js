@@ -87,6 +87,10 @@ export const personasService = {
     const response = await api.delete(`/personas/${id}`);
     return response.data;
   },
+  reactivar: async (id) => {
+    const response = await api.patch(`/personas/${id}/reactivar`);
+    return response.data;
+  },
 };
 
 // Servicios de Usuarios (RF-02.2)
@@ -113,6 +117,10 @@ export const usuariosService = {
   },
   delete: async (id) => {
     const response = await api.delete(`/usuarios/${id}`);
+    return response.data;
+  },
+  reactivar: async (id) => {
+    const response = await api.patch(`/usuarios/${id}/reactivar`);
     return response.data;
   },
 };

@@ -25,9 +25,22 @@ namespace GestionDocumental.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? search)
+        public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] string? activo)
         {
             var query = _context.Personas.AsQueryable();
+
+            if (activo == "all" || activo == "todos")
+            {
+                // Incluir todos (activos e inactivos)
+            }
+            else if (activo == "false" || activo == "inactivos")
+            {
+                query = query.Where(p => !p.Activo);
+            }
+            else // Por defecto solo activos
+            {
+                query = query.Where(p => p.Activo);
+            }
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -208,6 +221,19 @@ namespace GestionDocumental.Api.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(ApiResponse.SuccessResult("Persona dada de baja exitosamente."));
+        }
+
+        [HttpPatch("{id}/reactivar")]
+        public async Task<IActionResult> Reactivar(int id)
+        {
+            var persona = await _context.Personas.FindAsync(id);
+            if (persona == null) return NotFound(ApiResponse.ErrorResult("Persona no encontrada."));
+
+            persona.Activo = true;
+            persona.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Ok(ApiResponse.SuccessResult("Persona reactivada exitosamente."));
         }
     }
 }

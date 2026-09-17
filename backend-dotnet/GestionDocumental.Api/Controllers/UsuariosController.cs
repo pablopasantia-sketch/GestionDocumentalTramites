@@ -26,7 +26,7 @@ namespace GestionDocumental.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? search)
+        public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] string? activo)
         {
             var query = _context.Usuarios
                 .Include(u => u.Persona)
@@ -35,6 +35,19 @@ namespace GestionDocumental.Api.Controllers
                 .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
                     .ThenInclude(ur => ur.UbicacionOrg)
                 .AsQueryable();
+
+            if (activo == "all" || activo == "todos")
+            {
+                // Incluir todos
+            }
+            else if (activo == "false" || activo == "inactivos")
+            {
+                query = query.Where(u => !u.Activo);
+            }
+            else // Por defecto solo activos
+            {
+                query = query.Where(u => u.Activo);
+            }
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -221,6 +234,24 @@ namespace GestionDocumental.Api.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(ApiResponse.SuccessResult($"Usuario '{usuario.Login}' dado de baja."));
+        }
+
+        [HttpPatch("{id}/reactivar")]
+        public async Task<IActionResult> Reactivar(int id)
+        {
+            var usuario = await _context.Usuarios.Include(u => u.Persona).FirstOrDefaultAsync(u => u.Id == id);
+            if (usuario == null) return NotFound(ApiResponse.ErrorResult("Usuario no encontrado."));
+
+            if (usuario.Persona != null && !usuario.Persona.Activo)
+            {
+                return BadRequest(ApiResponse.ErrorResult($"No se puede reactivar el usuario: la persona asociada '{usuario.Persona.Nombres} {usuario.Persona.ApellidoPaterno}' se encuentra inactiva. Primero reactive la persona."));
+            }
+
+            usuario.Activo = true;
+            usuario.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Ok(ApiResponse.SuccessResult($"Usuario '{usuario.Login}' reactivado exitosamente."));
         }
     }
 }
