@@ -160,9 +160,13 @@ namespace GestionDocumental.Api.Controllers
                 return BadRequest(ApiResponse.ErrorResult("Datos inválidos."));
             }
 
-            bool loginExists = await _context.Usuarios.AnyAsync(u => u.Login == dto.Login.Trim());
-            if (loginExists)
+            var existingUser = await _context.Usuarios.FirstOrDefaultAsync(u => u.Login == dto.Login.Trim());
+            if (existingUser != null)
             {
+                if (!existingUser.Activo)
+                {
+                    return Conflict(ApiResponse.ErrorResult($"Existe una cuenta dada de baja con el usuario '{dto.Login}'. Puede reactivarla cambiando el filtro a 'Dados de Baja (Inactivos)'."));
+                }
                 return Conflict(ApiResponse.ErrorResult($"Ya existe una cuenta con el login '{dto.Login}'."));
             }
 

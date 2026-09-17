@@ -148,8 +148,15 @@ namespace GestionDocumental.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ApiResponse.ErrorResult("Datos inválidos."));
 
-            bool exists = await _context.UbicacionesOrg.AnyAsync(u => u.Codigo == dto.Codigo.Trim().ToUpper());
-            if (exists) return Conflict(ApiResponse.ErrorResult($"Ya existe una unidad con el código '{dto.Codigo}'."));
+            var existing = await _context.UbicacionesOrg.FirstOrDefaultAsync(u => u.Codigo == dto.Codigo.Trim().ToUpper());
+            if (existing != null)
+            {
+                if (!existing.Activo)
+                {
+                    return Conflict(ApiResponse.ErrorResult($"Existe una unidad dada de baja con el código '{dto.Codigo}' ({existing.Nombre}). Puede reactivarla cambiando el filtro a 'Dadas de Baja (Inactivas)'."));
+                }
+                return Conflict(ApiResponse.ErrorResult($"Ya existe una unidad con el código '{dto.Codigo}'."));
+            }
 
             int nivel = 1;
             if (dto.PadreId.HasValue)

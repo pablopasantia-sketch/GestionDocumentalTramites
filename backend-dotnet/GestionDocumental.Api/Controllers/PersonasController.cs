@@ -110,9 +110,13 @@ namespace GestionDocumental.Api.Controllers
                 return BadRequest(ApiResponse.ErrorResult("Datos inválidos."));
             }
 
-            bool ciExists = await _context.Personas.AnyAsync(p => p.Ci == dto.Ci.Trim());
-            if (ciExists)
+            var existingPersona = await _context.Personas.FirstOrDefaultAsync(p => p.Ci == dto.Ci.Trim());
+            if (existingPersona != null)
             {
+                if (!existingPersona.Activo)
+                {
+                    return Conflict(ApiResponse.ErrorResult($"Existe una persona dada de baja con el CI '{dto.Ci}' ({existingPersona.Nombres} {existingPersona.ApellidoPaterno}). Puede reactivarla cambiando el filtro a 'Dados de Baja (Inactivos)'."));
+                }
                 return Conflict(ApiResponse.ErrorResult($"Ya existe una persona registrada con el CI {dto.Ci}."));
             }
 

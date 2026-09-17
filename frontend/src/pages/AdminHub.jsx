@@ -99,6 +99,7 @@ export default function AdminHub() {
   const [searchTerm, setSearchTerm] = useState('');
   const [personaFiltroActivo, setPersonaFiltroActivo] = useState('activos'); // 'activos' | 'inactivos' | 'todos'
   const [usuarioFiltroActivo, setUsuarioFiltroActivo] = useState('activos'); // 'activos' | 'inactivos' | 'todos'
+  const [ubicacionFiltroActivo, setUbicacionFiltroActivo] = useState('activos'); // 'activos' | 'inactivos' | 'todos'
 
   // Modales
   const [showPersonaModal, setShowPersonaModal] = useState(false);
@@ -172,7 +173,7 @@ export default function AdminHub() {
         personasService.getAll({ search: '', activo: 'all' }),
         usuariosService.getAll({ search: '', activo: 'all' }),
         rolesService.getAll(),
-        ubicacionesService.getAll()
+        ubicacionesService.getAll({ search: '', activo: 'all' })
       ]);
 
       if (resPers.success) setPersonas(resPers.data || []);
@@ -546,7 +547,7 @@ export default function AdminHub() {
         }
       }
       setShowUbicacionModal(false);
-      const resUbic = await ubicacionesService.getAll();
+      const resUbic = await ubicacionesService.getAll({ search: '', activo: 'all' });
       if (resUbic.success) setUbicaciones(resUbic.data || []);
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Error al guardar la unidad orgánica.';
@@ -565,12 +566,33 @@ export default function AdminHub() {
         showFeedbackMsg('success', `La unidad "${ubicacion.nombre}" fue dada de baja.`);
         setConfirmDelete(null);
         setDeleteModalError(null);
-        const resUbic = await ubicacionesService.getAll();
+        const resUbic = await ubicacionesService.getAll({ search: '', activo: 'all' });
         if (resUbic.success) setUbicaciones(resUbic.data || []);
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'No se pudo eliminar la unidad.';
       setDeleteModalError(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReactivarUbicacion = async (ubicacion) => {
+    if (!window.confirm(`¿Está seguro de reactivar la unidad "${ubicacion.nombre}" (${ubicacion.codigo})?`)) {
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const res = await ubicacionesService.reactivar(ubicacion.id);
+      if (res.success) {
+        showFeedbackMsg('success', `Unidad orgánica "${ubicacion.nombre}" reactivada exitosamente.`);
+        const resUbic = await ubicacionesService.getAll({ search: '', activo: 'all' });
+        if (resUbic.success) setUbicaciones(resUbic.data || []);
+      } else {
+        showFeedbackMsg('error', res.message || 'No se pudo reactivar la unidad.');
+      }
+    } catch (err) {
+      showFeedbackMsg('error', err.response?.data?.message || err.message || 'Error al reactivar la unidad.');
     } finally {
       setActionLoading(false);
     }
@@ -623,13 +645,18 @@ export default function AdminHub() {
           }
 
           {/* Info */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ fontWeight: depth === 0 ? 700 : 500, fontSize: '0.9rem', color: '#1B365D' }}>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontWeight: depth === 0 ? 700 : 500, fontSize: '0.9rem', color: node.activo ? '#1B365D' : '#6C757D' }}>
               {node.nombre}
             </span>
             {node.sigla && (
-              <span style={{ marginLeft: '6px', fontSize: '0.75rem', color: '#6C757D', fontStyle: 'italic' }}>
+              <span style={{ fontSize: '0.75rem', color: '#6C757D', fontStyle: 'italic' }}>
                 ({node.sigla})
+              </span>
+            )}
+            {!node.activo && (
+              <span className="badge badge-inactive" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
+                Baja
               </span>
             )}
           </div>
@@ -656,14 +683,36 @@ export default function AdminHub() {
             >
               <Edit2 size={13} />
             </button>
-            <button
-              onClick={() => { setDeleteModalError(null); setConfirmDelete({ type: 'ubicacion', item: node }); }}
-              className="btn btn-sm"
-              title="Dar de baja"
-              style={{ padding: '3px 8px', backgroundColor: '#DC3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-            >
-              <Trash2 size={13} />
-            </button>
+            {node.activo ? (
+              <button
+                onClick={() => { setDeleteModalError(null); setConfirmDelete({ type: 'ubicacion', item: node }); }}
+                className="btn btn-sm"
+                title="Dar de baja"
+                style={{ padding: '3px 8px', backgroundColor: '#DC3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                <Trash2 size={13} />
+              </button>
+            ) : (
+              <button
+                onClick={() => handleReactivarUbicacion(node)}
+                className="btn btn-sm"
+                title="Reactivar unidad"
+                style={{
+                  padding: '3px 8px',
+                  backgroundColor: '#E6F4EA',
+                  color: '#137333',
+                  border: '1px solid #CEEAD6',
+                  borderRadius: '4px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  cursor: 'pointer'
+                }}
+              >
+                <RotateCcw size={13} />
+                <span style={{ fontSize: '0.72rem', fontWeight: 600 }}>Reactivar</span>
+              </button>
+            )}
           </div>
         </div>
         {/* Hijos recursivos */}
@@ -690,6 +739,8 @@ export default function AdminHub() {
   });
 
   const filteredUbicaciones = ubicaciones.filter((u) => {
+    if (ubicacionFiltroActivo === 'activos' && !u.activo) return false;
+    if (ubicacionFiltroActivo === 'inactivos' && u.activo) return false;
     const full = `${u.codigo} ${u.nombre} ${u.sigla || ''} ${u.padre_nombre || ''}`.toLowerCase();
     return full.includes(searchTerm.toLowerCase());
   });
@@ -920,6 +971,19 @@ export default function AdminHub() {
             >
               <option value="activos">Mostrar: Solo Vigentes (Activos)</option>
               <option value="inactivos">Mostrar: Dados de Baja (Inactivos)</option>
+              <option value="todos">Mostrar: Todos los Registros</option>
+            </select>
+          )}
+
+          {activeTab === 'ubicaciones' && (
+            <select
+              className="form-control"
+              value={ubicacionFiltroActivo}
+              onChange={(e) => setUbicacionFiltroActivo(e.target.value)}
+              style={{ width: 'auto', fontSize: '0.85rem', cursor: 'pointer', borderColor: '#CED4DA' }}
+            >
+              <option value="activos">Mostrar: Solo Vigentes (Activas)</option>
+              <option value="inactivos">Mostrar: Dadas de Baja (Inactivas)</option>
               <option value="todos">Mostrar: Todos los Registros</option>
             </select>
           )}
@@ -1290,14 +1354,23 @@ export default function AdminHub() {
                 </div>
               ) : (() => {
                 // Build tree from flat ubicaciones for display
+                const visibleUbicaciones = ubicaciones.filter(u => {
+                  if (ubicacionFiltroActivo === 'activos') return u.activo;
+                  if (ubicacionFiltroActivo === 'inactivos') return !u.activo;
+                  return true;
+                });
                 const map = new Map();
                 const roots = [];
-                ubicaciones.forEach(u => map.set(u.id, { ...u, hijos: [] }));
-                ubicaciones.forEach(u => {
+                visibleUbicaciones.forEach(u => map.set(u.id, { ...u, hijos: [] }));
+                visibleUbicaciones.forEach(u => {
                   if (u.padre_id && map.has(u.padre_id)) map.get(u.padre_id).hijos.push(map.get(u.id));
                   else roots.push(map.get(u.id));
                 });
-                return roots.map(root => renderTreeNode(root, 0));
+                return roots.length === 0 ? (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: '#6C757D' }}>
+                    No hay unidades orgánicas {ubicacionFiltroActivo === 'inactivos' ? 'dadas de baja' : 'registradas'}.
+                  </div>
+                ) : roots.map(root => renderTreeNode(root, 0));
               })()}
             </div>
           </div>
@@ -1371,7 +1444,7 @@ export default function AdminHub() {
                             >
                               <Edit2 size={14} />
                             </button>
-                            {Boolean(u.activo) && (
+                            {Boolean(u.activo) ? (
                               <button
                                 onClick={() => { setDeleteModalError(null); setConfirmDelete({ type: 'ubicacion', item: u }); }}
                                 className="btn btn-outline-danger btn-sm"
@@ -1379,6 +1452,26 @@ export default function AdminHub() {
                                 style={{ padding: '4px 8px' }}
                               >
                                 <Trash2 size={14} />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleReactivarUbicacion(u)}
+                                className="btn btn-sm"
+                                title="Reactivar unidad"
+                                style={{
+                                  padding: '4px 8px',
+                                  backgroundColor: '#E6F4EA',
+                                  color: '#137333',
+                                  border: '1px solid #CEEAD6',
+                                  borderRadius: '4px',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <RotateCcw size={14} />
+                                <span style={{ fontSize: '0.78rem', fontWeight: 600 }}>Reactivar</span>
                               </button>
                             )}
                           </div>
