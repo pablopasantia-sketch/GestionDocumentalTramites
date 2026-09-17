@@ -25,13 +25,25 @@ namespace GestionDocumental.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? search)
+        public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] string? activo)
         {
             var query = _context.UbicacionesOrg
                 .Include(u => u.Padre)
                 .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
-                .Where(u => u.Activo)
                 .AsQueryable();
+
+            if (activo == "all" || activo == "todos")
+            {
+                // no filtrar por activo
+            }
+            else if (activo == "false" || activo == "0" || activo == "inactivos")
+            {
+                query = query.Where(u => !u.Activo);
+            }
+            else
+            {
+                query = query.Where(u => u.Activo);
+            }
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -163,7 +175,20 @@ namespace GestionDocumental.Api.Controllers
             _context.UbicacionesOrg.Add(ubicacion);
             await _context.SaveChangesAsync();
 
-            return Ok(ApiResponse<object>.Ok(ubicacion, "Unidad orgánica creada exitosamente."));
+            var resultDto = new UbicacionDto
+            {
+                Id = ubicacion.Id,
+                Codigo = ubicacion.Codigo,
+                Nombre = ubicacion.Nombre,
+                Sigla = ubicacion.Sigla,
+                PadreId = ubicacion.PadreId,
+                Nivel = ubicacion.Nivel,
+                Descripcion = ubicacion.Descripcion,
+                Activo = ubicacion.Activo,
+                TotalUsuarios = 0
+            };
+
+            return Ok(ApiResponse<UbicacionDto>.Ok(resultDto, "Unidad orgánica creada exitosamente."));
         }
 
         [HttpPut("{id}")]
@@ -229,6 +254,28 @@ namespace GestionDocumental.Api.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(ApiResponse.SuccessResult("Unidad orgánica dada de baja exitosamente."));
+        }
+
+        [HttpPatch("{id}/reactivar")]
+        public async Task<IActionResult> Reactivar(int id)
+        {
+            var u = await _context.UbicacionesOrg.FindAsync(id);
+            if (u == null) return NotFound(ApiResponse.ErrorResult("Unidad no encontrada."));
+
+            if (u.PadreId.HasValue)
+            {
+                var padre = await _context.UbicacionesOrg.FindAsync(u.PadreId.Value);
+                if (padre == null || !padre.Activo)
+                {
+                    return BadRequest(ApiResponse.ErrorResult("No se puede reactivar la unidad: la unidad superior no existe o está inactiva."));
+                }
+            }
+
+            u.Activo = true;
+            u.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Ok(ApiResponse.SuccessResult("Unidad orgánica reactivada exitosamente."));
         }
     }
 }

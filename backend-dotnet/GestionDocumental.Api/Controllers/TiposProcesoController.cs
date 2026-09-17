@@ -121,7 +121,15 @@ namespace GestionDocumental.Api.Controllers
             _context.TiposProceso.Add(nuevo);
             await _context.SaveChangesAsync();
 
-            return Ok(ApiResponse<object>.Ok(nuevo, "Tipo de proceso creado exitosamente."));
+            return Ok(ApiResponse<object>.Ok(new
+            {
+                id = nuevo.Id,
+                codigo = nuevo.Codigo,
+                nombre = nuevo.Nombre,
+                descripcion = nuevo.Descripcion,
+                tiempoEstimadoHoras = nuevo.TiempoEstimadoHoras,
+                activo = nuevo.Activo
+            }, "Tipo de proceso creado exitosamente."));
         }
 
         [HttpPut("{id}")]

@@ -199,6 +199,14 @@ export const ubicacionesService = {
     const response = await api.put(`/ubicaciones/${id}`, data);
     return response.data;
   },
+  delete: async (id) => {
+    const response = await api.delete(`/ubicaciones/${id}`);
+    return response.data;
+  },
+  reactivar: async (id) => {
+    const response = await api.patch(`/ubicaciones/${id}/reactivar`);
+    return response.data;
+  },
 };
 
 // Servicios de Trámites y Workflow (RF-09.1, RF-10)

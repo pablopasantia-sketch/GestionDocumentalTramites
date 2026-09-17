@@ -84,7 +84,14 @@ namespace GestionDocumental.Api.Controllers
             _context.Roles.Add(rol);
             await _context.SaveChangesAsync();
 
-            return Ok(ApiResponse<object>.Ok(rol, "Rol creado exitosamente."));
+            return Ok(ApiResponse<object>.Ok(new
+            {
+                id = rol.Id,
+                nombre = rol.Nombre,
+                codigo = rol.Codigo,
+                descripcion = rol.Descripcion,
+                activo = rol.Activo
+            }, "Rol creado exitosamente."));
         }
 
         [HttpPut("{id}")]
