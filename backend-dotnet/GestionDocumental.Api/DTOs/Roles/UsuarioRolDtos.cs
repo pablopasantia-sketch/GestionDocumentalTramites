@@ -33,6 +33,9 @@ namespace GestionDocumental.Api.DTOs.Roles
         [JsonPropertyName("id")]
         public int Id { get; set; }
 
+        [JsonPropertyName("usuario_rol_id")]
+        public int UsuarioRolId => Id;
+
         [JsonPropertyName("usuario_id")]
         public int UsuarioId { get; set; }
 

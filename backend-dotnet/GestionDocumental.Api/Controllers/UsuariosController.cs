@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GestionDocumental.Api.Data;
 using GestionDocumental.Api.DTOs.Common;
+using GestionDocumental.Api.DTOs.Roles;
 using GestionDocumental.Api.DTOs.Usuarios;
 using GestionDocumental.Api.Entities;
 
@@ -31,6 +32,8 @@ namespace GestionDocumental.Api.Controllers
                 .Include(u => u.Persona)
                 .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
                     .ThenInclude(ur => ur.Rol)
+                .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
+                    .ThenInclude(ur => ur.UbicacionOrg)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -59,7 +62,26 @@ namespace GestionDocumental.Api.Controllers
                     Ci = u.Persona.Ci,
                     CiExpedido = u.Persona.CiExpedido,
                     Email = u.Persona.Email,
-                    RolesResumen = string.Join(", ", u.UsuarioRoles.Where(ur => ur.Activo).Select(ur => ur.Rol.Nombre))
+                    RolesResumen = string.Join(", ", u.UsuarioRoles.Where(ur => ur.Activo).Select(ur => ur.Rol.Nombre)),
+                    Roles = u.UsuarioRoles.Where(ur => ur.Activo)
+                        .OrderByDescending(ur => ur.EsPrincipal)
+                        .ThenBy(ur => ur.Rol.Nombre)
+                        .Select(ur => new UsuarioRolItemDto
+                        {
+                            Id = ur.Id,
+                            UsuarioId = ur.UsuarioId,
+                            RolId = ur.RolId,
+                            RolCodigo = ur.Rol.Codigo,
+                            RolNombre = ur.Rol.Nombre,
+                            UbicacionOrgId = ur.UbicacionOrgId,
+                            UbicacionCodigo = ur.UbicacionOrg.Codigo,
+                            UbicacionNombre = ur.UbicacionOrg.Nombre,
+                            UbicacionSigla = ur.UbicacionOrg.Sigla,
+                            NivelAcceso = ur.NivelAcceso,
+                            FechaExpiracion = ur.FechaExpiracion,
+                            EsPrincipal = ur.EsPrincipal,
+                            Activo = ur.Activo
+                        }).ToList()
                 })
                 .ToListAsync();
 
@@ -73,6 +95,8 @@ namespace GestionDocumental.Api.Controllers
                 .Include(u => u.Persona)
                 .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
                     .ThenInclude(ur => ur.Rol)
+                .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
+                    .ThenInclude(ur => ur.UbicacionOrg)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             if (u == null) return NotFound(ApiResponse.ErrorResult("Usuario no encontrado."));
@@ -90,7 +114,26 @@ namespace GestionDocumental.Api.Controllers
                 Ci = u.Persona.Ci,
                 CiExpedido = u.Persona.CiExpedido,
                 Email = u.Persona.Email,
-                RolesResumen = string.Join(", ", u.UsuarioRoles.Where(ur => ur.Activo).Select(ur => ur.Rol.Nombre))
+                RolesResumen = string.Join(", ", u.UsuarioRoles.Where(ur => ur.Activo).Select(ur => ur.Rol.Nombre)),
+                Roles = u.UsuarioRoles.Where(ur => ur.Activo)
+                    .OrderByDescending(ur => ur.EsPrincipal)
+                    .ThenBy(ur => ur.Rol.Nombre)
+                    .Select(ur => new UsuarioRolItemDto
+                    {
+                        Id = ur.Id,
+                        UsuarioId = ur.UsuarioId,
+                        RolId = ur.RolId,
+                        RolCodigo = ur.Rol.Codigo,
+                        RolNombre = ur.Rol.Nombre,
+                        UbicacionOrgId = ur.UbicacionOrgId,
+                        UbicacionCodigo = ur.UbicacionOrg.Codigo,
+                        UbicacionNombre = ur.UbicacionOrg.Nombre,
+                        UbicacionSigla = ur.UbicacionOrg.Sigla,
+                        NivelAcceso = ur.NivelAcceso,
+                        FechaExpiracion = ur.FechaExpiracion,
+                        EsPrincipal = ur.EsPrincipal,
+                        Activo = ur.Activo
+                    }).ToList()
             };
 
             return Ok(ApiResponse<UsuarioListItemDto>.Ok(dto));

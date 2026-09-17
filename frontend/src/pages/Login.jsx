@@ -51,14 +51,14 @@ export default function Login() {
       <div className="card" style={{ padding: '0', overflow: 'hidden', borderTop: '5px solid #800000' }}>
         {/* Encabezado del Formulario */}
         <div style={{ background: '#F8F9FA', padding: '1.75rem 2rem', borderBottom: '1px solid #E2E8F0', textAlign: 'center' }}>
-          <div style={{ 
-            width: '50px', 
-            height: '50px', 
-            borderRadius: '4px', 
-            background: '#800000', 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
+          <div style={{
+            width: '50px',
+            height: '50px',
+            borderRadius: '4px',
+            background: '#800000',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             color: 'white',
             marginBottom: '0.75rem',
             boxShadow: '0 2px 8px rgba(128, 0, 0, 0.25)'
@@ -76,12 +76,12 @@ export default function Login() {
         {/* Cuerpo del Formulario */}
         <div style={{ padding: '2rem' }}>
           {errorMsg && (
-            <div style={{ 
-              background: 'var(--color-status-alerta-bg)', 
-              border: '1px solid var(--color-status-alerta-border)', 
-              padding: '10px 14px', 
-              borderRadius: '4px', 
-              color: 'var(--color-status-alerta-text)', 
+            <div style={{
+              background: 'var(--color-status-alerta-bg)',
+              border: '1px solid var(--color-status-alerta-border)',
+              padding: '10px 14px',
+              borderRadius: '4px',
+              color: 'var(--color-status-alerta-text)',
               fontSize: '0.85rem',
               display: 'flex',
               alignItems: 'center',
@@ -169,7 +169,7 @@ export default function Login() {
                 style={{ justifyContent: 'space-between', width: '100%', fontSize: '0.8rem', padding: '8px 12px' }}
               >
                 <span><strong>mfernandez</strong> (Ventanilla Única)</span>
-                <span style={{ color: '#6C757D' }}>password123</span>
+                <span style={{ color: '#6C757D' }}>admin123</span>
               </button>
 
               <button
@@ -179,7 +179,7 @@ export default function Login() {
                 style={{ justifyContent: 'space-between', width: '100%', fontSize: '0.8rem', padding: '8px 12px' }}
               >
                 <span><strong>cmamani</strong> (Funcionario)</span>
-                <span style={{ color: '#6C757D' }}>password123</span>
+                <span style={{ color: '#6C757D' }}>admin123</span>
               </button>
             </div>
           </div>

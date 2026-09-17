@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using GestionDocumental.Api.DTOs.Roles;
 
 namespace GestionDocumental.Api.DTOs.Usuarios
 {
@@ -41,6 +42,9 @@ namespace GestionDocumental.Api.DTOs.Usuarios
 
         [JsonPropertyName("roles_resumen")]
         public string RolesResumen { get; set; } = string.Empty;
+
+        [JsonPropertyName("roles")]
+        public List<UsuarioRolItemDto> Roles { get; set; } = new();
     }
 
     public class CreateUsuarioDto
