@@ -253,6 +253,8 @@ El sistema consolida el motor de **Trámites y Correspondencias en un solo flujo
 | RF-03.8 | Registrar proceso unificado: destinatario principal, fecha, hora, nro. hojas/anexos, tipo, referencia | ALTA |
 | RF-03.9 | Permitir seleccionar **otros destinatarios** adicionales (múltiples) para la derivación libre | ALTA |
 | RF-03.10 | Generar Hoja de Ruta unificada con formato institucional, incluyendo: nro. cite, gestión, tipo, remitente, referencia, primer destinatario | ALTA |
+| RF-03.11 | En trámites externos y correspondencias (`CM`, `Contratos`, `Convenios`), permitir seleccionar la Unidad Destino (`TUnidad`), el Cargo (`TCargo`) y el Funcionario (`TEmpleados`) desde los catálogos institucionales | ALTA |
+| RF-03.12 | Enlace con padrón institucional: permitir buscar y autocompletar funcionarios desde `TEmpleados` por CI tanto en creación de personas como en emisión de hojas de ruta | ALTA |
 
 ### 4.4 RF-04: Escritorio Virtual y Bandejas
 
@@ -562,18 +564,22 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 **Cronograma:** 01 de Septiembre al 19 de Noviembre (6 Sprints de 2 semanas)
 
 ### Sprint 1 (01 Sep - 14 Sep): Fundación
-- [x] Configuración del entorno (React + backend) y BD MySQL 8.0+
-- [x] Modelo de datos y migraciones (flujo unificado)
-- [x] Autenticación JWT (login, logout, cambio clave)
-- [x] CRUD Personas, Usuarios, Roles, Usuario-Rol
-- [x] CRUD Ubicaciones Orgánicas (organigrama)
+- [x] Configuración del entorno (React + .NET 8 Web API) y BD Microsoft SQL Server 2022 en Docker (`DBNotasCMS`)
+- [x] Modelo de datos y migraciones T-SQL (flujo unificado)
+- [x] Autenticación JWT (login, logout, cambio clave, roles activos)
+- [x] CRUD Personas, Usuarios, Roles, Usuario-Rol (con borrado lógico y filtros de estado)
+- [x] CRUD Ubicaciones Orgánicas (organigrama jerárquico en árbol)
+- [x] Incorporación de tablas institucionales en BD y endpoints backend (`TUnidad`, `TCargo`, `TEmpleados`)
 
-### Sprint 2 (15 Sep - 28 Sep): Core del proceso
-- [ ] CRUD Tipos de Proceso (preconfigurable)
-- [ ] Crear trámite/correspondencia unificado (Ventanilla Única)
-- [ ] Generación automática de correlativo
-- [ ] Registro de proveídos iniciales
-- [ ] Adjuntar/descargar archivos
+### Sprint 2 (15 Sep - 28 Sep): Core del proceso y Trámites Externos (DBNotasCMS)
+- [ ] **Paso Introductorio (Integración de Catálogos Institucionales en Frontend)**:
+  - [ ] Buscador y autocompletado de funcionarios desde `TEmpleados` por CI en el registro de Personas.
+  - [ ] Selectores institucionales en cascada: Unidad (`TUnidad`) y Cargo dependiente (`TCargo`).
+- [ ] CRUD Tipos de Proceso y configuración de categorías (Trámites Internos vs Correspondencia Externa: CM, CDE1, CDE2, CDH1).
+- [ ] Crear trámite / correspondencia unificada en Ventanilla Única y Despachos (Hojas de Ruta CM, Contratos, etc.).
+- [ ] Generación automática de correlativo institucional anual (`[CÓDIGO]-[NRO]/[GESTIÓN]`).
+- [ ] Registro de proveídos iniciales e instrucciones oficiales.
+- [ ] Adjuntar y descargar documentos PDF.
 
 ### Sprint 3 (29 Sep - 12 Oct): Flujo directo de trabajo
 - [ ] Escritorio Virtual con bandejas (pendientes, recibidos, despachados)
