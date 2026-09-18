@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using MySqlConnector;
+using Microsoft.Data.SqlClient;
 using BCrypt.Net;
 
 namespace GestionDocumental.Api.Data
@@ -18,10 +19,10 @@ namespace GestionDocumental.Api.Data
         public DatabaseManager(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection") 
-                ?? "Server=127.0.0.1;Port=3306;Database=gestion_documental_db;User=root;Password=12345;CharSet=utf8mb4;";
+                ?? "Server=127.0.0.1,1433;Database=DBNotasCMS;User Id=sa;Password=SqlAdminSucre2026!;TrustServerCertificate=True;MultipleActiveResultSets=True;";
             
-            var builder = new MySqlConnectionStringBuilder(_connectionString);
-            _databaseName = string.IsNullOrWhiteSpace(builder.Database) ? "gestion_documental_db" : builder.Database;
+            var builder = new SqlConnectionStringBuilder(_connectionString);
+            _databaseName = string.IsNullOrWhiteSpace(builder.InitialCatalog) ? "DBNotasCMS" : builder.InitialCatalog;
 
             // Carpeta de migraciones
             var baseDir = AppContext.BaseDirectory;
@@ -35,32 +36,35 @@ namespace GestionDocumental.Api.Data
             _migrationsDir = candidates.FirstOrDefault(Directory.Exists) ?? Path.Combine(Directory.GetCurrentDirectory(), "Data", "Migrations");
         }
 
-        private MySqlConnection GetServerConnection()
+        private SqlConnection GetMasterConnection()
         {
-            var builder = new MySqlConnectionStringBuilder(_connectionString)
+            var builder = new SqlConnectionStringBuilder(_connectionString)
             {
-                Database = "" // Conexión a nivel servidor
+                InitialCatalog = "master" // Conexión a nivel base master
             };
-            return new MySqlConnection(builder.ConnectionString);
+            return new SqlConnection(builder.ConnectionString);
         }
 
-        private MySqlConnection GetDatabaseConnection()
+        private SqlConnection GetDatabaseConnection()
         {
-            var builder = new MySqlConnectionStringBuilder(_connectionString)
+            var builder = new SqlConnectionStringBuilder(_connectionString)
             {
-                Database = _databaseName,
-                AllowUserVariables = true
+                InitialCatalog = _databaseName
             };
-            return new MySqlConnection(builder.ConnectionString);
+            return new SqlConnection(builder.ConnectionString);
         }
 
         public async Task<bool> EnsureDatabaseExistsAsync()
         {
-            using var conn = GetServerConnection();
+            using var conn = GetMasterConnection();
             await conn.OpenAsync();
 
-            var sql = $"CREATE DATABASE IF NOT EXISTS `{_databaseName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;";
-            using var cmd = new MySqlCommand(sql, conn);
+            var sql = $@"
+                IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = '{_databaseName}')
+                BEGIN
+                    CREATE DATABASE [{_databaseName}];
+                END";
+            using var cmd = new SqlCommand(sql, conn);
             await cmd.ExecuteNonQueryAsync();
             return true;
         }
@@ -73,15 +77,18 @@ namespace GestionDocumental.Api.Data
             await conn.OpenAsync();
 
             var sql = @"
-                CREATE TABLE IF NOT EXISTS `_migrations` (
-                  `id` INT AUTO_INCREMENT PRIMARY KEY,
-                  `name` VARCHAR(255) NOT NULL,
-                  `batch` INT NOT NULL DEFAULT 1,
-                  `executed_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                  UNIQUE KEY `uk_migration_name` (`name`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+                IF OBJECT_ID(N'dbo._migrations', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE dbo._migrations (
+                      id INT IDENTITY(1,1) PRIMARY KEY,
+                      name NVARCHAR(255) NOT NULL,
+                      batch INT NOT NULL DEFAULT 1,
+                      executed_at DATETIME2 NOT NULL DEFAULT GETDATE(),
+                      CONSTRAINT uk_migration_name UNIQUE (name)
+                    );
+                END;";
 
-            using var cmd = new MySqlCommand(sql, conn);
+            using var cmd = new SqlCommand(sql, conn);
             await cmd.ExecuteNonQueryAsync();
             return true;
         }
@@ -92,7 +99,7 @@ namespace GestionDocumental.Api.Data
         public async Task InitDbAsync()
         {
             Console.WriteLine("\n============================================================");
-            Console.WriteLine($"🚀 INICIALIZANDO BASE DE DATOS: {_databaseName}");
+            Console.WriteLine($"🚀 INICIALIZANDO BASE DE DATOS (SQL SERVER): {_databaseName}");
             Console.WriteLine("============================================================");
 
             await EnsureDatabaseExistsAsync();
@@ -107,7 +114,7 @@ namespace GestionDocumental.Api.Data
             using var conn = GetDatabaseConnection();
             await conn.OpenAsync();
 
-            using var cmd = new MySqlCommand("SHOW TABLES;", conn);
+            using var cmd = new SqlCommand("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME;", conn);
             using var reader = await cmd.ExecuteReaderAsync();
 
             Console.WriteLine($"\n📋 Tablas presentes en '{_databaseName}':");
@@ -151,7 +158,7 @@ namespace GestionDocumental.Api.Data
             var applied = new HashSet<string>();
             int currentBatch = 1;
 
-            using (var cmd = new MySqlCommand("SELECT name, batch FROM `_migrations`;", conn))
+            using (var cmd = new SqlCommand("SELECT name, batch FROM dbo._migrations;", conn))
             using (var reader = await cmd.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
@@ -181,13 +188,21 @@ namespace GestionDocumental.Api.Data
                 var start = DateTime.UtcNow;
                 Console.Write($"   ⚙️  Aplicando: {file} ... ");
 
-                using var tx = await conn.BeginTransactionAsync();
+                using var tx = conn.BeginTransaction();
                 try
                 {
-                    using var execCmd = new MySqlCommand(sql, conn, tx);
-                    await execCmd.ExecuteNonQueryAsync();
+                    // Separar por GO si existiera
+                    var statements = Regex.Split(sql, @"^\s*GO\s*$", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+                    foreach (var stmt in statements)
+                    {
+                        var trimmed = stmt.Trim();
+                        if (string.IsNullOrWhiteSpace(trimmed)) continue;
 
-                    using var recordCmd = new MySqlCommand("INSERT INTO `_migrations` (`name`, `batch`) VALUES (@name, @batch);", conn, tx);
+                        using var execCmd = new SqlCommand(trimmed, conn, tx);
+                        await execCmd.ExecuteNonQueryAsync();
+                    }
+
+                    using var recordCmd = new SqlCommand("INSERT INTO dbo._migrations (name, batch) VALUES (@name, @batch);", conn, tx);
                     recordCmd.Parameters.AddWithValue("@name", file);
                     recordCmd.Parameters.AddWithValue("@batch", currentBatch);
                     await recordCmd.ExecuteNonQueryAsync();
@@ -229,7 +244,7 @@ namespace GestionDocumental.Api.Data
 
             var appliedInfo = new Dictionary<string, (int Batch, DateTime ExecutedAt)>();
 
-            using (var cmd = new MySqlCommand("SELECT name, batch, executed_at FROM `_migrations` ORDER BY id ASC;", conn))
+            using (var cmd = new SqlCommand("SELECT name, batch, executed_at FROM dbo._migrations ORDER BY id ASC;", conn))
             using (var reader = await cmd.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
@@ -271,40 +286,38 @@ namespace GestionDocumental.Api.Data
             using var conn = GetDatabaseConnection();
             await conn.OpenAsync();
 
-            Console.WriteLine("🧹 Desactivando chequeo de claves foráneas y eliminando tablas...");
-            using (var cmd = new MySqlCommand("SET FOREIGN_KEY_CHECKS = 0;", conn))
+            Console.WriteLine("🧹 Eliminando restricciones de clave foránea y tablas...");
+            
+            var dropFkSql = @"
+                DECLARE @sql NVARCHAR(MAX) = N'';
+                SELECT @sql += N'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(parent_object_id)) + '.' + QUOTENAME(OBJECT_NAME(parent_object_id)) + 
+                               N' DROP CONSTRAINT ' + QUOTENAME(name) + ';'
+                FROM sys.foreign_keys;
+                IF LEN(@sql) > 0 EXEC sp_executesql @sql;";
+
+            using (var cmd = new SqlCommand(dropFkSql, conn))
             {
                 await cmd.ExecuteNonQueryAsync();
             }
 
-            var tables = new List<string>();
-            using (var cmd = new MySqlCommand("SHOW TABLES;", conn))
-            using (var reader = await cmd.ExecuteReaderAsync())
-            {
-                while (await reader.ReadAsync())
-                {
-                    tables.Add(reader.GetString(0));
-                }
-            }
+            var dropTablesSql = @"
+                DECLARE @sql NVARCHAR(MAX) = N'';
+                SELECT @sql += N'DROP TABLE ' + QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME) + ';'
+                FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';
+                IF LEN(@sql) > 0 EXEC sp_executesql @sql;";
 
-            foreach (var table in tables)
-            {
-                using var dropCmd = new MySqlCommand($"DROP TABLE IF EXISTS `{table}`;", conn);
-                await dropCmd.ExecuteNonQueryAsync();
-            }
-
-            using (var cmd = new MySqlCommand("SET FOREIGN_KEY_CHECKS = 1;", conn))
+            using (var cmd = new SqlCommand(dropTablesSql, conn))
             {
                 await cmd.ExecuteNonQueryAsync();
             }
 
-            Console.WriteLine($"✅ {tables.Count} tablas eliminadas.");
+            Console.WriteLine("✅ Tablas eliminadas correctamente.");
 
             await MigrateUpAsync();
         }
 
         /// <summary>
-        /// db:seed - Inserta datos semilla estándar y neutros para desarrollo y pruebas
+        /// db:seed - Inserta datos semilla estándar institucionales para desarrollo y pruebas
         /// </summary>
         public async Task SeedDbAsync()
         {
@@ -321,47 +334,63 @@ namespace GestionDocumental.Api.Data
             // 1. Roles del Sistema
             Console.WriteLine("🔹 Sembrando Roles del Sistema...");
             var rolesSql = @"
-                INSERT INTO `roles` (`id`, `codigo`, `nombre`, `descripcion`, `activo`) VALUES
-                (1, 'ADMIN_SISTEMA', 'Administrador de Sistema', 'Gestión de usuarios, personas, organigrama y parámetros base del sistema', 1),
-                (2, 'ADMIN_TRAMITES', 'Administrador de Trámites', 'Gestión operativa de trámites, anulación, redirección y reportes de transparencia', 1),
-                (3, 'VENTANILLA_UNICA', 'Ventanilla Única', 'Recepción de trámites, registro de correspondencias, emisión de hojas de ruta y bloqueo', 1),
-                (4, 'FUNCIONARIO', 'Funcionario', 'Atención de trámites, proveídos, adjuntos y derivación en escritorio virtual', 1)
-                ON DUPLICATE KEY UPDATE `codigo` = VALUES(`codigo`), `nombre` = VALUES(`nombre`), `descripcion` = VALUES(`descripcion`), `activo` = 1;";
-            using (var cmd = new MySqlCommand(rolesSql, conn)) await cmd.ExecuteNonQueryAsync();
+                SET IDENTITY_INSERT dbo.roles ON;
+                IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE id = 1)
+                    INSERT INTO dbo.roles (id, codigo, nombre, descripcion, activo) VALUES (1, 'ADMIN_SISTEMA', 'Administrador de Sistema', 'Gestión de usuarios, personas, organigrama y parámetros base del sistema', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE id = 2)
+                    INSERT INTO dbo.roles (id, codigo, nombre, descripcion, activo) VALUES (2, 'ADMIN_TRAMITES', 'Administrador de Trámites', 'Gestión operativa de trámites, anulación, redirección y reportes de transparencia', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE id = 3)
+                    INSERT INTO dbo.roles (id, codigo, nombre, descripcion, activo) VALUES (3, 'VENTANILLA_UNICA', 'Ventanilla Única', 'Recepción de trámites, registro de correspondencias, emisión de hojas de ruta y bloqueo', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE id = 4)
+                    INSERT INTO dbo.roles (id, codigo, nombre, descripcion, activo) VALUES (4, 'FUNCIONARIO', 'Funcionario', 'Atención de trámites, proveídos, adjuntos y derivación en escritorio virtual', 1);
+                SET IDENTITY_INSERT dbo.roles OFF;";
+            using (var cmd = new SqlCommand(rolesSql, conn)) await cmd.ExecuteNonQueryAsync();
 
             // 2. Organigrama (Ubicaciones Orgánicas)
             Console.WriteLine("🔹 Sembrando Organigrama Institucional...");
             var ubiSql = @"
-                INSERT INTO `ubicaciones_org` (`id`, `codigo`, `nombre`, `sigla`, `padre_id`, `nivel`, `descripcion`, `activo`) VALUES
-                (1, 'DIR-GEN', 'Dirección General Ejecutiva', 'DGE', NULL, 1, 'Máxima Autoridad Ejecutiva de la institución', 1),
-                (2, 'SEC-GEN', 'Secretaría General', 'SG', 1, 2, 'Secretaría y Despacho General', 1),
-                (3, 'VENT-UNI', 'Ventanilla Única de Correspondencia', 'VU', 2, 3, 'Recepción y despacho central de documentos', 1),
-                (4, 'DIR-JUR', 'Dirección Jurídica', 'DJ', 1, 2, 'Asesoría y dictámenes legales', 1),
-                (5, 'DIR-ADM', 'Dirección Administrativa Financiera', 'DAF', 1, 2, 'Gestión de recursos humanos, materiales y financieros', 1),
-                (6, 'UNI-SIS', 'Unidad de Tecnologías de Información y Sistemas', 'UTIC', 5, 3, 'Soporte y desarrollo de sistemas informáticos', 1)
-                ON DUPLICATE KEY UPDATE `nombre` = VALUES(`nombre`), `sigla` = VALUES(`sigla`), `activo` = 1;";
-            using (var cmd = new MySqlCommand(ubiSql, conn)) await cmd.ExecuteNonQueryAsync();
+                SET IDENTITY_INSERT dbo.ubicaciones_org ON;
+                IF NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE id = 1)
+                    INSERT INTO dbo.ubicaciones_org (id, codigo, nombre, sigla, padre_id, nivel, descripcion, activo) VALUES (1, 'DIR-GEN', 'Dirección General Ejecutiva', 'DGE', NULL, 1, 'Máxima Autoridad Ejecutiva de la institución', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE id = 2)
+                    INSERT INTO dbo.ubicaciones_org (id, codigo, nombre, sigla, padre_id, nivel, descripcion, activo) VALUES (2, 'SEC-GEN', 'Secretaría General', 'SG', 1, 2, 'Secretaría y Despacho General', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE id = 3)
+                    INSERT INTO dbo.ubicaciones_org (id, codigo, nombre, sigla, padre_id, nivel, descripcion, activo) VALUES (3, 'VENT-UNI', 'Ventanilla Única de Correspondencia', 'VU', 2, 3, 'Recepción y despacho central de documentos', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE id = 4)
+                    INSERT INTO dbo.ubicaciones_org (id, codigo, nombre, sigla, padre_id, nivel, descripcion, activo) VALUES (4, 'DIR-JUR', 'Dirección Jurídica', 'DJ', 1, 2, 'Asesoría y dictámenes legales', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE id = 5)
+                    INSERT INTO dbo.ubicaciones_org (id, codigo, nombre, sigla, padre_id, nivel, descripcion, activo) VALUES (5, 'DIR-ADM', 'Dirección Administrativa Financiera', 'DAF', 1, 2, 'Gestión de recursos humanos, materiales y financieros', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE id = 6)
+                    INSERT INTO dbo.ubicaciones_org (id, codigo, nombre, sigla, padre_id, nivel, descripcion, activo) VALUES (6, 'UNI-SIS', 'Unidad de Tecnologías de Información y Sistemas', 'UTIC', 5, 3, 'Soporte y desarrollo de sistemas informáticos', 1);
+                SET IDENTITY_INSERT dbo.ubicaciones_org OFF;";
+            using (var cmd = new SqlCommand(ubiSql, conn)) await cmd.ExecuteNonQueryAsync();
 
             // 3. Personas Iniciales
             Console.WriteLine("🔹 Sembrando Personas...");
             var perSql = @"
-                INSERT INTO `personas` (`id`, `nombres`, `apellido_paterno`, `apellido_materno`, `ci`, `ci_expedido`, `sexo`, `estado_civil`, `telefono`, `email`, `empresa_telefonica`, `direccion`, `activo`) VALUES
-                (1, 'Administrador', 'Sistema', 'General', '1000001', 'CH', 'M', 'SOLTERO', '70012345', 'admin@gob.bo', 'ENTEL', 'Oficina Central Sucre', 1),
-                (2, 'María', 'Fernández', 'Rojas', '2000002', 'CH', 'F', 'SOLTERA', '70054321', 'mfernandez@gob.bo', 'TIGO', 'Av. Hernando Siles #123', 1),
-                (3, 'Carlos', 'Mamani', 'Quispe', '3000003', 'CH', 'M', 'CASADO', '70098765', 'cmamani@gob.bo', 'ENTEL', 'Calle Calvo #456', 1)
-                ON DUPLICATE KEY UPDATE `nombres` = VALUES(`nombres`), `email` = VALUES(`email`), `activo` = 1;";
-            using (var cmd = new MySqlCommand(perSql, conn)) await cmd.ExecuteNonQueryAsync();
+                SET IDENTITY_INSERT dbo.personas ON;
+                IF NOT EXISTS (SELECT 1 FROM dbo.personas WHERE id = 1)
+                    INSERT INTO dbo.personas (id, nombres, apellido_paterno, apellido_materno, ci, ci_expedido, sexo, estado_civil, telefono, email, empresa_telefonica, direccion, activo) VALUES (1, 'Administrador', 'Sistema', 'General', '1000001', 'CH', 'M', 'SOLTERO', '70012345', 'admin@gob.bo', 'ENTEL', 'Oficina Central Sucre', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.personas WHERE id = 2)
+                    INSERT INTO dbo.personas (id, nombres, apellido_paterno, apellido_materno, ci, ci_expedido, sexo, estado_civil, telefono, email, empresa_telefonica, direccion, activo) VALUES (2, 'María', 'Fernández', 'Rojas', '2000002', 'CH', 'F', 'SOLTERA', '70054321', 'mfernandez@gob.bo', 'TIGO', 'Av. Hernando Siles #123', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.personas WHERE id = 3)
+                    INSERT INTO dbo.personas (id, nombres, apellido_paterno, apellido_materno, ci, ci_expedido, sexo, estado_civil, telefono, email, empresa_telefonica, direccion, activo) VALUES (3, 'Carlos', 'Mamani', 'Quispe', '3000003', 'CH', 'M', 'CASADO', '70098765', 'cmamani@gob.bo', 'ENTEL', 'Calle Calvo #456', 1);
+                SET IDENTITY_INSERT dbo.personas OFF;";
+            using (var cmd = new SqlCommand(perSql, conn)) await cmd.ExecuteNonQueryAsync();
 
             // 4. Usuarios Iniciales (Password: admin123)
             Console.WriteLine("🔹 Sembrando Usuarios con Hashes BCrypt...");
             var hash = BCrypt.Net.BCrypt.HashPassword("admin123", workFactor: 10);
             var usrSql = @"
-                INSERT INTO `usuarios` (`id`, `persona_id`, `login`, `password_hash`, `cargo`, `activo`) VALUES
-                (1, 1, 'admin', @hash, 'Administrador General', 1),
-                (2, 2, 'mfernandez', @hash, 'Responsable de Ventanilla Única', 1),
-                (3, 3, 'cmamani', @hash, 'Analista de Sistemas', 1)
-                ON DUPLICATE KEY UPDATE `login` = VALUES(`login`), `password_hash` = VALUES(`password_hash`), `cargo` = VALUES(`cargo`), `activo` = 1;";
-            using (var cmd = new MySqlCommand(usrSql, conn))
+                SET IDENTITY_INSERT dbo.usuarios ON;
+                IF NOT EXISTS (SELECT 1 FROM dbo.usuarios WHERE id = 1)
+                    INSERT INTO dbo.usuarios (id, persona_id, login, password_hash, cargo, activo) VALUES (1, 1, 'admin', @hash, 'Administrador General', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.usuarios WHERE id = 2)
+                    INSERT INTO dbo.usuarios (id, persona_id, login, password_hash, cargo, activo) VALUES (2, 2, 'mfernandez', @hash, 'Responsable de Ventanilla Única', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.usuarios WHERE id = 3)
+                    INSERT INTO dbo.usuarios (id, persona_id, login, password_hash, cargo, activo) VALUES (3, 3, 'cmamani', @hash, 'Analista de Sistemas', 1);
+                SET IDENTITY_INSERT dbo.usuarios OFF;";
+            using (var cmd = new SqlCommand(usrSql, conn))
             {
                 cmd.Parameters.AddWithValue("@hash", hash);
                 await cmd.ExecuteNonQueryAsync();
@@ -370,41 +399,96 @@ namespace GestionDocumental.Api.Data
             // 5. Asignación de Roles
             Console.WriteLine("🔹 Sembrando Asignación de Roles (Multi-Rol)...");
             var rolAsignSql = @"
-                INSERT INTO `usuario_roles` (`id`, `usuario_id`, `rol_id`, `ubicacion_org_id`, `nivel_acceso`, `fecha_expiracion`, `es_principal`, `activo`) VALUES
-                (1, 1, 1, 6, 'CONTROL_TOTAL', '2030-12-31', 1, 1),
-                (2, 1, 2, 6, 'CONTROL_TOTAL', '2030-12-31', 0, 1),
-                (3, 2, 3, 3, 'CONTROL_TOTAL', '2030-12-31', 1, 1),
-                (4, 3, 4, 6, 'CONTROL_TOTAL', '2030-12-31', 1, 1)
-                ON DUPLICATE KEY UPDATE `nivel_acceso` = VALUES(`nivel_acceso`), `es_principal` = VALUES(`es_principal`), `activo` = 1;";
-            using (var cmd = new MySqlCommand(rolAsignSql, conn)) await cmd.ExecuteNonQueryAsync();
+                SET IDENTITY_INSERT dbo.usuario_roles ON;
+                IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE id = 1)
+                    INSERT INTO dbo.usuario_roles (id, usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo) VALUES (1, 1, 1, 6, 'CONTROL_TOTAL', '2030-12-31', 1, 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE id = 2)
+                    INSERT INTO dbo.usuario_roles (id, usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo) VALUES (2, 1, 2, 6, 'CONTROL_TOTAL', '2030-12-31', 0, 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE id = 3)
+                    INSERT INTO dbo.usuario_roles (id, usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo) VALUES (3, 2, 3, 3, 'CONTROL_TOTAL', '2030-12-31', 1, 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE id = 4)
+                    INSERT INTO dbo.usuario_roles (id, usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo) VALUES (4, 3, 4, 6, 'CONTROL_TOTAL', '2030-12-31', 1, 1);
+                SET IDENTITY_INSERT dbo.usuario_roles OFF;";
+            using (var cmd = new SqlCommand(rolAsignSql, conn)) await cmd.ExecuteNonQueryAsync();
 
             // 6. Tipos de Proceso
             Console.WriteLine("🔹 Sembrando Tipos de Proceso y SLA...");
             var procSql = @"
-                INSERT INTO `tipos_proceso` (`id`, `codigo`, `nombre`, `descripcion`, `tipo_categoria`, `ubicacion_org_id`, `correlativo_seq`, `tiempo_estimado_horas`, `activo`) VALUES
-                (1, 'SV', 'Solicitud de Vacaciones', 'Trámite interno para la solicitud y aprobación de vacaciones de personal', 'TRAMITE', 5, 0, 48, 1),
-                (2, 'CM', 'Compra Menor', 'Trámite de adquisición de bienes o servicios menores', 'TRAMITE', 5, 0, 72, 1),
-                (3, 'CORR-EXT', 'Correspondencia Externa', 'Recepción y derivación de notas, cartas y solicitudes externas', 'CORRESPONDENCIA', 3, 0, 24, 1),
-                (4, 'MEMO', 'Memorándum Interno', 'Comunicaciones oficiales y circulares entre unidades', 'CORRESPONDENCIA', 2, 0, 24, 1)
-                ON DUPLICATE KEY UPDATE `nombre` = VALUES(`nombre`), `activo` = 1;";
-            using (var cmd = new MySqlCommand(procSql, conn)) await cmd.ExecuteNonQueryAsync();
+                SET IDENTITY_INSERT dbo.tipos_proceso ON;
+                IF NOT EXISTS (SELECT 1 FROM dbo.tipos_proceso WHERE id = 1)
+                    INSERT INTO dbo.tipos_proceso (id, codigo, nombre, descripcion, tipo_categoria, ubicacion_org_id, correlativo_seq, tiempo_estimado_horas, activo) VALUES (1, 'SV', 'Solicitud de Vacaciones', 'Trámite interno para la solicitud y aprobación de vacaciones de personal', 'TRAMITE', 5, 0, 48, 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.tipos_proceso WHERE id = 2)
+                    INSERT INTO dbo.tipos_proceso (id, codigo, nombre, descripcion, tipo_categoria, ubicacion_org_id, correlativo_seq, tiempo_estimado_horas, activo) VALUES (2, 'CM', 'Compra Menor', 'Trámite de adquisición de bienes o servicios menores', 'TRAMITE', 5, 0, 72, 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.tipos_proceso WHERE id = 3)
+                    INSERT INTO dbo.tipos_proceso (id, codigo, nombre, descripcion, tipo_categoria, ubicacion_org_id, correlativo_seq, tiempo_estimado_horas, activo) VALUES (3, 'CORR-EXT', 'Correspondencia Externa', 'Recepción y derivación de notas, cartas y solicitudes externas', 'CORRESPONDENCIA', 3, 0, 24, 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.tipos_proceso WHERE id = 4)
+                    INSERT INTO dbo.tipos_proceso (id, codigo, nombre, descripcion, tipo_categoria, ubicacion_org_id, correlativo_seq, tiempo_estimado_horas, activo) VALUES (4, 'MEMO', 'Memorándum Interno', 'Comunicaciones oficiales y circulares entre unidades', 'CORRESPONDENCIA', 2, 0, 24, 1);
+                SET IDENTITY_INSERT dbo.tipos_proceso OFF;";
+            using (var cmd = new SqlCommand(procSql, conn)) await cmd.ExecuteNonQueryAsync();
 
             // 7. Parámetros Generales
             Console.WriteLine("🔹 Sembrando Parámetros Institucionales...");
             var paramSql = @"
-                INSERT INTO `parametros` (`clave`, `valor`, `tipo_dato`, `descripcion`, `editable`) VALUES
-                ('INSTITUCION_NOMBRE', 'Gobierno Autónomo Municipal de Sucre', 'STRING', 'Nombre oficial de la institución que utiliza el sistema', 1),
-                ('INSTITUCION_SIGLA', 'GAMS', 'STRING', 'Sigla de la institución', 1),
-                ('GESTION_ACTIVA', '2026', 'INTEGER', 'Gestión fiscal / año calendario activo para trámites', 1),
-                ('CORRELATIVO_AUTO_RESET', 'TRUE', 'BOOLEAN', 'Reinicio automático de correlativo anual', 1)
-                ON DUPLICATE KEY UPDATE `valor` = VALUES(`valor`), `descripcion` = VALUES(`descripcion`);";
-            using (var cmd = new MySqlCommand(paramSql, conn)) await cmd.ExecuteNonQueryAsync();
+                IF NOT EXISTS (SELECT 1 FROM dbo.parametros WHERE clave = 'INSTITUCION_NOMBRE')
+                    INSERT INTO dbo.parametros (clave, valor, tipo_dato, descripcion, editable) VALUES ('INSTITUCION_NOMBRE', 'Gobierno Autónomo Municipal de Sucre', 'STRING', 'Nombre oficial de la institución que utiliza el sistema', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.parametros WHERE clave = 'INSTITUCION_SIGLA')
+                    INSERT INTO dbo.parametros (clave, valor, tipo_dato, descripcion, editable) VALUES ('INSTITUCION_SIGLA', 'GAMS', 'STRING', 'Sigla de la institución', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.parametros WHERE clave = 'GESTION_ACTIVA')
+                    INSERT INTO dbo.parametros (clave, valor, tipo_dato, descripcion, editable) VALUES ('GESTION_ACTIVA', '2026', 'INTEGER', 'Gestión fiscal / año calendario activo para trámites', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.parametros WHERE clave = 'CORRELATIVO_AUTO_RESET')
+                    INSERT INTO dbo.parametros (clave, valor, tipo_dato, descripcion, editable) VALUES ('CORRELATIVO_AUTO_RESET', 'TRUE', 'BOOLEAN', 'Reinicio automático de correlativo anual', 1);";
+            using (var cmd = new SqlCommand(paramSql, conn)) await cmd.ExecuteNonQueryAsync();
 
-            Console.WriteLine("\n🎉 ¡Datos iniciales sembrados exitosamente!");
+            // 8. Tablas Institucionales (Sprint 2 - DBNotasCMS)
+            Console.WriteLine("🔹 Sembrando Unidades, Cargos y Empleados Institucionales (DBNotasCMS)...");
+            var instSql = @"
+                -- TUnidad
+                IF NOT EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 1)
+                    INSERT INTO dbo.TUnidad (CodU, NombU, Activo) VALUES (1, 'DIRECCION GENERAL EJECUTIVA', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 2)
+                    INSERT INTO dbo.TUnidad (CodU, NombU, Activo) VALUES (2, 'SECRETARIA GENERAL', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 3)
+                    INSERT INTO dbo.TUnidad (CodU, NombU, Activo) VALUES (3, 'VENTANILLA UNICA', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 4)
+                    INSERT INTO dbo.TUnidad (CodU, NombU, Activo) VALUES (4, 'DIRECCION JURIDICA', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 5)
+                    INSERT INTO dbo.TUnidad (CodU, NombU, Activo) VALUES (5, 'DIRECCION ADMINISTRATIVA FINANCIERA', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 6)
+                    INSERT INTO dbo.TUnidad (CodU, NombU, Activo) VALUES (6, 'UNIDAD DE SISTEMAS Y TECNOLOGIAS', 1);
+
+                -- TCargo
+                IF NOT EXISTS (SELECT 1 FROM dbo.TCargo WHERE CodCargo = 1)
+                    INSERT INTO dbo.TCargo (CodCargo, NombreC, CodU) VALUES (1, 'DIRECTOR GENERAL', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.TCargo WHERE CodCargo = 2)
+                    INSERT INTO dbo.TCargo (CodCargo, NombreC, CodU) VALUES (2, 'SECRETARIO GENERAL', 2);
+                IF NOT EXISTS (SELECT 1 FROM dbo.TCargo WHERE CodCargo = 3)
+                    INSERT INTO dbo.TCargo (CodCargo, NombreC, CodU) VALUES (3, 'ENCARGADO DE VENTANILLA UNICA', 3);
+                IF NOT EXISTS (SELECT 1 FROM dbo.TCargo WHERE CodCargo = 4)
+                    INSERT INTO dbo.TCargo (CodCargo, NombreC, CodU) VALUES (4, 'ASESOR JURIDICO', 4);
+                IF NOT EXISTS (SELECT 1 FROM dbo.TCargo WHERE CodCargo = 5)
+                    INSERT INTO dbo.TCargo (CodCargo, NombreC, CodU) VALUES (5, 'DIRECTOR ADMINISTRATIVO', 5);
+                IF NOT EXISTS (SELECT 1 FROM dbo.TCargo WHERE CodCargo = 6)
+                    INSERT INTO dbo.TCargo (CodCargo, NombreC, CodU) VALUES (6, 'ANALISTA DE SISTEMAS', 6);
+
+                -- TEmpleados
+                IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 1000001)
+                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo) VALUES (1000001, 'SISTEMA GENERAL', 'ADMINISTRADOR', 'Oficina Central Sucre', 70012345, 'admin@gob.bo', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 2000002)
+                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo) VALUES (2000002, 'FERNANDEZ ROJAS', 'MARIA', 'Av. Hernando Siles #123', 70054321, 'mfernandez@gob.bo', 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 3000003)
+                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo) VALUES (3000003, 'MAMANI QUISPE', 'CARLOS', 'Calle Calvo #456', 70098765, 'cmamani@gob.bo', 1);
+            ";
+            using (var cmd = new SqlCommand(instSql, conn)) await cmd.ExecuteNonQueryAsync();
+
+            Console.WriteLine("\n🎉 ¡Datos iniciales sembrados exitosamente en SQL Server!");
             Console.WriteLine("Credenciales por defecto:");
             Console.WriteLine("  • Usuario: admin       | Contraseña: admin123 (Roles: ADMIN_SISTEMA, ADMIN_TRAMITES)");
             Console.WriteLine("  • Usuario: mfernandez  | Contraseña: admin123 (Rol: VENTANILLA_UNICA)");
             Console.WriteLine("  • Usuario: cmamani     | Contraseña: admin123 (Rol: FUNCIONARIO)");
+            Console.WriteLine("Tablas institucionales sembradas:");
+            Console.WriteLine("  • TUnidad: 6 unidades activas");
+            Console.WriteLine("  • TCargo: 6 cargos institucionales");
+            Console.WriteLine("  • TEmpleados: 3 empleados de prueba");
             Console.WriteLine("============================================================\n");
         }
     }

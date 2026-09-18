@@ -21,6 +21,11 @@ namespace GestionDocumental.Api.Data
         public DbSet<Adjunto> Adjuntos => Set<Adjunto>();
         public DbSet<Parametro> Parametros => Set<Parametro>();
 
+        // Tablas Institucionales (Sprint 2 - DBNotasCMS)
+        public DbSet<TUnidad> TUnidades => Set<TUnidad>();
+        public DbSet<TCargo> TCargos => Set<TCargo>();
+        public DbSet<TEmpleado> TEmpleados => Set<TEmpleado>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -121,6 +126,13 @@ namespace GestionDocumental.Api.Data
                 .HasOne(m => m.UbicacionOrigen)
                 .WithMany()
                 .HasForeignKey(m => m.UbicacionOrigenId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Relación TCargo -> TUnidad
+            modelBuilder.Entity<TCargo>()
+                .HasOne(c => c.Unidad)
+                .WithMany(u => u.Cargos)
+                .HasForeignKey(c => c.CodU)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

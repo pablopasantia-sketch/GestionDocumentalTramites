@@ -1,12 +1,15 @@
--- Migración 011: Crear tabla parametros (Configuraciones Globales y Variables del Sistema)
-CREATE TABLE IF NOT EXISTS `parametros` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `clave` VARCHAR(100) NOT NULL,
-  `valor` TEXT NOT NULL,
-  `tipo_dato` VARCHAR(30) NOT NULL DEFAULT 'STRING',
-  `descripcion` VARCHAR(255) NULL,
-  `editable` BOOLEAN NOT NULL DEFAULT TRUE,
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY `uk_parametros_clave` (`clave`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Migración 011: Crear tabla parametros (Configuraciones Globales y Variables del Sistema) - T-SQL
+IF OBJECT_ID(N'dbo.parametros', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.parametros (
+      id INT IDENTITY(1,1) PRIMARY KEY,
+      clave VARCHAR(100) NOT NULL,
+      valor NVARCHAR(MAX) NOT NULL,
+      tipo_dato VARCHAR(30) NOT NULL DEFAULT 'STRING',
+      descripcion VARCHAR(255) NULL,
+      editable BIT NOT NULL DEFAULT 1,
+      created_at DATETIME2 NOT NULL DEFAULT GETDATE(),
+      updated_at DATETIME2 NOT NULL DEFAULT GETDATE(),
+      CONSTRAINT uk_parametros_clave UNIQUE (clave)
+    );
+END;

@@ -439,15 +439,33 @@ El sistema consolida el motor de **Trámites y Correspondencias en un solo flujo
 │ email       │    └──────────────┘    │ filtro        │
 │ telefono    │                        └───────────────┘
 └─────────────┘                               │
-                                              v
-┌─────────────────┐    ┌──────────────┐
-│ Ubicacion_Org   │    │     Rol      │
-│                 │    │              │
-│ nombre          │    │ nombre       │
-│ codigo          │    │ descripcion  │
-│ padre_id (FK)   │    │              │
-│ nivel           │    └──────────────┘
-└─────────────────┘
+       ^                                      v
+       │ (enlace CI)                   ┌──────────────┐
+┌──────────────┐                       │     Rol      │
+│  TEmpleados  │                       │              │
+│ (DBNotasCMS) │                       │ nombre       │
+│              │                       │ descripcion  │
+│ CI (PK)      │                       └──────────────┘
+│ Apellidos    │
+│ Nombres      │
+│ Direccion    │                       ┌─────────────────┐
+│ Cel          │                       │ Ubicacion_Org   │
+│ Email        │                       │                 │
+│ Activo       │                       │ nombre          │
+└──────────────┘                       │ codigo          │
+                                       │ padre_id (FK)   │
+                                       │ nivel           │
+                                       └─────────────────┘
+                                                ^ (mapeo institucional)
+                                                │
+┌──────────────┐        1:N            ┌─────────────────┐
+│   TCargo     │>─────────────────────│     TUnidad     │
+│ (DBNotasCMS) │                       │  (DBNotasCMS)   │
+│              │                       │                 │
+│ CodCargo(PK) │                       │ CodU (PK)       │
+│ NombreC      │                       │ NombU           │
+│ CodU (FK)────┘                       │ Activo          │
+└──────────────┘                       └─────────────────┘
 
 ┌─────────────────┐    ┌──────────────────┐    ┌───────────────────┐
 │ Tipo_Proceso    │───>│    Tramite       │───>│  Movimiento       │
@@ -467,18 +485,50 @@ El sistema consolida el motor de **Trámites y Correspondencias en un solo flujo
 
 ┌──────────────────┐    ┌──────────────────┐
 │    Adjunto       │    │   Correspondencia│
-│                  │    │                  │
-│ movimiento_id    │    │ correlativo      │
-│ nombre_archivo   │    │ destinatario_id  │
-│ ruta_archivo     │    │ remitente        │
-│ tipo_mime        │    │ referencia       │
-│ fecha_subida     │    │ tipo_corres      │
-│ subido_por       │    │ nro_hojas        │
-│ activo           │    │ instruccion      │
-└──────────────────┘    │ fecha_respuesta  │
+│                  │    │   / Ext. (Sprint 2)
+│ movimiento_id    │    │                  │
+│ nombre_archivo   │    │ correlativo      │
+│ ruta_archivo     │    │ destinatario_id  │  <─── Enlace con TEmpleados / TCargo
+│ tipo_mime        │    │ remitente        │  <─── Enlace con TEmpleados / TCargo
+│ fecha_subida     │    │ unidad_destino   │  <─── Enlace con TUnidad
+│ subido_por       │    │ unidad_remitente │  <─── Enlace con TUnidad
+│ activo           │    │ referencia       │
+└──────────────────┘    │ tipo_corres      │
+                        │ nro_hojas        │
+                        │ instruccion      │
                         │ estado           │
                         └──────────────────┘
 ```
+
+### 6.1 Detalle de Tablas Institucionales (`DBNotasCMS`)
+
+A requerimiento del Concejo Municipal de Sucre, el sistema opera sobre **Microsoft SQL Server (T-SQL)** incorporando tres tablas maestras de su base institucional `DBNotasCMS` para el manejo de correspondencia y trámites externos (Sprint 2):
+
+1. **`TUnidad` (Catálogo Oficial de Unidades)**:
+   - `CodU` (`smallint`, PK): Identificador numérico de la unidad municipal.
+   - `NombU` (`varchar(50)`): Denominación oficial de la unidad (ej: *DIRECCION GENERAL EJECUTIVA*, *VENTANILLA UNICA*).
+   - `Activo` (`bit`): Bandera de vigencia activa/inactiva.
+
+2. **`TCargo` (Catálogo Oficial de Cargos por Unidad)**:
+   - `CodCargo` (`smallint`, PK): Identificador numérico del cargo.
+   - `NombreC` (`varchar(50)`): Nombre oficial del cargo (ej: *DIRECTOR GENERAL*, *SECRETARIO GENERAL*).
+   - `CodU` (`smallint`, FK a `TUnidad.CodU`): Unidad organizativa a la que pertenece el cargo.
+
+3. **`TEmpleados` (Padrón Institucional de Funcionarios)**:
+   - `CI` (`int`, PK): Cédula de identidad oficial (entero numérico).
+   - `Apellidos` (`varchar(50)`): Apellidos del funcionario.
+   - `Nombres` (`varchar(50)`): Nombres del funcionario.
+   - `Direccion` (`varchar(50)`): Dirección o dependencia física.
+   - `Cel` (`int`): Teléfono celular de contacto institucional.
+   - `Email` (`varchar(50)`): Correo electrónico institucional.
+   - `Activo` (`bit`): Estado de actividad laboral.
+
+### 6.2 Articulación con el Modelo Existente y Trámites Externos (Sprint 2)
+
+- **Correspondencia Externa y Hojas de Ruta (CM, Contratos, Convenios)**:
+  Las hojas de ruta institucionales emitidas en Ventanilla Única o despachos requieren consignar de manera estricta la Unidad de Destino (`TUnidad`), el Cargo del Destinatario (`TCargo`) y el Funcionario responsable (`TEmpleados`). Esto alimenta directamente las variables de plantilla: `##destinatario##`, `##unidad_destino##`, `##cargo_destino##`, `##remitente##`, `##unidad_remitente##` y `##cargo_remitente##`.
+- **Relación `TEmpleados` <-> `Personas`**:
+  `TEmpleados` actúa como padrón maestro institucional. Un funcionario puede vincularse por su `CI` a la tabla `personas` para asignarle credenciales de acceso al sistema (`usuarios`) y roles de operación (`usuario_roles`).
 
 ---
 
