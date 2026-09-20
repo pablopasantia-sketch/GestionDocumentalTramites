@@ -48,14 +48,14 @@ export default function AdminHub() {
     return (
       <div style={{ maxWidth: '800px', margin: '2rem auto', textAlign: 'center' }}>
         <div className="card" style={{ padding: '3rem 2rem', borderTop: '5px solid #800000' }}>
-          <div style={{ 
-            width: '56px', 
-            height: '56px', 
-            borderRadius: '4px', 
-            background: '#800000', 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '4px',
+            background: '#800000',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             color: 'white',
             marginBottom: '1rem',
             boxShadow: '0 2px 8px rgba(128, 0, 0, 0.25)'
@@ -71,7 +71,7 @@ export default function AdminHub() {
           <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem', fontSize: '1rem', maxWidth: '550px', margin: '0 auto 1.5rem' }}>
             Supervisión global de trámites, configuración de tipos de proceso y SLA, operaciones especiales de anulación justificada y trazabilidad institucional.
           </p>
-          
+
           <div style={{ background: 'var(--color-bg-container)', padding: '12px 20px', borderRadius: '4px', border: '1px solid var(--color-border)', display: 'inline-block', fontSize: '0.85rem', color: '#6C757D', marginBottom: '1.5rem' }}>
             Este módulo está planificado en el cronograma institucional (Sprint 4: 13 Oct - 26 Oct).
           </div>
@@ -845,7 +845,7 @@ export default function AdminHub() {
           }}
         >
           <Users size={18} />
-          <span>Personas ({personas.length})</span>
+          <span>Personas</span>
         </button>
 
         <button
@@ -869,7 +869,7 @@ export default function AdminHub() {
           }}
         >
           <UserPlus size={18} />
-          <span>Usuarios y Asignaciones ({usuarios.length})</span>
+          <span>Usuarios y Asignaciones</span>
         </button>
 
         <button
@@ -893,7 +893,7 @@ export default function AdminHub() {
           }}
         >
           <Shield size={18} />
-          <span>Roles del Sistema ({roles.length})</span>
+          <span>Roles del Sistema</span>
         </button>
 
         <button
@@ -917,7 +917,7 @@ export default function AdminHub() {
           }}
         >
           <Network size={18} />
-          <span>Organigrama ({ubicaciones.length})</span>
+          <span>Organigrama</span>
         </button>
 
         <button
@@ -941,107 +941,107 @@ export default function AdminHub() {
           }}
         >
           <Building2 size={18} />
-          <span>Catálogos Institucionales (DBNotasCMS)</span>
+          <span>Catálogos Institucionales</span>
         </button>
       </div>
 
       {/* Barra de Búsqueda, Filtros y Botón de Acción */}
       {activeTab !== 'catalogos' && (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem',
-          flexWrap: 'wrap',
-          gap: '10px'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flex: 1, maxWidth: '650px' }}>
-          <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
-            <Search
-              size={16}
-              style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#6C757D' }}
-            />
-            <input
-              type="text"
-              className="form-control"
-              placeholder={
-                activeTab === 'personas'
-                  ? 'Buscar por nombre o CI...'
-                  : activeTab === 'usuarios'
-                  ? 'Buscar por login, nombre, cargo...'
-                  : activeTab === 'ubicaciones'
-                  ? 'Buscar por código, nombre o sigla...'
-                  : 'Buscar roles...'
-              }
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ paddingLeft: '34px', fontSize: '0.88rem' }}
-            />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1rem',
+            flexWrap: 'wrap',
+            gap: '10px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flex: 1, maxWidth: '650px' }}>
+            <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
+              <Search
+                size={16}
+                style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#6C757D' }}
+              />
+              <input
+                type="text"
+                className="form-control"
+                placeholder={
+                  activeTab === 'personas'
+                    ? 'Buscar por nombre o CI...'
+                    : activeTab === 'usuarios'
+                      ? 'Buscar por login, nombre, cargo...'
+                      : activeTab === 'ubicaciones'
+                        ? 'Buscar por código, nombre o sigla...'
+                        : 'Buscar roles...'
+                }
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ paddingLeft: '34px', fontSize: '0.88rem' }}
+              />
+            </div>
+
+            {activeTab === 'personas' && (
+              <select
+                className="form-control"
+                value={personaFiltroActivo}
+                onChange={(e) => setPersonaFiltroActivo(e.target.value)}
+                style={{ width: 'auto', fontSize: '0.85rem', cursor: 'pointer', borderColor: '#CED4DA' }}
+              >
+                <option value="activos">Mostrar: Solo Vigentes (Activos)</option>
+                <option value="inactivos">Mostrar: Dados de Baja (Inactivos)</option>
+                <option value="todos">Mostrar: Todos los Registros</option>
+              </select>
+            )}
+
+            {activeTab === 'usuarios' && (
+              <select
+                className="form-control"
+                value={usuarioFiltroActivo}
+                onChange={(e) => setUsuarioFiltroActivo(e.target.value)}
+                style={{ width: 'auto', fontSize: '0.85rem', cursor: 'pointer', borderColor: '#CED4DA' }}
+              >
+                <option value="activos">Mostrar: Solo Vigentes (Activos)</option>
+                <option value="inactivos">Mostrar: Dados de Baja (Inactivos)</option>
+                <option value="todos">Mostrar: Todos los Registros</option>
+              </select>
+            )}
+
+            {activeTab === 'ubicaciones' && (
+              <select
+                className="form-control"
+                value={ubicacionFiltroActivo}
+                onChange={(e) => setUbicacionFiltroActivo(e.target.value)}
+                style={{ width: 'auto', fontSize: '0.85rem', cursor: 'pointer', borderColor: '#CED4DA' }}
+              >
+                <option value="activos">Mostrar: Solo Vigentes (Activas)</option>
+                <option value="inactivos">Mostrar: Dadas de Baja (Inactivas)</option>
+                <option value="todos">Mostrar: Todos los Registros</option>
+              </select>
+            )}
           </div>
 
           {activeTab === 'personas' && (
-            <select
-              className="form-control"
-              value={personaFiltroActivo}
-              onChange={(e) => setPersonaFiltroActivo(e.target.value)}
-              style={{ width: 'auto', fontSize: '0.85rem', cursor: 'pointer', borderColor: '#CED4DA' }}
-            >
-              <option value="activos">Mostrar: Solo Vigentes (Activos)</option>
-              <option value="inactivos">Mostrar: Dados de Baja (Inactivos)</option>
-              <option value="todos">Mostrar: Todos los Registros</option>
-            </select>
+            <button onClick={() => handleOpenPersonaModal()} className="btn btn-primary btn-sm">
+              <Plus size={16} />
+              <span>Nueva Persona</span>
+            </button>
           )}
 
           {activeTab === 'usuarios' && (
-            <select
-              className="form-control"
-              value={usuarioFiltroActivo}
-              onChange={(e) => setUsuarioFiltroActivo(e.target.value)}
-              style={{ width: 'auto', fontSize: '0.85rem', cursor: 'pointer', borderColor: '#CED4DA' }}
-            >
-              <option value="activos">Mostrar: Solo Vigentes (Activos)</option>
-              <option value="inactivos">Mostrar: Dados de Baja (Inactivos)</option>
-              <option value="todos">Mostrar: Todos los Registros</option>
-            </select>
+            <button onClick={handleOpenUsuarioModal} className="btn btn-primary btn-sm">
+              <Plus size={16} />
+              <span>Nuevo Usuario</span>
+            </button>
           )}
 
           {activeTab === 'ubicaciones' && (
-            <select
-              className="form-control"
-              value={ubicacionFiltroActivo}
-              onChange={(e) => setUbicacionFiltroActivo(e.target.value)}
-              style={{ width: 'auto', fontSize: '0.85rem', cursor: 'pointer', borderColor: '#CED4DA' }}
-            >
-              <option value="activos">Mostrar: Solo Vigentes (Activas)</option>
-              <option value="inactivos">Mostrar: Dadas de Baja (Inactivas)</option>
-              <option value="todos">Mostrar: Todos los Registros</option>
-            </select>
+            <button onClick={() => handleOpenUbicacionModal()} className="btn btn-primary btn-sm">
+              <Plus size={16} />
+              <span>Nueva Unidad</span>
+            </button>
           )}
         </div>
-
-        {activeTab === 'personas' && (
-          <button onClick={() => handleOpenPersonaModal()} className="btn btn-primary btn-sm">
-            <Plus size={16} />
-            <span>Nueva Persona</span>
-          </button>
-        )}
-
-        {activeTab === 'usuarios' && (
-          <button onClick={handleOpenUsuarioModal} className="btn btn-primary btn-sm">
-            <Plus size={16} />
-            <span>Nuevo Usuario</span>
-          </button>
-        )}
-
-        {activeTab === 'ubicaciones' && (
-          <button onClick={() => handleOpenUbicacionModal()} className="btn btn-primary btn-sm">
-            <Plus size={16} />
-            <span>Nueva Unidad</span>
-          </button>
-        )}
-      </div>
       )}
 
       {/* ==================================================== */}

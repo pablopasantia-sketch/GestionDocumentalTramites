@@ -299,6 +299,10 @@ export const institucionalService = {
     const response = await api.get(`/institucional/empleados/${ci}`);
     return response.data;
   },
+  seed: async () => {
+    const response = await api.post('/institucional/seed');
+    return response.data;
+  },
 };
 
 export default api;
