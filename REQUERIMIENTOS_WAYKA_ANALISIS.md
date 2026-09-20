@@ -572,9 +572,10 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 - [x] Incorporación de tablas institucionales en BD y endpoints backend (`TUnidad`, `TCargo`, `TEmpleados`)
 
 ### Sprint 2 (15 Sep - 28 Sep): Core del proceso y Trámites Externos (DBNotasCMS)
-- [ ] **Paso Introductorio (Integración de Catálogos Institucionales en Frontend)**:
-  - [ ] Buscador y autocompletado de funcionarios desde `TEmpleados` por CI en el registro de Personas.
-  - [ ] Selectores institucionales en cascada: Unidad (`TUnidad`) y Cargo dependiente (`TCargo`).
+- [x] **Paso Introductorio (Integración y Gestión de Catálogos Institucionales DBNotasCMS)**:
+  - [x] Buscador y autocompletado de funcionarios desde `TEmpleados` por CI en el registro de Personas.
+  - [x] Selectores institucionales en cascada: Unidad (`TUnidad`) y Cargo dependiente (`TCargo`).
+  - [x] CRUD completo y administración de Unidades (`TUnidad`) y Cargos dependientes (`TCargo`) en Hub Administrativo (Escenario 1).
 - [ ] CRUD Tipos de Proceso y configuración de categorías (Trámites Internos vs Correspondencia Externa: CM, CDE1, CDE2, CDH1).
 - [ ] Crear trámite / correspondencia unificada en Ventanilla Única y Despachos (Hojas de Ruta CM, Contratos, etc.).
 - [ ] Generación automática de correlativo institucional anual (`[CÓDIGO]-[NRO]/[GESTIÓN]`).

@@ -48,9 +48,9 @@ export default function SystemStatus() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <div className="section-tag" style={{ color: '#1B365D' }}>Módulo de Diagnóstico Institucional</div>
-            <h1 style={{ color: '#1B365D', marginBottom: '0.25rem' }}>Estado del Entorno y Base de Datos MySQL 8.0</h1>
+            <h1 style={{ color: '#1B365D', marginBottom: '0.25rem' }}>Estado del Entorno y Base de Datos SQL Server</h1>
             <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.95rem' }}>
-              Verificación de comunicación entre Frontend (React 19), Backend (Node.js/Express) y Base de Datos (MySQL 8.0)
+              Verificación de comunicación entre Frontend (React 19), Backend (.NET 8 LTS Web API) y Base de Datos (Microsoft SQL Server 2022 en Docker)
             </p>
           </div>
 
@@ -84,10 +84,10 @@ export default function SystemStatus() {
             <div>
               <div style={{ fontSize: '1.15rem', fontWeight: '700', color: 'var(--color-text-main)' }}>
                 {healthData?.database?.connected 
-                  ? 'Entorno Completamente Sincronizado y Operativo' 
+                  ? 'Entorno Institucional Completamente Sincronizado y Operativo' 
                   : error 
                     ? 'Servicio Backend Desconectado' 
-                    : 'Backend Activo — Esperando Conexión con MySQL Server'}
+                    : 'Backend Activo — Esperando Conexión con SQL Server'}
               </div>
               <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
                 {lastCheck ? `Última comprobación: ${lastCheck.toLocaleTimeString()}` : 'Iniciando diagnóstico...'}
@@ -135,13 +135,13 @@ export default function SystemStatus() {
               <tr>
                 <td><strong>1. Frontend Client</strong></td>
                 <td>Punto de Conexión API</td>
-                <td>{import.meta.env.VITE_API_URL || 'http://localhost:4000/api'}</td>
+                <td>{import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}</td>
                 <td><span className="badge badge-azul">CONFIGURADO</span></td>
               </tr>
               <tr>
                 <td><strong>2. Backend API</strong></td>
-                <td>Entorno & Versión Node</td>
-                <td>{healthData?.environment || 'development'} ({healthData?.system?.nodeVersion || 'Desconectado'})</td>
+                <td>Framework & Entorno</td>
+                <td>{healthData?.framework || '.NET 8.0 LTS Web API'} ({healthData?.environment || 'Development'})</td>
                 <td>
                   {healthData ? (
                     <span className="badge badge-vigente">ACTIVO</span>
@@ -160,8 +160,8 @@ export default function SystemStatus() {
               </tr>
               <tr>
                 <td><strong>3. Base de Datos</strong></td>
-                <td>Servidor MySQL 8.0</td>
-                <td>{healthData?.database?.host || '127.0.0.1'}:{healthData?.database?.port || '3306'} (gestion_documental_db)</td>
+                <td>Motor & Servidor</td>
+                <td>{healthData?.database?.engine || 'Microsoft SQL Server 2022 (Docker)'} — {healthData?.database?.server || '127.0.0.1:1433'}</td>
                 <td>
                   {healthData?.database?.connected ? (
                     <span className="badge badge-vigente">CONECTADO</span>
@@ -172,13 +172,13 @@ export default function SystemStatus() {
               </tr>
               <tr>
                 <td><strong>3. Base de Datos</strong></td>
-                <td>Versión del Motor</td>
-                <td>{healthData?.database?.version || 'MySQL 8.0+ (driver mysql2 configurado)'}</td>
+                <td>Base de Datos & Proveedor</td>
+                <td>{healthData?.database?.databaseName || 'DBNotasCMS'} ({healthData?.database?.provider || 'EF Core 8 SqlServer'})</td>
                 <td>
                   {healthData?.database?.connected ? (
-                    <span className="badge badge-vigente">UTF8MB4</span>
+                    <span className="badge badge-vigente">OPERATIVO (15 Tablas)</span>
                   ) : (
-                    <span className="badge badge-azul">POOL 10</span>
+                    <span className="badge badge-azul">EN ESPERA</span>
                   )}
                 </td>
               </tr>
@@ -193,30 +193,30 @@ export default function SystemStatus() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Terminal size={20} color="#800000" />
             <h3 style={{ fontSize: '1.15rem', color: '#800000' }}>
-              Comandos de Migración y Semillas (Seed) en MySQL 8.0
+              Comandos de Infraestructura: Docker SQL Server y Backend .NET 8
             </h3>
           </div>
         </div>
 
         <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
-          Para inicializar las 11 tablas del esquema DDL y poblar los roles, organigrama y usuarios de prueba:
+          Para levantar el contenedor Docker de SQL Server y ejecutar el backend institucional:
         </p>
 
         <div className="diagnostics-box" style={{ marginBottom: '1.25rem' }}>
-          <div style={{ color: '#A0AEC0', marginBottom: '4px' }}># 1. Ejecutar DDL y crear tablas en MySQL 8.0:</div>
-          <div style={{ color: '#68D391', marginBottom: '10px' }}>cd backend && npm run db:init</div>
+          <div style={{ color: '#A0AEC0', marginBottom: '4px' }}># 1. Iniciar contenedor de Microsoft SQL Server 2022:</div>
+          <div style={{ color: '#68D391', marginBottom: '10px' }}>docker compose up -d</div>
 
-          <div style={{ color: '#A0AEC0', marginBottom: '4px' }}># 2. Sembrar datos base (Roles, Organigrama, Superadmin):</div>
-          <div style={{ color: '#68D391', marginBottom: '10px' }}>cd backend && npm run db:seed</div>
+          <div style={{ color: '#A0AEC0', marginBottom: '4px' }}># 2. Verificar tablas de DBNotasCMS en el contenedor:</div>
+          <div style={{ color: '#68D391', marginBottom: '10px' }}>docker exec gestion_documental_mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'SqlAdminSucre2026!' -C -Q "USE DBNotasCMS; SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES;"</div>
 
-          <div style={{ color: '#A0AEC0', marginBottom: '4px' }}># 3. Iniciar el servidor backend:</div>
-          <div style={{ color: '#68D391' }}>npm run dev</div>
+          <div style={{ color: '#A0AEC0', marginBottom: '4px' }}># 3. Iniciar el backend .NET 8:</div>
+          <div style={{ color: '#68D391' }}>cd backend-dotnet/GestionDocumental.Api && dotnet run --launch-profile http</div>
         </div>
 
         <div style={{ background: 'var(--color-primary-sucre-light)', padding: '12px 16px', borderRadius: '4px', border: '1px solid #f5c2c2', fontSize: '0.85rem' }}>
-          <strong style={{ color: '#800000' }}>Nota de Configuración:</strong>
+          <strong style={{ color: '#800000' }}>Nota Institucional:</strong>
           <span style={{ color: 'var(--color-text-main)', marginLeft: '6px' }}>
-            Las credenciales de acceso a MySQL se configuran en el archivo <code>backend/.env</code> (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME).
+            El sistema utiliza <strong>DBNotasCMS</strong> en Microsoft SQL Server con los catálogos <code>TUnidad</code>, <code>TCargo</code> y el padrón de <code>TEmpleados</code>.
           </span>
         </div>
       </div>

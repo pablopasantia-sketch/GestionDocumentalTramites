@@ -255,4 +255,50 @@ export const tiposProcesoService = {
   }
 };
 
+// Servicios Institucionales (Sprint 2 - DBNotasCMS: TUnidad, TCargo, TEmpleados)
+export const institucionalService = {
+  getUnidades: async (params = {}) => {
+    const response = await api.get('/institucional/unidades', { params });
+    return response.data;
+  },
+  createUnidad: async (data) => {
+    const response = await api.post('/institucional/unidades', data);
+    return response.data;
+  },
+  updateUnidad: async (codU, data) => {
+    const response = await api.put(`/institucional/unidades/${codU}`, data);
+    return response.data;
+  },
+  deleteUnidad: async (codU) => {
+    const response = await api.delete(`/institucional/unidades/${codU}`);
+    return response.data;
+  },
+
+  getCargos: async (params = {}) => {
+    const response = await api.get('/institucional/cargos', { params });
+    return response.data;
+  },
+  createCargo: async (data) => {
+    const response = await api.post('/institucional/cargos', data);
+    return response.data;
+  },
+  updateCargo: async (codCargo, data) => {
+    const response = await api.put(`/institucional/cargos/${codCargo}`, data);
+    return response.data;
+  },
+  deleteCargo: async (codCargo) => {
+    const response = await api.delete(`/institucional/cargos/${codCargo}`);
+    return response.data;
+  },
+
+  getEmpleados: async (params = {}) => {
+    const response = await api.get('/institucional/empleados', { params });
+    return response.data;
+  },
+  getEmpleadoPorCi: async (ci) => {
+    const response = await api.get(`/institucional/empleados/${ci}`);
+    return response.data;
+  },
+};
+
 export default api;

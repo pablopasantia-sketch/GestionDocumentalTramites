@@ -34,6 +34,9 @@ import {
   ubicacionesService
 } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import InstitucionalSelectors from '../components/institucional/InstitucionalSelectors';
+import EmpleadoSearchAutocomplete from '../components/institucional/EmpleadoSearchAutocomplete';
+import InstitucionalCatalogosManager from '../components/institucional/InstitucionalCatalogosManager';
 // Componente de supervisión de trámites pre-construido para ser activado en Sprint 4:
 // import AdminTramitesHub from './AdminTramitesHub';
 
@@ -119,6 +122,8 @@ export default function AdminHub() {
   });
 
   const [showUsuarioModal, setShowUsuarioModal] = useState(false);
+  const [userSelectedCodU, setUserSelectedCodU] = useState('');
+  const [userSelectedCodCargo, setUserSelectedCodCargo] = useState('');
   const [usuarioForm, setUsuarioForm] = useState({
     persona_id: '',
     login: '',
@@ -307,6 +312,8 @@ export default function AdminHub() {
   // ----------------------------------------------------
   const handleOpenUsuarioModal = () => {
     setUsuarioModalError(null);
+    setUserSelectedCodU('');
+    setUserSelectedCodCargo('');
     const activePersonas = personas.filter((p) => p.activo);
     setUsuarioForm({
       persona_id: activePersonas[0]?.id || '',
@@ -912,9 +919,34 @@ export default function AdminHub() {
           <Network size={18} />
           <span>Organigrama ({ubicaciones.length})</span>
         </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('catalogos');
+            setSearchTerm('');
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            color: activeTab === 'catalogos' ? '#800000' : '#6C757D',
+            borderBottom: activeTab === 'catalogos' ? '3px solid #800000' : '3px solid transparent',
+            marginBottom: '-2px'
+          }}
+        >
+          <Building2 size={18} />
+          <span>Catálogos Institucionales (DBNotasCMS)</span>
+        </button>
       </div>
 
       {/* Barra de Búsqueda, Filtros y Botón de Acción */}
+      {activeTab !== 'catalogos' && (
       <div
         style={{
           display: 'flex',
@@ -1010,6 +1042,7 @@ export default function AdminHub() {
           </button>
         )}
       </div>
+      )}
 
       {/* ==================================================== */}
       {/* PESTAÑA 1: TABLA DE PERSONAS */}
@@ -1487,6 +1520,13 @@ export default function AdminHub() {
       )}
 
       {/* ==================================================== */}
+      {/* PESTAÑA 5: CATÁLOGOS INSTITUCIONALES (TUnidad, TCargo)*/}
+      {/* ==================================================== */}
+      {activeTab === 'catalogos' && (
+        <InstitucionalCatalogosManager />
+      )}
+
+      {/* ==================================================== */}
       {/* MODAL: REGISTRAR / EDITAR UBICACIÓN ORGÁNICA         */}
       {/* ==================================================== */}
       {showUbicacionModal && (
@@ -1636,6 +1676,20 @@ export default function AdminHub() {
                     <span>{personaModalError}</span>
                   </div>
                 )}
+
+                {/* Paso Introductorio Sprint 2: Buscador en Padrón Institucional TEmpleados */}
+                {!personaEditing && (
+                  <EmpleadoSearchAutocomplete
+                    onSelectEmpleado={(empData) => {
+                      setPersonaForm((prev) => ({
+                        ...prev,
+                        ...empData
+                      }));
+                    }}
+                    currentCi={personaForm.ci}
+                  />
+                )}
+
                 <div style={{ gridColumn: 'span 2' }}>
                   <label className="form-label required">Nombres</label>
                   <input
@@ -1861,8 +1915,35 @@ export default function AdminHub() {
                   />
                 </div>
 
+                {/* Paso Introductorio Sprint 2: Selección en cascada TUnidad -> TCargo */}
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: '#F8F9FA',
+                  borderRadius: '6px',
+                  border: '1px solid #E9ECEF',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px'
+                }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1B365D' }}>
+                    Asignación Institucional (DBNotasCMS)
+                  </div>
+                  <InstitucionalSelectors
+                    selectedCodU={userSelectedCodU}
+                    onUnidadChange={(codU) => setUserSelectedCodU(codU)}
+                    selectedCodCargo={userSelectedCodCargo}
+                    onCargoChange={(codCargo, cargoObj) => {
+                      setUserSelectedCodCargo(codCargo);
+                      if (cargoObj && cargoObj.nombreC) {
+                        setUsuarioForm((prev) => ({ ...prev, cargo: cargoObj.nombreC }));
+                      }
+                    }}
+                    layout="stack"
+                  />
+                </div>
+
                 <div>
-                  <label className="form-label">Cargo Institucional</label>
+                  <label className="form-label">Denominación del Cargo</label>
                   <input
                     type="text"
                     className="form-control"
@@ -1870,6 +1951,9 @@ export default function AdminHub() {
                     value={usuarioForm.cargo}
                     onChange={(e) => setUsuarioForm({ ...usuarioForm, cargo: e.target.value })}
                   />
+                  <span style={{ fontSize: '0.74rem', color: '#6C757D' }}>
+                    Se autocompleta con el catálogo oficial o puede ajustarse manualmente.
+                  </span>
                 </div>
               </div>
 
