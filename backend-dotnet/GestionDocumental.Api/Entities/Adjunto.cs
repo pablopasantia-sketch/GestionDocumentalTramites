@@ -29,8 +29,8 @@ namespace GestionDocumental.Api.Entities
 
         [Required]
         [MaxLength(100)]
-        [Column("mime_type")]
-        public string MimeType { get; set; } = "application/pdf";
+        [Column("tipo_mime")]
+        public string TipoMime { get; set; } = "application/pdf";
 
         [Column("tamano_bytes")]
         public long TamanoBytes { get; set; }
@@ -40,8 +40,7 @@ namespace GestionDocumental.Api.Entities
         [Column("ruta_archivo")]
         public string RutaArchivo { get; set; } = string.Empty;
 
-        [MaxLength(64)]
-        [Column("hash_sha256")]
+        [NotMapped]
         public string? HashSha256 { get; set; }
 
         [Column("subido_por")]

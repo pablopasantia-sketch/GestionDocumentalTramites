@@ -580,7 +580,7 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 - [x] Crear trámite / correspondencia unificada en Ventanilla Única y Despachos (Hojas de Ruta CM, Contratos, etc.).
 - [x] Generación automática de correlativo institucional anual (`[CÓDIGO]-[NRO]/[GESTIÓN]`).
 - [x] Registro de proveídos iniciales e instrucciones oficiales.
-- [ ] Adjuntar y descargar documentos PDF.
+- [x] Adjuntar y descargar documentos PDF.
 
 ### Sprint 3 (29 Sep - 12 Oct): Flujo directo de trabajo
 - [ ] Escritorio Virtual con bandejas (pendientes, recibidos, despachados)

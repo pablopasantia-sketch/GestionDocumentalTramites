@@ -323,4 +323,26 @@ export const institucionalService = {
   },
 };
 
+// Servicios de Documentos Digitales y Adjuntos PDF (RF-07)
+export const adjuntosService = {
+  upload: async (tramiteId, formData) => {
+    const response = await api.post(`/tramites/${tramiteId}/adjuntos`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+  getByTramite: async (tramiteId) => {
+    const response = await api.get(`/tramites/${tramiteId}/adjuntos`);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/adjuntos/${id}`);
+    return response.data;
+  },
+  getDownloadUrl: (id) => `${API_BASE_URL}/adjuntos/${id}/descargar`,
+  getViewUrl: (id) => `${API_BASE_URL}/adjuntos/${id}/ver`
+};
+
 export default api;

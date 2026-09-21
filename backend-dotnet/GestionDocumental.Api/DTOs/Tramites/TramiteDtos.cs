@@ -123,6 +123,9 @@ namespace GestionDocumental.Api.DTOs.Tramites
 
         [JsonPropertyName("fecha_creacion")]
         public DateTime FechaCreacion { get; set; }
+
+        [JsonPropertyName("nro_adjuntos")]
+        public int NroAdjuntos { get; set; }
     }
 
     public class TramiteStatsDto
@@ -327,5 +330,8 @@ namespace GestionDocumental.Api.DTOs.Tramites
 
         [JsonPropertyName("historial")]
         public List<MovimientoTimelineDto> Historial { get; set; } = new();
+
+        [JsonPropertyName("adjuntos")]
+        public List<GestionDocumental.Api.DTOs.Adjuntos.AdjuntoItemDto> Adjuntos { get; set; } = new();
     }
 }

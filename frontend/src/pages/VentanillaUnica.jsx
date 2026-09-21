@@ -21,12 +21,16 @@ import {
   Eye,
   X,
   Landmark,
-  UserCheck
+  UserCheck,
+  Paperclip,
+  Download,
+  ExternalLink
 } from 'lucide-react';
-import { tramitesService, tiposProcesoService } from '../services/api';
+import { tramitesService, tiposProcesoService, adjuntosService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import InstitucionalSelectors from '../components/institucional/InstitucionalSelectors';
 import EmpleadoSearchAutocomplete from '../components/institucional/EmpleadoSearchAutocomplete';
+import PdfUploader from '../components/common/PdfUploader';
 
 const INSTRUCCIONES_SUGERIDAS = [
   'Para su atención y trámite correspondiente según normativa',
@@ -69,6 +73,7 @@ export default function VentanillaUnica() {
 
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState(null);
+  const [attachedPdfs, setAttachedPdfs] = useState([]);
 
   // Modal de Hoja de Ruta generada
   const [emittedTramite, setEmittedTramite] = useState(null);
@@ -215,9 +220,27 @@ export default function VentanillaUnica() {
       const res = await tramitesService.create(payload);
       const created = res?.data || res;
 
-      // Mostrar modal de Hoja de Ruta emitida
-      setEmittedTramite(created);
+      // Subir archivos PDF adjuntos si se seleccionaron
+      if (attachedPdfs.length > 0) {
+        try {
+          const uploadFormData = new FormData();
+          attachedPdfs.forEach(file => {
+            uploadFormData.append('files', file);
+          });
+          await adjuntosService.upload(created.id, uploadFormData);
+          // Refrescar el detalle con los adjuntos ya registrados
+          const fullDetail = await tramitesService.getById(created.id);
+          setEmittedTramite(fullDetail?.data || fullDetail);
+        } catch (uploadErr) {
+          console.error('Error al subir archivos PDF adjuntos:', uploadErr);
+          setEmittedTramite(created);
+        }
+      } else {
+        setEmittedTramite(created);
+      }
+
       setShowEmittedModal(true);
+      setAttachedPdfs([]);
 
       // Refrescar historial y actualizar siguiente correlativo
       loadHistorial();
@@ -658,6 +681,33 @@ export default function VentanillaUnica() {
                 </div>
               </div>
 
+              {/* BLOQUE 6: DOCUMENTACIÓN DIGITAL ADJUNTA (PDFs DE RESPALDO - RF-07) */}
+              <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #1B365D' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Paperclip size={18} color="#1B365D" />
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
+                      6. Documentos Digitales Adjuntos (Archivos PDF de Respaldo)
+                    </h3>
+                  </div>
+                  <span className="badge badge-secondary" style={{ fontSize: '0.72rem' }}>
+                    RF-07 • Formato PDF
+                  </span>
+                </div>
+
+                <p style={{ fontSize: '0.82rem', color: '#6C757D', marginBottom: '1rem' }}>
+                  Adjunte los memoriales, antecedentes, cartas escaneadas o documentación digital en formato PDF que acompañan a esta Hoja de Ruta.
+                </p>
+
+                <PdfUploader
+                  files={attachedPdfs}
+                  onFilesChange={setAttachedPdfs}
+                  maxFiles={5}
+                  maxSizeMB={25}
+                  disabled={saving}
+                />
+              </div>
+
             </div>
 
             {/* COLUMNA DERECHA: TARJETA DE RESUMEN Y BOTÓN DE EMISIÓN */}
@@ -875,8 +925,14 @@ export default function VentanillaUnica() {
                         <div style={{ maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.85rem' }} title={t.referencia}>
                           {t.referencia}
                         </div>
-                        <div style={{ fontSize: '0.72rem', color: '#6C757D' }}>
-                          {t.nro_hojas} fojas {t.nro_anexos > 0 ? `| ${t.nro_anexos} anexos` : ''}
+                        <div style={{ fontSize: '0.72rem', color: '#6C757D', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+                          <span>{t.nro_hojas} fojas {t.nro_anexos > 0 ? `| ${t.nro_anexos} anexos` : ''}</span>
+                          {t.nro_adjuntos > 0 && (
+                            <span className="badge" style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: '0.68rem', padding: '1px 5px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                              <Paperclip size={10} />
+                              {t.nro_adjuntos} PDF{t.nro_adjuntos > 1 ? 's' : ''}
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td>
@@ -1021,6 +1077,65 @@ export default function VentanillaUnica() {
                   </div>
                   <div style={{ color: '#78350F', fontWeight: 600, marginTop: '2px' }}>
                     {emittedTramite.instruccion}
+                  </div>
+                </div>
+              )}
+
+              {/* Documentos Digitales Adjuntos (RF-07) */}
+              {emittedTramite.adjuntos && emittedTramite.adjuntos.length > 0 && (
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '12px 14px', borderRadius: '6px', marginBottom: '1.25rem' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#1B365D', textTransform: 'uppercase', fontWeight: 800, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Paperclip size={14} color="#800000" />
+                    <span>Documentos PDF Adjuntos ({emittedTramite.adjuntos.length})</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {emittedTramite.adjuntos.map(adj => (
+                      <div
+                        key={adj.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          background: 'white',
+                          padding: '6px 10px',
+                          borderRadius: '4px',
+                          border: '1px solid #E2E8F0'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                          <FileText size={16} color="#DC2626" />
+                          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1F2937', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>
+                            {adj.nombre_original}
+                          </span>
+                          <span style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                            ({adj.tamano_legible})
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <a
+                            href={adjuntosService.getViewUrl(adj.id)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-outline-secondary btn-sm"
+                            style={{ padding: '2px 8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            title="Previsualizar PDF en el navegador"
+                          >
+                            <ExternalLink size={12} />
+                            <span>Ver</span>
+                          </a>
+                          <a
+                            href={adjuntosService.getDownloadUrl(adj.id)}
+                            download={adj.nombre_original}
+                            className="btn btn-outline-primary btn-sm"
+                            style={{ padding: '2px 8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            title="Descargar archivo PDF original"
+                          >
+                            <Download size={12} />
+                            <span>Descargar</span>
+                          </a>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

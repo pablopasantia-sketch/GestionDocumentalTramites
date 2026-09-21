@@ -148,7 +148,8 @@ namespace GestionDocumental.Api.Controllers
                     Estado = t.Estado,
                     UbicacionActualNombre = t.UbicacionActual != null ? t.UbicacionActual.Nombre : null,
                     UsuarioActualLogin = t.UsuarioActual != null ? t.UsuarioActual.Login : null,
-                    FechaCreacion = t.FechaCreacion
+                    FechaCreacion = t.FechaCreacion,
+                    NroAdjuntos = t.Adjuntos.Count(a => a.Activo)
                 })
                 .ToListAsync();
 
@@ -233,6 +234,9 @@ namespace GestionDocumental.Api.Controllers
                     .ThenInclude(m => m.UbicacionOrigen)
                 .Include(t => t.Movimientos)
                     .ThenInclude(m => m.UbicacionDestino)
+                .Include(t => t.Adjuntos.Where(a => a.Activo))
+                    .ThenInclude(a => a.SubidoPorUsuario)
+                        .ThenInclude(u => u.Persona)
                 .FirstOrDefaultAsync(t => t.Id == id && t.Activo);
 
             if (tramite == null)
@@ -287,7 +291,24 @@ namespace GestionDocumental.Api.Controllers
                 FechaLimiteRespuesta = tramite.FechaLimiteRespuesta,
                 CreadoPorUsuario = creadorNombre,
                 UnidadOrigen = tramite.UbicacionOrg?.Nombre ?? "Ventanilla Única",
-                Historial = historial
+                Historial = historial,
+                Adjuntos = tramite.Adjuntos
+                    .Where(a => a.Activo)
+                    .OrderByDescending(a => a.Id)
+                    .Select(a => new GestionDocumental.Api.DTOs.Adjuntos.AdjuntoItemDto
+                    {
+                        Id = a.Id,
+                        TramiteId = a.TramiteId,
+                        MovimientoId = a.MovimientoId,
+                        NombreOriginal = a.NombreOriginal,
+                        TamanoBytes = a.TamanoBytes,
+                        TipoMime = a.TipoMime,
+                        SubidoPorNombre = a.SubidoPorUsuario?.Persona != null
+                            ? $"{a.SubidoPorUsuario.Persona.Nombres} {a.SubidoPorUsuario.Persona.ApellidoPaterno}".Trim()
+                            : a.SubidoPorUsuario?.Login ?? "Operador Ventanilla",
+                        FechaSubida = a.CreatedAt
+                    })
+                    .ToList()
             };
 
             return Ok(ApiResponse<TramiteDetalleCompletoDto>.Ok(detalle));
