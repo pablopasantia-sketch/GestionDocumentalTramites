@@ -84,6 +84,35 @@ namespace GestionDocumental.Api.Entities
         [Column("ubicacion_actual_id")]
         public int? UbicacionActualId { get; set; }
 
+        [MaxLength(100)]
+        [Column("cite_externo")]
+        public string? CiteExterno { get; set; }
+
+        [MaxLength(200)]
+        [Column("institucion_remitente")]
+        public string? InstitucionRemitente { get; set; }
+
+        [Column("cod_u_destino")]
+        public short? CodUDestino { get; set; }
+
+        [Column("cod_cargo_destino")]
+        public short? CodCargoDestino { get; set; }
+
+        [Column("ci_empleado_destino")]
+        public int? CiEmpleadoDestino { get; set; }
+
+        [MaxLength(150)]
+        [Column("destinatario_nombre")]
+        public string? DestinatarioNombre { get; set; }
+
+        [MaxLength(150)]
+        [Column("destinatario_cargo")]
+        public string? DestinatarioCargo { get; set; }
+
+        [MaxLength(150)]
+        [Column("destinatario_unidad")]
+        public string? DestinatarioUnidad { get; set; }
+
         [Column("motivo_bloqueo")]
         public string? MotivoBloqueo { get; set; }
 

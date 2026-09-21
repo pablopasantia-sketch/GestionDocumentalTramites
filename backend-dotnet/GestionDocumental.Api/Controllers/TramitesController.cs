@@ -183,6 +183,295 @@ namespace GestionDocumental.Api.Controllers
         }
 
         /// <summary>
+        /// Obtener previsualización del siguiente número correlativo institucional (RF-03.3)
+        /// </summary>
+        [Authorize]
+        [HttpGet("next-correlativo")]
+        public async Task<IActionResult> GetNextCorrelativo([FromQuery] int tipo_proceso_id, [FromQuery] int? gestion)
+        {
+            var tipo = await _context.TiposProceso.FirstOrDefaultAsync(tp => tp.Id == tipo_proceso_id && tp.Activo);
+            if (tipo == null)
+            {
+                return NotFound(ApiResponse.ErrorResult("Tipo de trámite externo no encontrado o inactivo."));
+            }
+
+            int year = gestion ?? DateTime.UtcNow.Year;
+            var corr = await _context.Correlativos
+                .FirstOrDefaultAsync(c => c.TipoProcesoId == tipo.Id && c.Gestion == year);
+
+            int nextNum = (corr != null ? corr.UltimoNumero : 0) + 1;
+            string preview = $"{tipo.Codigo}-{nextNum}/{year}";
+
+            var result = new NextCorrelativoPreviewDto
+            {
+                NumeroCorrelativo = preview,
+                Gestion = year,
+                CodigoTipo = tipo.Codigo,
+                NombreTipo = tipo.Nombre,
+                TiempoEstimadoHoras = tipo.TiempoEstimadoHoras
+            };
+
+            return Ok(ApiResponse<NextCorrelativoPreviewDto>.Ok(result));
+        }
+
+        /// <summary>
+        /// Obtener detalle completo de un trámite por ID (para Hoja de Ruta y consulta)
+        /// </summary>
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var tramite = await _context.Tramites
+                .Include(t => t.TipoProceso)
+                .Include(t => t.CreadoPorUsuario)
+                    .ThenInclude(u => u.Persona)
+                .Include(t => t.UbicacionOrg)
+                .Include(t => t.Movimientos)
+                    .ThenInclude(m => m.UsuarioOrigen)
+                        .ThenInclude(u => u.Persona)
+                .Include(t => t.Movimientos)
+                    .ThenInclude(m => m.UbicacionOrigen)
+                .Include(t => t.Movimientos)
+                    .ThenInclude(m => m.UbicacionDestino)
+                .FirstOrDefaultAsync(t => t.Id == id && t.Activo);
+
+            if (tramite == null)
+            {
+                return NotFound(ApiResponse.ErrorResult("Trámite no encontrado."));
+            }
+
+            var historial = tramite.Movimientos
+                .OrderBy(m => m.Orden)
+                .Select(m => new MovimientoTimelineDto
+                {
+                    Orden = m.Orden,
+                    Actividad = m.ActividadNombre,
+                    TipoMovimiento = m.TipoMovimiento,
+                    UnidadOrigen = m.UbicacionOrigen != null ? m.UbicacionOrigen.Nombre : "Ventanilla Central",
+                    UnidadDestino = m.UbicacionDestino != null ? m.UbicacionDestino.Nombre : null,
+                    Estado = m.EstadoMovimiento,
+                    Proveido = m.Proveido,
+                    Fecha = m.FechaRecepcion ?? m.FechaEnvio ?? m.CreatedAt
+                })
+                .ToList();
+
+            var creadorNombre = tramite.CreadoPorUsuario?.Persona != null
+                ? $"{tramite.CreadoPorUsuario.Persona.Nombres} {tramite.CreadoPorUsuario.Persona.ApellidoPaterno}".Trim()
+                : tramite.CreadoPorUsuario?.Login ?? "Operador Ventanilla";
+
+            var detalle = new TramiteDetalleCompletoDto
+            {
+                Id = tramite.Id,
+                NumeroCorrelativo = tramite.NumeroCorrelativo,
+                Gestion = tramite.Gestion,
+                TipoProcesoId = tramite.TipoProcesoId,
+                TipoProcesoCodigo = tramite.TipoProceso.Codigo,
+                TipoProcesoNombre = tramite.TipoProceso.Nombre,
+                TipoCategoria = tramite.TipoProceso.TipoCategoria,
+                Estado = tramite.Estado,
+                Remitente = tramite.Remitente,
+                InstitucionRemitente = tramite.InstitucionRemitente,
+                CiteExterno = tramite.CiteExterno,
+                Referencia = tramite.Referencia,
+                Prioridad = tramite.Prioridad,
+                NroHojas = tramite.NroHojas,
+                NroAnexos = tramite.NroAnexos,
+                Instruccion = tramite.Instruccion,
+                DestinatarioNombre = tramite.DestinatarioNombre,
+                DestinatarioCargo = tramite.DestinatarioCargo,
+                DestinatarioUnidad = tramite.DestinatarioUnidad,
+                CodUDestino = tramite.CodUDestino,
+                CodCargoDestino = tramite.CodCargoDestino,
+                CiEmpleadoDestino = tramite.CiEmpleadoDestino,
+                FechaCreacion = tramite.FechaCreacion,
+                FechaLimiteRespuesta = tramite.FechaLimiteRespuesta,
+                CreadoPorUsuario = creadorNombre,
+                UnidadOrigen = tramite.UbicacionOrg?.Nombre ?? "Ventanilla Única",
+                Historial = historial
+            };
+
+            return Ok(ApiResponse<TramiteDetalleCompletoDto>.Ok(detalle));
+        }
+
+        /// <summary>
+        /// Crear trámite / correspondencia externa unificada (Ventanilla Única y Despachos - RF-03)
+        /// Genera automáticamente correlativo oficial [CÓDIGO]-[NRO]/[GESTIÓN] y registra movimiento inicial
+        /// </summary>
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateTramiteExternoDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse.ErrorResult("Datos de correspondencia inválidos. Verifique los campos obligatorios."));
+            }
+
+            var tipo = await _context.TiposProceso.FirstOrDefaultAsync(tp => tp.Id == dto.TipoProcesoId && tp.Activo);
+            if (tipo == null)
+            {
+                return BadRequest(ApiResponse.ErrorResult("El tipo de trámite seleccionado no existe o no está activo."));
+            }
+
+            // Exclusividad Trámites Externos
+            if (tipo.TipoCategoria != "CORRESPONDENCIA")
+            {
+                return BadRequest(ApiResponse.ErrorResult("Solo se permite la recepción de correspondencia y trámites externos en este módulo."));
+            }
+
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1; // Default admin/operador
+
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+            if (ubicacionId <= 0)
+            {
+                var userRol = await _context.UsuarioRoles
+                    .FirstOrDefaultAsync(ur => ur.UsuarioId == userId && ur.Activo);
+                ubicacionId = userRol?.UbicacionOrgId ?? tipo.UbicacionOrgId ?? 3; // 3: Ventanilla Única
+            }
+
+            int year = DateTime.UtcNow.Year;
+
+            // Iniciar transacción para garantizar correlativo atómico sin colisiones
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var corr = await _context.Correlativos
+                    .FirstOrDefaultAsync(c => c.TipoProcesoId == tipo.Id && c.Gestion == year);
+
+                if (corr == null)
+                {
+                    corr = new Correlativo
+                    {
+                        TipoProcesoId = tipo.Id,
+                        UbicacionOrgId = ubicacionId,
+                        Gestion = year,
+                        UltimoNumero = 1,
+                        FormatoPatron = "{CODIGO}-{NUMERO}/{GESTION}",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _context.Correlativos.Add(corr);
+                }
+                else
+                {
+                    corr.UltimoNumero += 1;
+                    corr.UpdatedAt = DateTime.UtcNow;
+                }
+
+                int nextSeq = corr.UltimoNumero;
+                tipo.CorrelativoSeq = nextSeq;
+                tipo.UpdatedAt = DateTime.UtcNow;
+
+                string numeroCorrelativo = $"{tipo.Codigo}-{nextSeq}/{year}";
+                DateTime ahora = DateTime.UtcNow;
+                DateTime? fechaLimite = tipo.TiempoEstimadoHoras > 0
+                    ? ahora.AddHours(tipo.TiempoEstimadoHoras)
+                    : (DateTime?)null;
+
+                var nuevoTramite = new Tramite
+                {
+                    NumeroCorrelativo = numeroCorrelativo,
+                    Gestion = year,
+                    TipoProcesoId = tipo.Id,
+                    Estado = "CREADO",
+                    Remitente = dto.Remitente.Trim(),
+                    InstitucionRemitente = !string.IsNullOrWhiteSpace(dto.InstitucionRemitente) ? dto.InstitucionRemitente.Trim() : null,
+                    CiteExterno = !string.IsNullOrWhiteSpace(dto.CiteExterno) ? dto.CiteExterno.Trim() : null,
+                    Referencia = dto.Referencia.Trim(),
+                    TipoCorres = "CORRESPONDENCIA",
+                    NroHojas = dto.NroHojas,
+                    NroAnexos = dto.NroAnexos,
+                    Instruccion = !string.IsNullOrWhiteSpace(dto.Instruccion) ? dto.Instruccion.Trim() : null,
+                    Prioridad = !string.IsNullOrWhiteSpace(dto.Prioridad) ? dto.Prioridad.Trim().ToUpper() : "NORMAL",
+                    CodUDestino = dto.CodUDestino,
+                    CodCargoDestino = dto.CodCargoDestino,
+                    CiEmpleadoDestino = dto.CiEmpleadoDestino,
+                    DestinatarioNombre = !string.IsNullOrWhiteSpace(dto.DestinatarioNombre) ? dto.DestinatarioNombre.Trim() : null,
+                    DestinatarioCargo = !string.IsNullOrWhiteSpace(dto.DestinatarioCargo) ? dto.DestinatarioCargo.Trim() : null,
+                    DestinatarioUnidad = !string.IsNullOrWhiteSpace(dto.DestinatarioUnidad) ? dto.DestinatarioUnidad.Trim() : null,
+                    PrimerDestinatarioId = dto.PrimerDestinatarioId,
+                    FechaCreacion = ahora,
+                    FechaLimiteRespuesta = fechaLimite,
+                    CreadoPor = userId,
+                    UbicacionOrgId = ubicacionId,
+                    UsuarioActualId = userId,
+                    UbicacionActualId = ubicacionId,
+                    Activo = true,
+                    CreatedAt = ahora,
+                    UpdatedAt = ahora
+                };
+
+                _context.Tramites.Add(nuevoTramite);
+                await _context.SaveChangesAsync();
+
+                // Movimiento 1: Recepción inicial en Ventanilla Única
+                var provText = !string.IsNullOrWhiteSpace(dto.ProveidoInicial)
+                    ? dto.ProveidoInicial.Trim()
+                    : $"Recepción y apertura de Hoja de Ruta externa {numeroCorrelativo}.";
+
+                var primerMovimiento = new Movimiento
+                {
+                    TramiteId = nuevoTramite.Id,
+                    Orden = 1,
+                    TipoMovimiento = "INICIO",
+                    ActividadNombre = "Recepción en Ventanilla Única",
+                    UsuarioOrigenId = userId,
+                    UbicacionOrigenId = ubicacionId,
+                    EstadoMovimiento = "CREADO",
+                    Proveido = provText,
+                    Instruccion = nuevoTramite.Instruccion,
+                    TiempoEstimadoMinutos = tipo.TiempoEstimadoHoras * 60,
+                    FechaEnvio = ahora,
+                    FechaRecepcion = ahora,
+                    CreatedAt = ahora
+                };
+
+                _context.Movimientos.Add(primerMovimiento);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return CreatedAtAction(nameof(GetById), new { id = nuevoTramite.Id },
+                    ApiResponse<TramiteDetalleCompletoDto>.Ok(new TramiteDetalleCompletoDto
+                    {
+                        Id = nuevoTramite.Id,
+                        NumeroCorrelativo = nuevoTramite.NumeroCorrelativo,
+                        Gestion = nuevoTramite.Gestion,
+                        TipoProcesoId = nuevoTramite.TipoProcesoId,
+                        TipoProcesoCodigo = tipo.Codigo,
+                        TipoProcesoNombre = tipo.Nombre,
+                        TipoCategoria = tipo.TipoCategoria,
+                        Estado = nuevoTramite.Estado,
+                        Remitente = nuevoTramite.Remitente,
+                        InstitucionRemitente = nuevoTramite.InstitucionRemitente,
+                        CiteExterno = nuevoTramite.CiteExterno,
+                        Referencia = nuevoTramite.Referencia,
+                        Prioridad = nuevoTramite.Prioridad,
+                        NroHojas = nuevoTramite.NroHojas,
+                        NroAnexos = nuevoTramite.NroAnexos,
+                        Instruccion = nuevoTramite.Instruccion,
+                        DestinatarioNombre = nuevoTramite.DestinatarioNombre,
+                        DestinatarioCargo = nuevoTramite.DestinatarioCargo,
+                        DestinatarioUnidad = nuevoTramite.DestinatarioUnidad,
+                        CodUDestino = nuevoTramite.CodUDestino,
+                        CodCargoDestino = nuevoTramite.CodCargoDestino,
+                        CiEmpleadoDestino = nuevoTramite.CiEmpleadoDestino,
+                        FechaCreacion = nuevoTramite.FechaCreacion,
+                        FechaLimiteRespuesta = nuevoTramite.FechaLimiteRespuesta,
+                        CreadoPorUsuario = "Operador Ventanilla",
+                        UnidadOrigen = "Ventanilla Única"
+                    }, $"Hoja de Ruta {nuevoTramite.NumeroCorrelativo} creada exitosamente."));
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, ApiResponse.ErrorResult($"Error al emitir la Hoja de Ruta: {ex.Message}"));
+            }
+        }
+
+        /// <summary>
         /// Anulación de trámite (Operación especial - RF-10.1)
         /// </summary>
         [Authorize]

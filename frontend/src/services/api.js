@@ -221,6 +221,20 @@ export const tramitesService = {
     const response = await api.get('/tramites', { params });
     return response.data;
   },
+  getById: async (id) => {
+    const response = await api.get(`/tramites/${id}`);
+    return response.data;
+  },
+  getNextCorrelativo: async (tipoProcesoId, gestion) => {
+    const response = await api.get('/tramites/next-correlativo', {
+      params: { tipo_proceso_id: tipoProcesoId, gestion }
+    });
+    return response.data;
+  },
+  create: async (data) => {
+    const response = await api.post('/tramites', data);
+    return response.data;
+  },
   getStats: async (gestion) => {
     const response = await api.get('/tramites/stats', { params: { gestion } });
     return response.data;

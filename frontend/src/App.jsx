@@ -9,6 +9,7 @@ import { Landmark, ArrowLeft } from 'lucide-react';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 import AdminHub from './pages/AdminHub';
+import VentanillaUnica from './pages/VentanillaUnica';
 
 // Componente para vistas en desarrollo con estilo Gaceta Sucre
 function PlaceholderView({ title, description, badge }) {
@@ -67,11 +68,7 @@ export default function App() {
               path="/ventanilla" 
               element={
                 <ProtectedRoute allowedRoles={['VENTANILLA_UNICA', 'ADMIN_SISTEMA', 'ADMIN_TRAMITES']}>
-                  <PlaceholderView 
-                    title="Módulo de Ventanilla Única" 
-                    description="Recepción centralizada de trámites y correspondencia, emisión de Hoja de Ruta institucional con correlativo automático."
-                    badge="Sprint 2: Core del Proceso"
-                  />
+                  <VentanillaUnica />
                 </ProtectedRoute>
               } 
             />
