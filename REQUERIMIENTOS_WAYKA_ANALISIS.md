@@ -576,7 +576,7 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
   - [x] Buscador y autocompletado de funcionarios desde `TEmpleados` por CI en el registro de Personas.
   - [x] Selectores institucionales en cascada: Unidad (`TUnidad`) y Cargo dependiente (`TCargo`).
   - [x] CRUD completo y administración de Unidades (`TUnidad`) y Cargos dependientes (`TCargo`) en Hub Administrativo (Escenario 1).
-- [ ] CRUD Tipos de Proceso y configuración de categorías (Trámites Internos vs Correspondencia Externa: CM, CDE1, CDE2, CDH1).
+- [x] CRUD Tipos de Trámite Externo y configuración institucional (Correspondencia Oficial Externa: CM, CDE1, CDE2, CDH1 — Trámites Internos excluidos del alcance de práctica laboral).
 - [ ] Crear trámite / correspondencia unificada en Ventanilla Única y Despachos (Hojas de Ruta CM, Contratos, etc.).
 - [ ] Generación automática de correlativo institucional anual (`[CÓDIGO]-[NRO]/[GESTIÓN]`).
 - [ ] Registro de proveídos iniciales e instrucciones oficiales.

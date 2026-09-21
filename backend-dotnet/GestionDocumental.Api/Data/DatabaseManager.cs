@@ -412,18 +412,32 @@ namespace GestionDocumental.Api.Data
             using (var cmd = new SqlCommand(rolAsignSql, conn)) await cmd.ExecuteNonQueryAsync();
 
             // 6. Tipos de Proceso
-            Console.WriteLine("🔹 Sembrando Tipos de Proceso y SLA...");
+            Console.WriteLine("🔹 Sembrando Tipos de Proceso Externo (Hojas de Ruta DBNotasCMS)...");
             var procSql = @"
-                SET IDENTITY_INSERT dbo.tipos_proceso ON;
-                IF NOT EXISTS (SELECT 1 FROM dbo.tipos_proceso WHERE id = 1)
-                    INSERT INTO dbo.tipos_proceso (id, codigo, nombre, descripcion, tipo_categoria, ubicacion_org_id, correlativo_seq, tiempo_estimado_horas, activo) VALUES (1, 'SV', 'Solicitud de Vacaciones', 'Trámite interno para la solicitud y aprobación de vacaciones de personal', 'TRAMITE', 5, 0, 48, 1);
-                IF NOT EXISTS (SELECT 1 FROM dbo.tipos_proceso WHERE id = 2)
-                    INSERT INTO dbo.tipos_proceso (id, codigo, nombre, descripcion, tipo_categoria, ubicacion_org_id, correlativo_seq, tiempo_estimado_horas, activo) VALUES (2, 'CM', 'Compra Menor', 'Trámite de adquisición de bienes o servicios menores', 'TRAMITE', 5, 0, 72, 1);
-                IF NOT EXISTS (SELECT 1 FROM dbo.tipos_proceso WHERE id = 3)
-                    INSERT INTO dbo.tipos_proceso (id, codigo, nombre, descripcion, tipo_categoria, ubicacion_org_id, correlativo_seq, tiempo_estimado_horas, activo) VALUES (3, 'CORR-EXT', 'Correspondencia Externa', 'Recepción y derivación de notas, cartas y solicitudes externas', 'CORRESPONDENCIA', 3, 0, 24, 1);
-                IF NOT EXISTS (SELECT 1 FROM dbo.tipos_proceso WHERE id = 4)
-                    INSERT INTO dbo.tipos_proceso (id, codigo, nombre, descripcion, tipo_categoria, ubicacion_org_id, correlativo_seq, tiempo_estimado_horas, activo) VALUES (4, 'MEMO', 'Memorándum Interno', 'Comunicaciones oficiales y circulares entre unidades', 'CORRESPONDENCIA', 2, 0, 24, 1);
-                SET IDENTITY_INSERT dbo.tipos_proceso OFF;";
+                -- Trámites Externos Oficiales (Hojas de Ruta Institucionales)
+                IF NOT EXISTS (SELECT 1 FROM dbo.tipos_proceso WHERE codigo = 'CM')
+                    INSERT INTO dbo.tipos_proceso (codigo, nombre, descripcion, tipo_categoria, ubicacion_org_id, correlativo_seq, tiempo_estimado_horas, activo) 
+                    VALUES ('CM', 'Correspondencia Municipal Externa', 'Hojas de Ruta de correspondencia oficial externa, notas y solicitudes ciudadanas o interinstitucionales', 'CORRESPONDENCIA', 3, 0, 24, 1);
+                ELSE
+                    UPDATE dbo.tipos_proceso 
+                    SET nombre = 'Correspondencia Municipal Externa', 
+                        descripcion = 'Hojas de Ruta de correspondencia oficial externa, notas y solicitudes ciudadanas o interinstitucionales', 
+                        tipo_categoria = 'CORRESPONDENCIA',
+                        tiempo_estimado_horas = 24
+                    WHERE codigo = 'CM';
+
+                IF NOT EXISTS (SELECT 1 FROM dbo.tipos_proceso WHERE codigo = 'CDE1')
+                    INSERT INTO dbo.tipos_proceso (codigo, nombre, descripcion, tipo_categoria, ubicacion_org_id, correlativo_seq, tiempo_estimado_horas, activo) 
+                    VALUES ('CDE1', 'Contratos Institucionales', 'Hojas de Ruta para suscripción y fiscalización de contratos de obras, bienes y servicios', 'CORRESPONDENCIA', 4, 0, 72, 1);
+
+                IF NOT EXISTS (SELECT 1 FROM dbo.tipos_proceso WHERE codigo = 'CDE2')
+                    INSERT INTO dbo.tipos_proceso (codigo, nombre, descripcion, tipo_categoria, ubicacion_org_id, correlativo_seq, tiempo_estimado_horas, activo) 
+                    VALUES ('CDE2', 'Convenios Interinstitucionales', 'Hojas de Ruta para suscripción de convenios marco y específicos de cooperación', 'CORRESPONDENCIA', 2, 0, 48, 1);
+
+                IF NOT EXISTS (SELECT 1 FROM dbo.tipos_proceso WHERE codigo = 'CDH1')
+                    INSERT INTO dbo.tipos_proceso (codigo, nombre, descripcion, tipo_categoria, ubicacion_org_id, correlativo_seq, tiempo_estimado_horas, activo) 
+                    VALUES ('CDH1', 'Condecoraciones y Distinciones', 'Hojas de Ruta para distinciones honoríficas, condecoraciones y reconocimientos municipales', 'CORRESPONDENCIA', 1, 0, 48, 1);
+            ";
             using (var cmd = new SqlCommand(procSql, conn)) await cmd.ExecuteNonQueryAsync();
 
             // 7. Parámetros Generales

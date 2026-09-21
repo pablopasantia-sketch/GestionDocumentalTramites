@@ -25,12 +25,20 @@ namespace GestionDocumental.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? tipo_categoria, [FromQuery] string? search)
+        public async Task<IActionResult> GetAll([FromQuery] string? tipo_categoria, [FromQuery] string? search, [FromQuery] string? activo = "all")
         {
             var query = _context.TiposProceso
                 .Include(tp => tp.UbicacionOrg)
-                .Where(tp => tp.Activo)
                 .AsQueryable();
+
+            if (activo == "activos" || activo == "true")
+            {
+                query = query.Where(tp => tp.Activo);
+            }
+            else if (activo == "inactivos" || activo == "false")
+            {
+                query = query.Where(tp => !tp.Activo);
+            }
 
             if (!string.IsNullOrWhiteSpace(tipo_categoria))
             {
@@ -47,7 +55,7 @@ namespace GestionDocumental.Api.Controllers
             }
 
             var list = await query
-                .OrderBy(tp => tp.TipoCategoria)
+                .OrderBy(tp => tp.Codigo)
                 .ThenBy(tp => tp.Nombre)
                 .Select(tp => new TipoProcesoDto
                 {
@@ -103,14 +111,14 @@ namespace GestionDocumental.Api.Controllers
             if (!ModelState.IsValid) return BadRequest(ApiResponse.ErrorResult("Datos inválidos."));
 
             bool exists = await _context.TiposProceso.AnyAsync(x => x.Codigo == dto.Codigo.Trim().ToUpper());
-            if (exists) return Conflict(ApiResponse.ErrorResult($"Ya existe un tipo de proceso con el código '{dto.Codigo}'."));
+            if (exists) return Conflict(ApiResponse.ErrorResult($"Ya existe un tipo de trámite con el código '{dto.Codigo}'."));
 
             var nuevo = new TipoProceso
             {
                 Codigo = dto.Codigo.Trim().ToUpper(),
                 Nombre = dto.Nombre.Trim(),
                 Descripcion = dto.Descripcion?.Trim(),
-                TipoCategoria = dto.TipoCategoria ?? "TRAMITE",
+                TipoCategoria = dto.TipoCategoria ?? "CORRESPONDENCIA",
                 UbicacionOrgId = dto.UbicacionOrgId,
                 TiempoEstimadoHoras = dto.TiempoEstimadoHoras > 0 ? dto.TiempoEstimadoHoras : 24,
                 Activo = true,
@@ -127,21 +135,22 @@ namespace GestionDocumental.Api.Controllers
                 codigo = nuevo.Codigo,
                 nombre = nuevo.Nombre,
                 descripcion = nuevo.Descripcion,
+                tipoCategoria = nuevo.TipoCategoria,
                 tiempoEstimadoHoras = nuevo.TiempoEstimadoHoras,
                 activo = nuevo.Activo
-            }, "Tipo de proceso creado exitosamente."));
+            }, "Tipo de trámite externo creado exitosamente."));
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateTipoProcesoDto dto)
         {
             var tp = await _context.TiposProceso.FindAsync(id);
-            if (tp == null) return NotFound(ApiResponse.ErrorResult("Tipo de proceso no encontrado."));
+            if (tp == null) return NotFound(ApiResponse.ErrorResult("Tipo de trámite no encontrado."));
 
             if (!string.IsNullOrWhiteSpace(dto.Codigo) && dto.Codigo.Trim().ToUpper() != tp.Codigo)
             {
                 bool exists = await _context.TiposProceso.AnyAsync(x => x.Codigo == dto.Codigo.Trim().ToUpper() && x.Id != id);
-                if (exists) return Conflict(ApiResponse.ErrorResult($"Ya existe otro tipo de proceso con el código '{dto.Codigo}'."));
+                if (exists) return Conflict(ApiResponse.ErrorResult($"Ya existe otro tipo de trámite con el código '{dto.Codigo}'."));
                 tp.Codigo = dto.Codigo.Trim().ToUpper();
             }
 
@@ -155,7 +164,7 @@ namespace GestionDocumental.Api.Controllers
             tp.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            return Ok(ApiResponse.SuccessResult("Tipo de proceso actualizado exitosamente."));
+            return Ok(ApiResponse.SuccessResult("Tipo de trámite actualizado exitosamente."));
         }
 
         [HttpDelete("{id}")]
@@ -165,18 +174,32 @@ namespace GestionDocumental.Api.Controllers
                 .Include(x => x.Tramites)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
-            if (tp == null) return NotFound(ApiResponse.ErrorResult("Tipo de proceso no encontrado."));
+            if (tp == null) return NotFound(ApiResponse.ErrorResult("Tipo de trámite no encontrado."));
 
             if (tp.Tramites.Any(t => t.Activo))
             {
-                return BadRequest(ApiResponse.ErrorResult("No se puede dar de baja: existen trámites activos asociados a este tipo."));
+                return BadRequest(ApiResponse.ErrorResult("No se puede dar de baja: existen expedientes activos asociados a este tipo."));
             }
 
             tp.Activo = false;
             tp.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            return Ok(ApiResponse.SuccessResult("Tipo de proceso dado de baja exitosamente."));
+            return Ok(ApiResponse.SuccessResult("Tipo de trámite dado de baja exitosamente."));
+        }
+
+        [HttpPatch("{id}/toggle-activo")]
+        public async Task<IActionResult> ToggleActivo(int id)
+        {
+            var tp = await _context.TiposProceso.FindAsync(id);
+            if (tp == null) return NotFound(ApiResponse.ErrorResult("Tipo de trámite no encontrado."));
+
+            tp.Activo = !tp.Activo;
+            tp.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            string estadoTexto = tp.Activo ? "reactivado" : "dado de baja";
+            return Ok(ApiResponse.SuccessResult($"Tipo de trámite {estadoTexto} exitosamente."));
         }
     }
 }

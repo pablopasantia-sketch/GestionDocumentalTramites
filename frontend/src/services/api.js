@@ -252,6 +252,10 @@ export const tiposProcesoService = {
   delete: async (id) => {
     const response = await api.delete(`/tipos-proceso/${id}`);
     return response.data;
+  },
+  toggleActivo: async (id) => {
+    const response = await api.patch(`/tipos-proceso/${id}/toggle-activo`);
+    return response.data;
   }
 };
 

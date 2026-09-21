@@ -94,7 +94,7 @@ export default function EmpleadoSearchAutocomplete({ onSelectEmpleado, currentCi
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Sparkles size={15} style={{ color: '#800000' }} />
           <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1B365D' }}>
-            Búsqueda Rápida en Padrón Institucional (DBNotasCMS)
+            Búsqueda Rápida en Padrón Institucional
           </span>
         </div>
         <span style={{

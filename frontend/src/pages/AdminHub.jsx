@@ -24,7 +24,8 @@ import {
   Folder,
   Landmark,
   ArrowLeft,
-  RotateCcw
+  RotateCcw,
+  GitBranch
 } from 'lucide-react';
 import {
   personasService,
@@ -37,6 +38,7 @@ import { useAuth } from '../context/AuthContext';
 import InstitucionalSelectors from '../components/institucional/InstitucionalSelectors';
 import EmpleadoSearchAutocomplete from '../components/institucional/EmpleadoSearchAutocomplete';
 import InstitucionalCatalogosManager from '../components/institucional/InstitucionalCatalogosManager';
+import TiposProcesoExternoManager from '../components/admin/TiposProcesoExternoManager';
 // Componente de supervisión de trámites pre-construido para ser activado en Sprint 4:
 // import AdminTramitesHub from './AdminTramitesHub';
 
@@ -943,10 +945,35 @@ export default function AdminHub() {
           <Building2 size={18} />
           <span>Catálogos Institucionales</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('tipos_externos');
+            setSearchTerm('');
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            color: activeTab === 'tipos_externos' ? '#800000' : '#6C757D',
+            borderBottom: activeTab === 'tipos_externos' ? '3px solid #800000' : '3px solid transparent',
+            marginBottom: '-2px'
+          }}
+        >
+          <GitBranch size={18} />
+          <span>Trámites Externos</span>
+        </button>
       </div>
 
       {/* Barra de Búsqueda, Filtros y Botón de Acción */}
-      {activeTab !== 'catalogos' && (
+      {activeTab !== 'catalogos' && activeTab !== 'tipos_externos' && (
         <div
           style={{
             display: 'flex',
@@ -1527,6 +1554,13 @@ export default function AdminHub() {
       )}
 
       {/* ==================================================== */}
+      {/* PESTAÑA 6: TRÁMITES EXTERNOS (CM, CDE1, CDE2, CDH1) */}
+      {/* ==================================================== */}
+      {activeTab === 'tipos_externos' && (
+        <TiposProcesoExternoManager />
+      )}
+
+      {/* ==================================================== */}
       {/* MODAL: REGISTRAR / EDITAR UBICACIÓN ORGÁNICA         */}
       {/* ==================================================== */}
       {showUbicacionModal && (
@@ -1926,7 +1960,7 @@ export default function AdminHub() {
                   gap: '10px'
                 }}>
                   <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1B365D' }}>
-                    Asignación Institucional (DBNotasCMS)
+                    Asignación Institucional
                   </div>
                   <InstitucionalSelectors
                     selectedCodU={userSelectedCodU}
