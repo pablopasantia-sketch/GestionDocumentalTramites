@@ -8,6 +8,9 @@ using GestionDocumental.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Cargar sobreescritura de configuración local si existe (no trackeado en git)
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+
 // Procesar comandos CLI de base de datos si fueron solicitados
 if (args.Length > 0)
 {
@@ -148,15 +151,15 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Pipeline de Middleware
-if (app.Environment.IsDevelopment())
+app.UseSwagger(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
-        c.RoutePrefix = "swagger";
-    });
-}
+    c.RouteTemplate = "swagger/{documentName}/swagger.json";
+});
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseCors("AppCorsPolicy");
 
@@ -164,5 +167,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Redirigir la raíz a la interfaz interactiva de Swagger
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();

@@ -43,3 +43,8 @@ Thumbs.db
 *~
 *.swp
 *.tmp
+
+# Archivos de configuración local (no trackeados en git para evitar conflictos entre Windows/Linux/Docker)
+appsettings.Local.json
+appsettings.*.Local.json
+*.local.json
