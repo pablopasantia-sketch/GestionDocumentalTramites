@@ -1,0 +1,977 @@
+\documentclass[a4paper,12pt]{article}
+
+% ==============================================================================
+% PAQUETES DE CONFIGURACIÓN Y TIPOGRAFÍA
+% ==============================================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot,es-noindentfirst]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{geometry}
+\usepackage{pdflscape}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{microtype}
+\usepackage{titlesec}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds, shadows}
+\usepackage[most]{tcolorbox}
+\usepackage{xurl}
+\usepackage{hyperref}
+
+\newcommand{\dotnet}{\mbox{.NET}}
+
+% ==============================================================================
+% DIMENSIONES DE PÁGINA (GEOMETRY)
+% ==============================================================================
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm,
+    headheight=25pt,
+    footskip=1.5cm
+}
+
+% ==============================================================================
+% PALETA INSTITUCIONAL (DESIGN SYSTEM WAYKA / GACETA SUCRE)
+% ==============================================================================
+\definecolor{colorSucre}{HTML}{800000}       % Rojo Sucre / Garnet Primario
+\definecolor{colorSucreDark}{HTML}{550000}   % Rojo Sucre Oscuro
+\definecolor{colorAzul}{HTML}{1B365D}        % Azul Institucional / Navy Secundario
+\definecolor{colorAzulDark}{HTML}{132744}    % Azul Institucional Oscuro
+\definecolor{colorAzulLight}{HTML}{2A4F85}   % Azul Claro Acento
+\definecolor{colorGrisFondo}{HTML}{F4F6F9}   % Gris de Fondo / Superficie
+\definecolor{colorBorde}{HTML}{E2E8F0}       % Gris de Bordes / Separadores
+\definecolor{colorTexto}{HTML}{212529}       % Gris Oscuro para Texto Principal
+\definecolor{colorTextoMuted}{HTML}{6C757D}  % Gris Neutro Secundario
+\definecolor{colorExito}{HTML}{1E7E34}       % Verde Éxito
+\definecolor{colorExitoBg}{HTML}{E6F4EA}     % Verde Fondo
+\definecolor{colorAlerta}{HTML}{B71C1C}      % Rojo Alerta
+\definecolor{colorAlertaBg}{HTML}{FCE8E6}    % Rojo Fondo
+\definecolor{colorWarning}{HTML}{8D6500}     % Amarillo Advertencia
+\definecolor{colorWarningBg}{HTML}{FFF8E1}   % Amarillo Fondo
+\definecolor{colorInfo}{HTML}{006064}        % Cian Informativo
+\definecolor{colorInfoBg}{HTML}{E0F7FA}      % Cian Fondo
+
+% ==============================================================================
+% CONFIGURACIÓN DE HIPERVÍNCULOS (HYPERREF)
+% ==============================================================================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=colorSucre,
+    citecolor=colorAzul,
+    urlcolor=colorAzul,
+    pdftitle={Informe Técnico Sprint 2 - Sistema Wayka MVP},
+    pdfauthor={Pablo - Tech Lead \& Senior Software Architect},
+    pdfsubject={Motor de Workflow, Ventanilla Única, Base de Datos y Migración .NET 8}, % chktex 26
+    pdfkeywords={Wayka, Sprint 2, Workflow, Ventanilla Unica, Base de Datos, ERD, ASP.NET Core, .NET 8, SQL Server, Trazabilidad} % chktex 26
+}
+
+% ==============================================================================
+% CONFIGURACIÓN DE CÓDIGO FUENTE (LISTINGS)
+% ==============================================================================
+\lstdefinelanguage{json}{
+    basicstyle=\ttfamily\footnotesize\color{colorTexto},
+    numbers=left,
+    numberstyle=\tiny\color{colorTextoMuted},
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    breakatwhitespace=true,
+    frame=single,
+    rulecolor=\color{colorBorde},
+    backgroundcolor=\color{colorGrisFondo},
+    stringstyle=\color{colorSucre}\bfseries,
+    keywordstyle=\color{colorAzul}\bfseries,
+    commentstyle=\color{colorTextoMuted}\itshape,
+    morestring=[b]", % chktex 18
+    literate=
+      {á}{{\'{a}}}{1}
+      {é}{{\'{e}}}{1}
+      {í}{{\'{\i}}}{1}
+      {ó}{{\'{o}}}{1}
+      {ú}{{\'{u}}}{1}
+      {ñ}{{\~{n}}}{1}
+      {Á}{{\'{A}}}{1}
+      {É}{{\'{E}}}{1}
+      {Í}{{\'{I}}}{1}
+      {Ó}{{\'{O}}}{1}
+      {Ú}{{\'{U}}}{1}
+      {Ñ}{{\~{N}}}{1}
+      {:}{{{\color{colorAzulDark}{:}}}}{1}
+      {,}{{{\color{colorAzulDark}{,}}}}{1}
+      {\{}{{{\color{colorSucreDark}{\{}}}}{1}
+      {\}}{{{\color{colorSucreDark}{\}}}}}{1}
+      {[}{{{\color{colorSucreDark}{[}}}}{1} % chktex 9
+      {]}{{{\color{colorSucreDark}{]}}}}{1}, % chktex 9
+}
+
+\lstdefinestyle{sqlstyle}{
+    language=SQL,
+    basicstyle=\ttfamily\footnotesize\color{colorTexto},
+    numbers=left,
+    numberstyle=\tiny\color{colorTextoMuted},
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{colorBorde},
+    backgroundcolor=\color{colorGrisFondo},
+    keywordstyle=\color{colorAzul}\bfseries,
+    stringstyle=\color{colorSucre},
+    commentstyle=\color{colorTextoMuted}\itshape
+}
+
+% ==============================================================================
+% ENCABEZADOS Y PIES DE PÁGINA (FANCYHDR)
+% ==============================================================================
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.8pt}
+\renewcommand{\footrulewidth}{0.5pt}
+
+\renewcommand{\headrule}{\hbox to\headwidth{\color{colorSucre}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\footrule}{\hbox to\headwidth{\color{colorBorde}\leaders\hrule height \footrulewidth\hfill}}
+
+\fancyhead[L]{\small\bfseries\color{colorAzul}SISTEMA WAYKA MVP \textbar{} GESTIÓN DOCUMENTAL}
+\fancyfoot[L]{\footnotesize\color{colorTextoMuted}Gobierno Autónomo Municipal de Sucre -- Práctica Laboral SHC170}
+\fancyfoot[R]{\small\bfseries\color{colorAzul}Página \thepage}
+
+% ==============================================================================
+% FORMATO DE TÍTULOS Y SECCIONES (TITLESEC)
+% ==============================================================================
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{colorSucreDark}}
+  {\thesection.}{0.8em}{}[\color{colorSucre}\titlerule]
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\raggedright\color{colorAzul}}
+  {\thesubsection.}{0.6em}{}
+
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\color{colorTexto}}
+  {\thesubsubsection.}{0.5em}{}
+
+\setlength{\parskip}{0.6em}
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{2em}
+
+% ==============================================================================
+% DOCUMENTO PRINCIPAL
+% ==============================================================================
+\begin{document}
+\hypersetup{pageanchor=false}
+
+% ------------------------------------------------------------------------------
+% CARÁTULA / PORTADA INSTITUCIONAL
+% ------------------------------------------------------------------------------
+\begin{titlepage}
+    \begin{tikzpicture}[remember picture, overlay]
+        % Franja lateral decorativa izquierda institucional
+        \fill[colorSucre] (current page.north west) rectangle ($(current page.north west) + (1.2cm, -\paperheight)$);
+        \fill[colorAzul] ($(current page.north west) + (1.2cm, 0)$) rectangle ($(current page.north west) + (1.5cm, -\paperheight)$);
+        
+        % Barra decorativa superior de encabezado
+        \fill[colorGrisFondo] ($(current page.north west) + (1.5cm, 0)$) rectangle ($(current page.north east) + (0, -3.5cm)$);
+        \draw[colorBorde, line width=1.5pt] ($(current page.north west) + (1.5cm, -3.5cm)$) -- (current page.north east);
+    \end{tikzpicture}
+
+    \vspace{-1.5cm}
+    \begin{flushright}
+        {\large\bfseries\color{colorAzul}GOBIERNO AUTÓNOMO MUNICIPAL DE SUCRE}\\[0.15cm]
+        {\footnotesize\color{colorSucre}\textbf{PROYECTO WAYKA: SISTEMA DE GESTIÓN DOCUMENTAL Y WORKFLOW}}
+    \end{flushright}
+
+    \vspace{3.2cm}
+
+    \begin{center}
+        \begingroup
+            \color{colorSucreDark}
+            \Huge\textbf{INFORME TÉCNICO DE INGENIERÍA}\\[0.3cm]
+            \LARGE\textbf{SPRINT 2: MOTOR DE WORKFLOW, VENTANILLA ÚNICA, MODELO DE DATOS Y MIGRACIÓN \dotnet{} 8}
+        \endgroup
+
+        \vspace{0.7cm}
+        \noindent\makebox[\linewidth]{\color{colorAzul}\rule{0.75\linewidth}{2pt}}
+        \vspace{0.7cm}
+
+        {\large\textbf{\color{colorTexto}Evolución del Esquema Relacional, Flujo Transaccional de Trámites,}\\[0.15cm]
+        \textbf{\color{colorTexto}Derivación, Inmutabilidad, Catálogos DBNotasCMS, Portal Ciudadano}\\[0.15cm]
+        \textbf{\color{colorTexto}y Reingeniería a ASP\dotnet{} Core (\dotnet{} 8 LTS) con SQL Server}}
+
+        \vspace{2.2cm}
+
+        \begin{tcolorbox}[
+            colback=colorGrisFondo,
+            colframe=colorAzul,
+            arc=3mm,
+            width=0.92\linewidth,
+            boxrule=1.2pt
+        ]
+            \centering
+            \vspace{0.2cm}
+            \begin{tabularx}{\linewidth}{@{}lY@{}}
+                \textbf{\color{colorAzul}Producto:} & Sistema Wayka MVP (Versión 2.0.0-sprint2) \\
+                \textbf{\color{colorAzul}Fase / Sprint:} & Sprint 2 (Semanas 3 y 4 -- Workflow, Modelo Transaccional y \dotnet{} Core) \\
+                \textbf{\color{colorAzul}Período de Ejecución:} & 15 de Septiembre al 28 de Septiembre de 2026 \\
+                \textbf{\color{colorAzul}Asignatura:} & SHC170 -- Práctica Laboral \\
+                \textbf{\color{colorAzul}Motor de Datos:} & Microsoft SQL Server 2022/2025 \textbar{} MySQL 8.0+ \\
+                \textbf{\color{colorAzul}Estado de Ejecución:} & \textbf{\color{colorExito}Completada (100\% de Cumplimiento)}
+            \end{tabularx}
+            \vspace{0.2cm}
+        \end{tcolorbox}
+    \end{center}
+
+    \vfill
+
+    \begin{center}
+        \small\color{colorTextoMuted}
+        Sucre, Bolivia \textbar{} Gestión 2026
+    \end{center}
+\end{titlepage}
+\hypersetup{pageanchor=true}
+
+% ------------------------------------------------------------------------------
+% TABLA DE CONTENIDOS
+% ------------------------------------------------------------------------------
+\newpage
+\tableofcontents
+\newpage
+
+% ==============================================================================
+% SECCIÓN 1: RESUMEN EJECUTIVO
+% ==============================================================================
+\section{Resumen Ejecutivo}
+
+El presente documento constituye el Informe Técnico de Ingeniería correspondiente al cierre formal del \textbf{Sprint 2 (Motor de Workflow, Ventanilla Única, Evolución del Modelo de Datos y Reingeniería \dotnet{} 8)} del proyecto \textbf{Sistema Wayka MVP}, desarrollado para el Gobierno Autónomo Municipal de Sucre.
+
+Tras haber consolidado la fundación de identidad, autenticación y seguridad en el Sprint 1, los objetivos de este segundo ciclo se concentraron en construir el núcleo funcional operativo del sistema: la gestión y ciclo de vida de los trámites y correspondencias oficiales, la automatización del flujo de trabajo (workflow), la digitalización documental, el portal de transparencia cívica, la expansión exhaustiva del modelo de base de datos relacional y la migración estratégica del backend hacia el estándar corporativo institucional \textbf{ASP\dotnet{} Core (\dotnet{} 8 LTS)} sobre \textbf{Microsoft SQL Server}.
+
+\subsection{Hitos y Logros Principales del Sprint 2}
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Expansión del Modelo de Base de Datos (12 Migraciones DDL):} Incorporación de 7 nuevas entidades transaccionales e institucionales (\texttt{tipos\_proceso}, \texttt{correlativos}, \texttt{tramites}, \texttt{movimientos}, \texttt{adjuntos}, \texttt{parametros} y tablas de integración \texttt{TUnidad}, \texttt{TCargo}, \texttt{TEmpleados}).
+    \item \textbf{Módulo de Ventanilla Única (RF-03, RF-04, RF-08):} Implementación completa del registro y recepción de trámites externos y correspondencias internas, integrando generación atómica de correlativos secuenciales (\texttt{\{CODIGO\}-\{NRO\}/\{GESTION\}}), asignación de folios/fojas y emisión automática del comprobante institucional.
+    \item \textbf{Motor de Workflow y Derivación Transaccional (RF-05, RF-06, RF-07):} Construcción del Escritorio Virtual con bandejas operativas (\emph{Pendientes}, \emph{En Atención}, \emph{Derivados} y \emph{Concluidos}). Habilitación del mecanismo de derivación libre a cualquier funcionario u oficina orgánica con registro mandatorio de proveídos e instrucciones de despacho.
+    \item \textbf{Trazabilidad e Inmutabilidad Histórica (RF-09):} Diseño de la bitácora de movimientos donde cada evento registra de forma inalterable emisor, receptor, marca temporal atómica, proveído y estado de atención, impidiendo modificaciones retroactivas.
+    \item \textbf{Repositorio Documental y Gestión de Adjuntos (RF-08.1):} Módulo de subida y visualización de documentos digitales (PDFs, expedientes escaneados) con validación estricta de formato MIME, almacenamiento segmentado y control de integridad.
+    \item \textbf{Portal Ciudadano de Consulta Pública en Tiempo Real (RF-09.1):} Despliegue de la interfaz cívica pública (sin requerimiento de autenticación) para el seguimiento transparente del estado de trámites mediante número de Hoja de Ruta y CI, visualizando una línea de tiempo cronológica dinámica.
+    \item \textbf{Centro de Control y Supervisión Operativa (RF-10):} Panel exclusivo para el \emph{Administrador de Wayka}, incorporando capacidades de anulación justificada de trámites, reactivación de procesos concluidos por error, redirección de trámites en caso de ausencia de personal y reportería estadística.
+    \item \textbf{Reingeniería Integral a ASP\dotnet{} Core (\dotnet{} 8 LTS):} Reescritura y optimización de la capa backend en C\# 12 y Entity Framework Core 8, estructurando 11 controladores RESTful, arquitectura N-Tier, soporte multi-base de datos (SQL Server / MySQL), y consola interactiva de documentación Swagger / OpenAPI.
+\end{itemize}
+
+% ==============================================================================
+% SECCIÓN 2: EVOLUCIÓN Y TRANSFORMACIÓN DEL MODELO DE BASE DE DATOS
+% ==============================================================================
+\section{Evolución y Transformación del Modelo de Base de Datos}
+
+Una de las transformaciones más críticas ejecutadas entre el Sprint 1 y el Sprint 2 radicó en la expansión del esquema relacional: se transitó desde un modelo centrado únicamente en la identidad y el organigrama hacia un \textbf{modelo de dominio transaccional completo para la gestión documental y workflow institucional}.
+
+\subsection{Comparativa Estructural: Esquema Sprint 1 frente al Esquema Sprint 2}
+En la Tabla~\ref{tab:db_evolution} se detalla la evolución de tablas, responsabilidades y cambios aplicados en el motor de persistencia.
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\caption{Matriz de Evolución del Esquema Relacional de Base de Datos}
+\label{tab:db_evolution}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.6cm}>{\centering\arraybackslash}p{1.25cm}>{\centering\arraybackslash}p{1.45cm}>{\raggedright\arraybackslash}p{4.3cm}Y@{}}
+\toprule
+\textbf{Tabla / Entidad} & \textbf{Sprint 1} & \textbf{Sprint 2} & \textbf{Propósito / Rol en el Dominio} & \textbf{Cambios Aplicados en Sprint 2} \\
+\midrule
+\texttt{personas} & \color{colorExito}\checkmark & \color{colorExito}\checkmark & Padrón civil de ciudadanos y funcionarios. & Mapeo a T-SQL y vínculos con remitentes. \\
+\texttt{usuarios} & \color{colorExito}\checkmark & \color{colorExito}\checkmark & Cuentas de acceso y credenciales con BCrypt. & Vinculación como custodios de trámites. \\
+\texttt{roles} & \color{colorExito}\checkmark & \color{colorExito}\checkmark & Catálogo de roles del sistema (RBAC). & Mantenimiento de privilegios base. \\
+\texttt{usuario\_roles} & \color{colorExito}\checkmark & \color{colorExito}\checkmark & Asignación multi-rol por oficina municipal. & Soporte para derivación contextualizada. \\
+\texttt{ubicaciones\_org} & \color{colorExito}\checkmark & \color{colorExito}\checkmark & Organigrama jerárquico recursivo (\texttt{padre\_id}). & Integración con destinos de derivación. \\
+\midrule
+\texttt{tipos\_proceso} & \color{colorAlerta}$\times$ & \textbf{\color{colorExito}NUEVA} & Catálogo de tipos de trámite y plazos SLA. & Migración 006: Categorías y tiempos en horas. \\
+\texttt{correlativos} & \color{colorAlerta}$\times$ & \textbf{\color{colorExito}NUEVA} & Secuenciador atómico de Hojas de Ruta. & Migración 007: Concurrencia segura por gestión. \\
+\texttt{tramites} & \color{colorAlerta}$\times$ & \textbf{\color{colorExito}NUEVA} & Expediente principal y estado operativo. & Migración 008: Custodia, fojas y motivos. \\
+\texttt{movimientos} & \color{colorAlerta}$\times$ & \textbf{\color{colorExito}NUEVA} & Bitácora inmutable de trazabilidad y workflow. & Migración 009: Proveídos, origen y destino. \\
+\texttt{adjuntos} & \color{colorAlerta}$\times$ & \textbf{\color{colorExito}NUEVA} & Repositorio de documentos digitales (PDFs). & Migración 010: Hash SHA-256 y tamaño. \\
+\texttt{parametros} & \color{colorAlerta}$\times$ & \textbf{\color{colorExito}NUEVA} & Configuración global del sistema. & Migración 011: Pares clave-valor dinámicos. \\
+\texttt{TUnidad, TCargo, TEmpleados} & \color{colorAlerta}$\times$ & \textbf{\color{colorExito}NUEVAS} & Catálogo institucional municipal (DBNotasCMS). & Migración 012: Sincronización oficial GAMS. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Estrategia de Migración DDL y Dialecto T-SQL para SQL Server}
+Durante el Sprint 2 se implementó un motor automatizado de ejecución DDL, denominado \texttt{DatabaseManager.cs}, con soporte nativo para \textbf{Microsoft SQL Server (T-SQL)}. Sus principales capacidades son:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Tipos de Datos Optimizados:} Migración de tipos a \texttt{INT IDENTITY(1,1)}, \texttt{DATETIME2}, \texttt{NVARCHAR(MAX)} y \texttt{BIT}, asegurando máxima compatibilidad con Entity Framework Core 8.
+    \item \textbf{Integridad Referencial y Reglas de Borrado:} Configuración explícita de llaves foráneas con \texttt{ON DELETE CASCADE} para movimientos/adjuntos dependientes de un trámite, y \texttt{ON DELETE RESTRICT} en catálogos base para preservar la inmutabilidad histórica.
+    \item \textbf{Indexación de Alto Desempeño:} Creación de índices compuestos sobre campos de búsqueda frecuente (\texttt{tramite\_id + orden}, \texttt{numero\_correlativo + gestion}, \texttt{usuario\_actual\_id}, \texttt{estado} y \texttt{fecha\_creacion}).
+\end{itemize}
+
+\subsection{Diagrama Entidad-Relación Consolidado (ERD) en TikZ}
+En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa y detallada del Sistema Wayka tras la culminación del Sprint 2, estructurada en sus tres dominios funcionales: \textbf{Módulo de Identidad, Seguridad y Organigrama} (Fundación Sprint 1), \textbf{Módulo Transaccional de Workflow, Trámites y Adjuntos} (Sprint 2) y los \textbf{Catálogos Institucionales Oficiales de la Municipalidad de Sucre} (\texttt{TUnidad}, \texttt{TCargo}, \texttt{TEmpleados} de DBNotasCMS).
+
+\clearpage
+\begin{landscape}
+\begin{figure}[p]
+\centering
+\resizebox{0.96\linewidth}{!}{%
+\begin{tikzpicture}[
+    entity/.style={
+        rectangle, rounded corners=2pt, draw=colorAzulDark, line width=0.8pt,
+        fill=white, text=colorTexto, inner sep=0pt
+    },
+    entityNew/.style={
+        rectangle, rounded corners=2pt, draw=colorSucre, line width=1.2pt,
+        fill=colorAlertaBg!30, text=colorTexto, inner sep=0pt
+    },
+    rel/.style={-{Stealth[scale=0.9]}, line width=0.8pt, color=colorAzulDark},
+    relNew/.style={-{Stealth[scale=0.9]}, line width=0.9pt, color=colorSucreDark},
+    dependency/.style={-{Stealth[scale=0.9]}, dashed, line width=0.8pt, color=colorInfo},
+    card/.style={font=\scriptsize\bfseries, text=colorSucreDark, fill=white,
+        inner sep=1.5pt, rounded corners=1pt},
+    cardAzul/.style={font=\scriptsize\bfseries, text=colorAzulDark, fill=white,
+        inner sep=1.5pt, rounded corners=1pt},
+    relLabel/.style={font=\scriptsize\bfseries, text=colorInfo, fill=white,
+        inner sep=2pt, rounded corners=1pt},
+    domainLabel/.style={font=\small\bfseries, text=colorAzul, align=center}
+]
+
+    % =========================================================================
+    % ETIQUETAS DE DOMINIO SUPERIOR
+    % =========================================================================
+    \node[domainLabel] at (-8.5, 7.6) {IDENTIDAD Y SEGURIDAD\\(Fundación Sprint 1)};
+    \node[domainLabel, text=colorSucreDark] at (1.0, 7.6) {WORKFLOW, TRÁMITES Y GESTIÓN DOCUMENTAL\\(Dominio Transaccional Sprint 2)};
+    \node[domainLabel, text=colorInfo] at (10.5, 7.6) {CATÁLOGOS INSTITUCIONALES\\(Integración DBNotasCMS GAMS)};
+
+    % =========================================================================
+    % DOMINIO 1: IDENTIDAD Y ACCESO (SPRINT 1)
+    % =========================================================================
+    \node (personas) at (-10.5, 4.6) [entity] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{3.8cm}}
+            \centering\arraybackslash\textbf{personas} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{UQ} ci : VARCHAR(25)\\
+            \scriptsize\ttfamily nombres : VARCHAR(100)\\
+            \scriptsize\ttfamily apellido\_paterno : VARCHAR(100)\\
+            \scriptsize\ttfamily apellido\_materno : VARCHAR(100)\\
+            \scriptsize\ttfamily email : VARCHAR(120)\\
+            \scriptsize\ttfamily telefono : VARCHAR(30)\\
+            \scriptsize\ttfamily activo : BIT
+        \end{tabular}
+    };
+
+    \node (usuarios) at (-10.5, -0.6) [entity] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{3.8cm}}
+            \centering\arraybackslash\textbf{usuarios} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{FK} persona\_id : INT\\
+            \scriptsize\ttfamily \textbf{UQ} login : VARCHAR(50)\\
+            \scriptsize\ttfamily password\_hash : VARCHAR(255)\\
+            \scriptsize\ttfamily cargo : VARCHAR(120)\\
+            \scriptsize\ttfamily ultimo\_acceso : DATETIME2\\
+            \scriptsize\ttfamily activo : BIT
+        \end{tabular}
+    };
+
+    \node (roles) at (-10.5, -5.6) [entity] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{3.8cm}}
+            \centering\arraybackslash\textbf{roles} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{UQ} codigo : VARCHAR(50)\\
+            \scriptsize\ttfamily nombre : VARCHAR(100)\\
+            \scriptsize\ttfamily descripcion : NVARCHAR(MAX)\\
+            \scriptsize\ttfamily activo : BIT
+        \end{tabular}
+    };
+
+    \node (usuario_roles) at (-6.2, -5.6) [entity] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{4.0cm}}
+            \centering\arraybackslash\textbf{usuario\_roles} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{FK} usuario\_id : INT\\
+            \scriptsize\ttfamily \textbf{FK} rol\_id : INT\\
+            \scriptsize\ttfamily \textbf{FK} ubicacion\_org\_id : INT\\
+            \scriptsize\ttfamily nivel\_acceso : VARCHAR(30)\\
+            \scriptsize\ttfamily es\_principal : BIT\\
+            \scriptsize\ttfamily activo : BIT
+        \end{tabular}
+    };
+
+    \node (ubicaciones) at (-6.2, 4.6) [entity] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{4.0cm}}
+            \centering\arraybackslash\textbf{ubicaciones\_org} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{UQ} codigo : VARCHAR(50)\\
+            \scriptsize\ttfamily nombre : VARCHAR(150)\\
+            \scriptsize\ttfamily sigla : VARCHAR(30)\\
+            \scriptsize\ttfamily \textbf{FK} padre\_id : INT (NULL)\\
+            \scriptsize\ttfamily nivel : INT\\
+            \scriptsize\ttfamily activo : BIT
+        \end{tabular}
+    };
+
+    % =========================================================================
+    % DOMINIO 2: WORKFLOW, TRÁMITES Y ADJUNTOS (SPRINT 2)
+    % =========================================================================
+    \node (tipos) at (-1.5, 4.6) [entityNew] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{4.4cm}}
+            \centering\arraybackslash\textbf{tipos\_proceso} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{UQ} codigo : VARCHAR(20)\\
+            \scriptsize\ttfamily nombre : VARCHAR(150)\\
+            \scriptsize\ttfamily tipo\_categoria : VARCHAR(20)\\
+            \scriptsize\ttfamily \textbf{FK} ubicacion\_org\_id : INT\\
+            \scriptsize\ttfamily tiempo\_estimado\_horas : INT\\
+            \scriptsize\ttfamily activo : BIT
+        \end{tabular}
+    };
+
+    \node (tramites) at (-1.5, -0.6) [entityNew] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{4.8cm}}
+            \centering\arraybackslash\textbf{tramites} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{UQ} numero\_correlativo : VARCHAR(50)\\
+            \scriptsize\ttfamily \textbf{UQ} gestion : INT\\
+            \scriptsize\ttfamily \textbf{FK} tipo\_proceso\_id : INT\\
+            \scriptsize\ttfamily estado : VARCHAR(30)\\
+            \scriptsize\ttfamily remitente : VARCHAR(200)\\
+            \scriptsize\ttfamily referencia : NVARCHAR(MAX)\\
+            \scriptsize\ttfamily tipo\_corres : VARCHAR(20)\\
+            \scriptsize\ttfamily nro\_hojas, nro\_anexos : INT\\
+            \scriptsize\ttfamily \textbf{FK} creado\_por : INT\\
+            \scriptsize\ttfamily \textbf{FK} ubicacion\_org\_id : INT\\
+            \scriptsize\ttfamily \textbf{FK} usuario\_actual\_id : INT (NULL)\\
+            \scriptsize\ttfamily \textbf{FK} ubicacion\_actual\_id : INT (NULL)\\
+            \scriptsize\ttfamily fecha\_creacion : DATETIME2\\
+            \scriptsize\ttfamily fecha\_conclusion : DATETIME2 (NULL)\\
+            \scriptsize\ttfamily activo : BIT
+        \end{tabular}
+    };
+
+    \node (correlativos) at (-1.5, -5.6) [entityNew] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{4.4cm}}
+            \centering\arraybackslash\textbf{correlativos} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{UQ} tipo\_codigo : VARCHAR(20)\\
+            \scriptsize\ttfamily \textbf{UQ} gestion : INT\\
+            \scriptsize\ttfamily ultimo\_numero : INT\\
+            \scriptsize\ttfamily prefijo : VARCHAR(10)\\
+            \scriptsize\ttfamily formato : VARCHAR(50)
+        \end{tabular}
+    };
+
+    \node (movimientos) at (4.5, -0.6) [entityNew] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{4.7cm}}
+            \centering\arraybackslash\textbf{movimientos} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{FK} tramite\_id : INT\\
+            \scriptsize\ttfamily orden : INT\\
+            \scriptsize\ttfamily tipo\_movimiento : VARCHAR(30)\\
+            \scriptsize\ttfamily \textbf{FK} usuario\_origen\_id : INT\\
+            \scriptsize\ttfamily \textbf{FK} ubicacion\_origen\_id : INT\\
+            \scriptsize\ttfamily \textbf{FK} usuario\_destino\_id : INT (NULL)\\
+            \scriptsize\ttfamily \textbf{FK} ubicacion\_destino\_id : INT (NULL)\\
+            \scriptsize\ttfamily estado\_movimiento : VARCHAR(50)\\
+            \scriptsize\ttfamily proveido : NVARCHAR(MAX)\\
+            \scriptsize\ttfamily fecha\_envio, fecha\_recepcion\\
+            \scriptsize\ttfamily created\_at : DATETIME2
+        \end{tabular}
+    };
+
+    \node (adjuntos) at (4.5, -5.6) [entityNew] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{4.7cm}}
+            \centering\arraybackslash\textbf{adjuntos} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{FK} tramite\_id : INT\\
+            \scriptsize\ttfamily \textbf{FK} movimiento\_id : INT (NULL)\\
+            \scriptsize\ttfamily nombre\_original : VARCHAR(255)\\
+            \scriptsize\ttfamily ruta\_archivo : VARCHAR(500)\\
+            \scriptsize\ttfamily tipo\_mime : VARCHAR(100)\\
+            \scriptsize\ttfamily tamano\_bytes : BIGINT\\
+            \scriptsize\ttfamily \textbf{FK} subido\_por : INT\\
+            \scriptsize\ttfamily created\_at : DATETIME2
+        \end{tabular}
+    };
+
+    \node (parametros) at (4.5, 4.6) [entityNew] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{4.4cm}}
+            \centering\arraybackslash\textbf{parametros} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
+            \scriptsize\ttfamily \textbf{UQ} clave : VARCHAR(50)\\
+            \scriptsize\ttfamily valor : NVARCHAR(MAX)\\
+            \scriptsize\ttfamily descripcion : VARCHAR(255)\\
+            \scriptsize\ttfamily activo : BIT
+        \end{tabular}
+    };
+
+    % =========================================================================
+    % DOMINIO 3: CATÁLOGOS INSTITUCIONALES (DBNOTASCMS - SEPARADAS)
+    % =========================================================================
+    \node (tunidad) at (10.5, 4.6) [entityNew] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{4.0cm}}
+            \centering\arraybackslash\textbf{TUnidad (DBNotasCMS)} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} CodU : SMALLINT\\
+            \scriptsize\ttfamily NombU : VARCHAR(50)\\
+            \scriptsize\ttfamily Activo : BIT
+        \end{tabular}
+    };
+
+    \node (tcargo) at (10.5, -0.6) [entityNew] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{4.0cm}}
+            \centering\arraybackslash\textbf{TCargo (DBNotasCMS)} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} CodCargo : SMALLINT\\
+            \scriptsize\ttfamily NombreC : VARCHAR(50)\\
+            \scriptsize\ttfamily \textbf{FK} CodU : SMALLINT
+        \end{tabular}
+    };
+
+    \node (templeados) at (10.5, -5.6) [entityNew] {
+        \begin{tabular}{>{\raggedright\arraybackslash}p{4.0cm}}
+            \centering\arraybackslash\textbf{TEmpleados (DBNotasCMS)} \\
+            \hline
+            \scriptsize\ttfamily \textbf{PK} CI : INT\\
+            \scriptsize\ttfamily Nombres : VARCHAR(50)\\
+            \scriptsize\ttfamily Apellidos : VARCHAR(50)\\
+            \scriptsize\ttfamily Direccion : VARCHAR(50)\\
+            \scriptsize\ttfamily Cel : INT\\
+            \scriptsize\ttfamily Email : VARCHAR(50)\\
+            \scriptsize\ttfamily Activo : BIT
+        \end{tabular}
+    };
+
+    % =========================================================================
+    % CONEXIONES Y CARDINALIDADES
+    % =========================================================================
+    % Identidad
+    \draw[rel] (personas.south) -- (usuarios.north)
+        node[cardAzul, pos=0.2, right] {1}
+        node[cardAzul, pos=0.8, right] {0..1};
+
+    \draw[rel] (usuarios.south) -- ++(0,-0.6) -| (usuario_roles.north)
+        node[cardAzul, pos=0.1, right] {1}
+        node[cardAzul, near end, right] {N};
+
+    \draw[rel] (roles.east) -- (usuario_roles.west)
+        node[cardAzul, pos=0.2, above] {1}
+        node[cardAzul, pos=0.8, above] {N};
+
+    \draw[rel] (ubicaciones.south) -- (usuario_roles.north)
+        node[cardAzul, pos=0.15, right] {1}
+        node[cardAzul, pos=0.85, right] {N};
+
+    \draw[rel] (ubicaciones.north) to[out=60,in=120,distance=1.2cm] 
+        node[cardAzul, above] {padre\_id (1 : N)} (ubicaciones.north);
+
+    % Tipos y Ubicaciones hacia Trámites
+    \draw[relNew] (ubicaciones.east) -- (tipos.west)
+        node[card, pos=0.2, above] {1}
+        node[card, pos=0.8, above] {N};
+
+    \draw[relNew] (tipos.south) -- (tramites.north)
+        node[card, pos=0.2, right] {1}
+        node[card, pos=0.8, right] {N};
+
+    \draw[rel] (usuarios.east) -- (tramites.west)
+        node[cardAzul, pos=0.2, above] {1}
+        node[cardAzul, pos=0.8, above] {N};
+
+    % Trámites hacia Movimientos y Adjuntos
+    \draw[relNew] (tramites.east) -- (movimientos.west)
+        node[card, pos=0.2, above] {1}
+        node[card, pos=0.8, above] {1..N};
+
+    \draw[relNew] (movimientos.south) -- (adjuntos.north)
+        node[card, pos=0.2, right] {1}
+        node[card, pos=0.8, right] {0..N};
+
+    \draw[relNew] (tramites.south) -- ++(0,-0.8) -| (adjuntos.south west)
+        node[card, pos=0.08, left] {1}
+        node[card, near end, below] {0..N};
+
+    % Correlativos (Generador de Hojas de Ruta)
+    \draw[dependency] (correlativos.north) -- (tramites.south)
+        node[relLabel, midway, right=2pt] {genera correlativo atómico};
+
+    % Relaciones DBNotasCMS Institucionales
+    \draw[relNew] (tunidad.south) -- (tcargo.north)
+        node[card, pos=0.2, right] {1}
+        node[card, pos=0.8, right] {N};
+
+    \draw[dependency] (tcargo.south) -- (templeados.north)
+        node[relLabel, midway, right=2pt] {asigna cargo};
+
+    \draw[dependency] (templeados.west) -- (usuarios.south east)
+        node[relLabel, midway, above=2pt] {sincroniza funcionarios};
+
+    % =========================================================================
+    % LEYENDA TÉCNICA
+    % =========================================================================
+    \node[draw=colorBorde, fill=white, rounded corners=2pt, font=\scriptsize, align=left, inner sep=4pt] at (7.8, -8.0) {
+        \textbf{Convenciones del Diagrama ERD:}\\
+        \tikz[baseline=-0.5ex]\draw[rel, line width=0.8pt] (0,0)--(0.5,0); Borde Azul: Entidades base de Identidad y Seguridad (Sprint 1).\\
+        \tikz[baseline=-0.5ex]\draw[relNew, line width=1.1pt] (0,0)--(0.5,0); Borde Granate / Fondo: Entidades transaccionales y catálogos creados en el Sprint 2.\\
+        \tikz[baseline=-0.5ex]\draw[dependency] (0,0)--(0.5,0); Línea Discontinua: Dependencia lógica o sincronización atómica institucional.};
+
+\end{tikzpicture}%
+}
+\caption{Diagrama Entidad-Relación Consolidado (ERD) del Sistema Wayka tras la culminación del Sprint 2.}
+\label{fig:erd_sprint2}
+\end{figure}
+\end{landscape}
+\clearpage
+
+% ==============================================================================
+% SECCIÓN 3: ARQUITECTURA DEL MOTOR DE WORKFLOW Y CICLO DE VIDA DEL TRÁMITE
+% ==============================================================================
+\section{Arquitectura del Motor de Workflow y Ciclo de Vida del Trámite}
+
+El motor de workflow de Wayka desacopla la lógica de negocio de la interfaz de usuario, garantizando consistencia transaccional y cumplimiento riguroso de la normativa administrativa pública.
+
+\subsection{Máquina de Estados del Trámite}
+Todo expediente dentro del sistema transita por una secuencia controlada de estados finitos que gobiernan su disponibilidad y los permisos operativos de los funcionarios involucrados:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item \textbf{CREADO / INICIADO:} El trámite es ingresado en Ventanilla Única o generado internamente. Se reserva el número de Hoja de Ruta y se emite el primer registro en la bitácora de movimientos (Orden 1).
+    \item \textbf{PENDIENTE / DERIVADO:} El trámite ha sido despachado hacia un nuevo destinatario (funcionario u oficina orgánica). Se encuentra en la bandeja de entrada del receptor a la espera de ser aceptado.
+    \item \textbf{EN\_ATENCION:} El funcionario receptor abre el trámite y asume la custodia del expediente físico/digital para su análisis, elaboración de informes o proveídos.
+    \item \textbf{CONCLUIDO / ARCHIVADO:} Se ha emitido la resolución final o respuesta formal al ciudadano. El trámite cesa su circulación activa pero permanece accesible para consulta y auditoría.
+    \item \textbf{ANULADO:} Estado excepcional activado exclusivamente por el Administrador de Wayka con fundamentación legal obligatoria, revocando la validez del trámite.
+    \item \textbf{BLOQUEADO:} Medida preventiva temporal accionada por Ventanilla Única para detener la circulación ante inconsistencias subsanables.
+\end{enumerate}
+
+\subsection{Diagrama de Transición de Estados (TikZ)}
+En la Figura~\ref{fig:state_machine} se esquematizan las transiciones válidas del ciclo de vida de un trámite en el sistema Wayka.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    state/.style={
+        rectangle, rounded corners=6pt, draw=colorAzulDark, line width=1pt,
+        fill=colorGrisFondo, text=colorTexto, font=\footnotesize\bfseries,
+        minimum width=3.5cm, minimum height=1.05cm, align=center,
+        drop shadow={opacity=0.15, shadow xshift=2pt, shadow yshift=-2pt}
+    },
+    stateFinal/.style={
+        rectangle, rounded corners=6pt, draw=colorSucre, line width=1.4pt,
+        fill=colorAlertaBg, text=colorSucreDark, font=\footnotesize\bfseries,
+        minimum width=3.5cm, minimum height=1.05cm, align=center,
+        drop shadow={opacity=0.2}
+    },
+    stateSuccess/.style={
+        rectangle, rounded corners=6pt, draw=colorExito, line width=1.4pt,
+        fill=colorExitoBg, text=colorExito, font=\footnotesize\bfseries,
+        minimum width=3.5cm, minimum height=1.05cm, align=center,
+        drop shadow={opacity=0.2}
+    },
+    trans/.style={
+        -{Stealth[scale=1.05]}, line width=1pt, color=colorAzul
+    },
+    transLabel/.style={
+        font=\scriptsize\bfseries, text=colorAzulDark, align=center,
+        fill=white, fill opacity=0.92, text opacity=1,
+        inner sep=2.5pt, rounded corners=2pt
+    }
+]
+
+    % NODOS
+    \node (inicio) at (0, 0.7) [circle, fill=colorSucre, inner sep=4pt] {};
+    \node (creado) at (0, -0.5) [state] {CREADO\\(Ventanilla Única)};
+    \node (pendiente) at (0, -2.6) [state] {PENDIENTE\\(Bandeja de Entrada)};
+    \node (atencion) at (0, -4.7) [state] {EN\_ATENCIÓN\\(Custodia del Funcionario)};
+    \node (concluido) at (0, -6.8) [stateSuccess] {CONCLUIDO\\(Archivado / Resuelto)};
+    \node (bloqueado) at (-5.7, -0.5) [state] {BLOQUEADO\\(Estado Preventivo)};
+    \node (anulado) at (5.3, -3.65) [stateFinal] {ANULADO\\(Supervisión Administrativa)};
+
+    % TRANSICIONES
+    \draw[trans] (inicio) -- node[transLabel, left=4pt] {Registro} (creado);
+    \draw[trans] (creado) -- node[transLabel, right=5pt] {Derivación inicial} (pendiente);
+    \draw[trans] (pendiente) -- node[transLabel, right=4pt] {Recepción\\y apertura} (atencion);
+    \draw[trans] (atencion) -- node[transLabel, right=5pt] {Finalizar trámite} (concluido);
+
+    \draw[trans] (atencion.west) to[out=180, in=180, looseness=1.05]
+        node[transLabel, left=4pt] {Derivar a otro\\funcionario} (pendiente.west);
+
+    \draw[trans] (creado.west) to[bend left=12]
+        node[transLabel, above=3pt] {Bloquear} (bloqueado.east);
+    \draw[trans] (bloqueado.east) to[bend left=12]
+        node[transLabel, below=3pt] {Desbloquear} (creado.west);
+
+    \draw[trans, dashed, color=colorAlerta] (pendiente.east) -- ++(1.05,0)
+        |- (anulado.north west);
+    \draw[trans, dashed, color=colorAlerta] (atencion.east) -- ++(1.05,0)
+        |- (anulado.south west);
+    \node[transLabel, text=colorAlerta] at (3.45, -2.35) {Anular (Admin)};
+    \node[transLabel, text=colorAlerta] at (3.45, -4.95) {Anular (Admin)};
+
+    \draw[trans, dashed, color=colorInfo] (concluido.west) to[out=180, in=180, looseness=1.05]
+        node[transLabel, left=4pt, text=colorInfo] {Reactivar\\(Admin)} (atencion.west);
+
+\end{tikzpicture}
+\caption{Diagrama de Transición de Estados del Ciclo de Vida del Trámite.}
+\label{fig:state_machine}
+\end{figure}
+
+\subsection{Generación Atómica de Correlativos y Hojas de Ruta}
+Para prevenir condiciones de carrera (\emph{Race Conditions}) y duplicación de números en concurrencia masiva (múltiples ventanillas registrando simultáneamente), el servicio \texttt{CorrelativoService} implementa transacciones atómicas con bloqueo pesimista a nivel de fila (\texttt{SELECT \ldots{} FOR UPDATE}):
+
+\begin{equation}
+\text{HojaDeRuta} = \text{PrefijoTipo} \mathbin{\Vert} \texttt{-} \mathbin{\Vert} \text{SecuencialFormateado} \mathbin{\Vert} \texttt{/} \mathbin{\Vert} \text{GestiónActual}
+\end{equation}
+
+Ejemplo emitido: \textbf{\texttt{EXT-00042/2026}} (Trámite Externo) o \textbf{\texttt{INT-00108/2026}} (Correspondencia Interna).
+
+% ==============================================================================
+% SECCIÓN 4: MÓDULOS FUNCIONALES DESARROLLADOS
+% ==============================================================================
+\section{Módulos Funcionales Desarrollados (Frontend \& Backend)}
+
+\subsection{Módulo de Ventanilla Única y Registro Institucional}
+El módulo de Ventanilla Única (\texttt{VentanillaUnica.jsx} y \texttt{TramitesController.cs}) concentra las operaciones de ingreso de documentación:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Formulario Dinámico de Registro:} Captura de datos del remitente civil o institucional, tipo de proceso configurado con tiempos máximos de atención (SLA), asunto/referencia, número de fojas y anexos físicos.
+    \item \textbf{Emisión Inmediata de Comprobante:} Generación de credenciales cívicas compuestas por el número de Hoja de Ruta y el CI del solicitante para su posterior rastreo.
+    \item \textbf{Carga Inicial de Adjuntos Digitales:} Posibilidad de anexar la solicitud escaneada en formato PDF desde el primer instante.
+\end{itemize}
+
+\subsection{Escritorio Virtual y Bandejas del Funcionario}
+El escritorio virtual constituye el entorno de trabajo diario de los servidores públicos:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Bandeja de Entrada (Pendientes):} Lista priorizada de trámites recibidos con alertas visuales según el tiempo transcurrido frente al tiempo estimado (indicadores en verde, amarillo y rojo).
+    \item \textbf{Atención y Despacho con Proveído:} Al derivar un trámite, el funcionario selecciona la unidad y funcionario de destino, ingresando obligatoriamente la instrucción técnica o proveído administrativo, por ejemplo: \emph{``Para su revisión legal y emisión de informe''}.
+    \item \textbf{Bandeja de Derivados (En Tránsito):} Permite al funcionario emisor supervisar si el trámite derivado ya fue recepcionado o sigue pendiente de apertura.
+\end{itemize}
+
+\subsection{Portal Ciudadano de Transparencia (Consulta Pública)}
+Diseñado para eliminar filas y llamadas de consulta en dependencias municipales:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Acceso Sin Login:} Cualquier ciudadano puede ingresar desde la página principal (\texttt{Home.jsx}) con su número de Hoja de Ruta.
+    \item \textbf{Línea de Tiempo Visual:} Representación gráfica de cada movimiento del trámite, indicando qué oficina lo tiene en custodia, la fecha de recepción y el estado actual, omitiendo datos sensibles internos por seguridad y privacidad.
+\end{itemize}
+
+\subsection{Centro de Supervisión del Administrador de Wayka}
+Proporciona al administrador funcional (\texttt{AdminTramitesHub.jsx}) herramientas de control avanzado:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Anulación Controlada:} Revocación formal de trámites con registro de motivo de anulación.
+    \item \textbf{Redirección de Trámites:} Capacidad de reasignar expedientes asignados a funcionarios con baja médica o licencia.
+    \item \textbf{Estadísticas Ejecutivas:} Métricas de trámites atendidos, en mora, en flujo y concluidos por gestión.
+\end{itemize}
+
+% ==============================================================================
+% SECCIÓN 5: REINGENIERÍA Y MIGRACIÓN TECNOLÓGICA A .NET 8 LTS
+% ==============================================================================
+\section{Reingeniería y Migración Tecnológica a ASP\dotnet{} Core (\dotnet{} 8 LTS)}
+
+Para responder a la infraestructura oficial del Gobierno Autónomo Municipal de Sucre, durante el Sprint 2 se realizó la reingeniería y migración del backend desde el prototipo en Node.js hacia \textbf{ASP\dotnet{} Core Web API (\dotnet{} 8 LTS)} con \textbf{C\# 12}.
+
+\subsection{Estructura Arquitectónica N-Tier en C\#}
+El backend migrado en \texttt{backend-dotnet/} se compone de las siguientes capas:
+
+\begin{figure}[H]
+\centering
+\begin{tcolorbox}[
+    colback=colorGrisFondo,
+    colframe=colorAzul,
+    arc=2mm,
+    width=\linewidth,
+    title={\small\bfseries\color{white}Topología Arquitectónica del Backend \dotnet{} 8 LTS}
+]
+\small\ttfamily
+GestionDocumental.Api/\\
+\textbar-- Program.cs \dotfill \textnormal{Configuración de DI, Middlewares, CORS, JWT y Swagger}\\
+\textbar-- Controllers/ \dotfill \textnormal{11 Controladores RESTful tipados (Auth, Trámites, Personas, etc.)}\\
+\textbar-- Services/ \dotfill \textnormal{Lógica de Negocio, Criptografía BCrypt, Generador de Correlativos}\\
+\textbar-- Data/ \dotfill \textnormal{AppDbContext (Entity Framework Core) y DatabaseManager de Migraciones}\\
+\textbar-- Entities/ \dotfill \textnormal{11 Clases de Dominio POCO mapeadas con llaves y relaciones}\\
+\textquoteleft-- DTOs/ \dotfill \textnormal{Objetos de Transferencia de Datos de Entrada y Salida (API Contracts)}
+\end{tcolorbox}
+\end{figure}
+
+\subsection{Ventajas Técnicas y Rendimiento Obtenido}
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Tipado Fuerte y Detección Temprana de Errores:} C\# 12 previene errores en tiempo de compilación frente al tipado dinámico de JavaScript.
+    \item \textbf{Inyección de Dependencias Nativa (IoC):} Registro de servicios con ciclos de vida adecuados (\texttt{AddScoped} para servicios transaccionales y DbContext, \texttt{AddTransient} para utilitarios).
+    \item \textbf{Compatibilidad Total con el Frontend React:} Se respetaron al 100\% los contratos JSON \texttt{\{ success, message, data \}}, permitiendo que la interfaz gráfica conmute entre backends de forma transparente.
+    \item \textbf{Soporte Multi-Base de Datos:} Configuración desacoplada compatible con Microsoft SQL Server y MySQL 8 mediante Entity Framework Core.
+\end{itemize}
+
+% ==============================================================================
+% SECCIÓN 6: ESPECIFICACIÓN DE LA API (ENDPOINTS DEL SPRINT 2)
+% ==============================================================================
+\section{Especificación de la API (Endpoints Desarrollados en el Sprint 2)}
+
+En la Tabla~\ref{tab:endpoints_sprint2} se presenta el compendio de rutas añadidas y perfeccionadas durante el Sprint 2 en el backend \dotnet{} 8.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Endpoints Desarrollados y Expuestos en el Sprint 2}
+\label{tab:endpoints_sprint2}
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}p{5.5cm}Y>{\raggedright\arraybackslash}p{2.8cm}@{}}
+\toprule
+\textbf{Método} & \textbf{Ruta de Acceso (Path)} & \textbf{Descripción Técnica} & \textbf{Autorización} \\
+\midrule
+\texttt{POST} & \nolinkurl{/api/tramites} & Registro de nuevo trámite / emisión Hoja de Ruta. & Ventanilla / Admin \\
+\texttt{GET} & \nolinkurl{/api/tramites} & Listado general con paginación y filtros. & Token Requerido \\
+\texttt{GET} & \nolinkurl{/api/tramites/{id}} & Detalle completo de trámite y bitácora. & Token Requerido \\
+\texttt{POST} & \nolinkurl{/api/tramites/{id}/derivar} & Derivación transaccional con proveído. & Funcionario / VU \\
+\texttt{POST} & \nolinkurl{/api/tramites/{id}/anular} & Anulación justificada de expediente. & Admin Wayka \\
+\texttt{POST} & \nolinkurl{/api/tramites/{id}/concluir} & Conclusión y archivo administrativo. & Funcionario / VU \\
+\texttt{GET} & \nolinkurl{/api/tramites/public/consulta} & Consulta ciudadana de Hoja de Ruta. & Acceso Público \\
+\texttt{GET} & \nolinkurl{/api/tramites/stats} & Métricas estadísticas por gestión. & Admin / Supervisión \\
+\texttt{POST} & \nolinkurl{/api/adjuntos/upload} & Carga multipart de archivo PDF. & Token Requerido \\
+\texttt{GET} & \nolinkurl{/api/adjuntos/download/{id}} & Descarga segura / streaming de documento. & Token Requerido \\
+\texttt{GET} & \nolinkurl{/api/tipos-proceso} & Catálogo de tipos de trámite y plazos. & Público / Autenticado \\
+\texttt{GET} & \nolinkurl{/api/institucional/resumen} & Catálogo de unidades, cargos y empleados. & Token Requerido \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Ejemplos de Cargas Útiles (Payloads JSON)}
+
+\subsubsection{1. Derivación de Trámite con Proveído}
+\textbf{Endpoint:} \texttt{POST} \nolinkurl{/api/tramites/{id}/derivar}
+\begin{lstlisting}[language=json]
+// Solicitud (Request Payload)
+{
+  "destinatarioUsuarioId": 6,
+  "destinatarioUbicacionOrgId": 4,
+  "proveido": "Remito expediente adjunto para su revisión técnica y emisión de informe conforme al reglamento interno.",
+  "fojas": 15,
+  "anexos": "1 CD con planos digitales"
+}
+
+// Respuesta Exitosa (Response 200 OK)
+{
+  "success": true,
+  "message": "Trámite derivado exitosamente al destinatario",
+  "data": {
+    "tramiteId": 12,
+    "numeroHojaRuta": "EXT-00012/2026",
+    "nuevoEstado": "PENDIENTE",
+    "movimientoId": 35,
+    "ordenSecuencial": 2,
+    "fechaDerivacion": "2026-09-22T15:30:00Z"
+  }
+}
+\end{lstlisting}
+
+\subsubsection{2. Consulta Ciudadana Pública}
+\textbf{Endpoint:} \texttt{GET} \nolinkurl{/api/tramites/public/consulta?nro=EXT-00012/2026}
+\begin{lstlisting}[language=json]
+// Respuesta Exitosa (Response 200 OK - Datos Cívicos)
+{
+  "success": true,
+  "data": {
+    "numeroHojaRuta": "EXT-00012/2026",
+    "tipoProceso": "Solicitud de Certificación Catastral",
+    "referencia": "Aprobación de plano de lote en Distrito 3",
+    "estadoActual": "EN_ATENCION",
+    "ubicacionActual": "Dirección de Catastro y Regularización Urbana",
+    "fechaIngreso": "2026-09-20T08:45:00",
+    "lineaDeTiempo": [
+      {
+        "orden": 1,
+        "fecha": "2026-09-20T08:45:00",
+        "accion": "RECEPCIÓN",
+        "oficina": "Ventanilla Única de Trámites",
+        "estado": "COMPLETADO"
+      },
+      {
+        "orden": 2,
+        "fecha": "2026-09-21T10:15:00",
+        "accion": "EN ATENCIÓN TÉCNICA",
+        "oficina": "Dirección de Catastro",
+        "estado": "EN_CURSO"
+      }
+    ]
+  }
+}
+\end{lstlisting}
+
+% ==============================================================================
+% SECCIÓN 7: PRUEBAS Y VALIDACIÓN (QUALITY ASSURANCE)
+% ==============================================================================
+\section{Pruebas y Validación (Quality Assurance)}
+
+La validación del Sprint 2 se llevó a cabo combinando pruebas de integración automatizadas, validación de concurrencia de correlativos y pruebas de extremo a extremo (E2E) conectando el frontend React con la API en \dotnet{} 8.
+
+\subsection{Resultados del Banco de Pruebas Funcionales y de Integración}
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Matriz de Pruebas de Integración y Reglas de Negocio -- Sprint 2}
+\label{tab:test_sprint2}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.2cm}Y>{\raggedright\arraybackslash}p{2.8cm}>{\centering\arraybackslash}p{2.2cm}@{}}
+\toprule
+\textbf{Componente Evaluado} & \textbf{Caso de Prueba / Escenario} & \textbf{Resultado} & \textbf{Estado} \\
+\midrule
+\nolinkurl{CorrelativoService} & Solicitudes concurrentes simultáneas de Hojas de Ruta. & Cero duplicaciones & \textbf{\color{colorExito}Aprobado (100\%)} \\
+\nolinkurl{Tramite.Creacion} & Registro de trámite con cálculo de SLA y movimiento \#1. & Movimiento generado & \textbf{\color{colorExito}Aprobado (100\%)} \\
+\nolinkurl{Workflow.Derivacion} & Derivación transaccional con cambio de custodio y proveído. & Estado actualizado & \textbf{\color{colorExito}Aprobado (100\%)} \\
+\nolinkurl{Workflow.Inmutabilidad} & Intento de modificación directa de historial de movimientos. & Operación bloqueada & \textbf{\color{colorExito}Aprobado (100\%)} \\
+\nolinkurl{Adjuntos.Upload} & Subida de archivo PDF con validación de extensión y tamaño. & Archivo almacenado & \textbf{\color{colorExito}Aprobado (100\%)} \\
+\nolinkurl{Adjuntos.Seguridad} & Intento de subida de archivo ejecutable (\texttt{.exe} / \texttt{.sh}). & Rechazo 400 Bad Request & \textbf{\color{colorExito}Aprobado (100\%)} \\
+\nolinkurl{ConsultaPublica} & Consulta de trazabilidad sin token de autenticación. & Datos públicos 200 OK & \textbf{\color{colorExito}Aprobado (100\%)} \\
+\nolinkurl{Admin.Anulacion} & Anulación de trámite por Administrador con justificación. & Anulado formalmente & \textbf{\color{colorExito}Aprobado (100\%)} \\
+\nolinkurl{Admin.Seguridad} & Intento de anulación por parte de un Funcionario estándar. & Rechazo 403 Forbidden & \textbf{\color{colorExito}Aprobado (100\%)} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ==============================================================================
+% SECCIÓN 8: BALANCE DE CUMPLIMIENTO Y CIERRE DEL SPRINT 2
+% ==============================================================================
+\section{Balance de Cumplimiento y Cierre del Sprint 2}
+
+\subsection{Tabla de Entregables Planificados vs. Ejecutados}
+El Sprint 2 ha cerrado formalmente con un \textbf{100\% de cumplimiento} técnico y funcional sobre los requerimientos establecidos.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Balance de Cumplimiento del Sprint 2 (15 Sep -- 28 Sep 2026)}
+\label{tab:balance_sprint2}
+\begin{tabularx}{\linewidth}{@{}Ycc>{\raggedright\arraybackslash}p{3.8cm}@{}}
+\toprule
+\textbf{Objetivo Técnico / Tarea del Sprint} & \textbf{Planificado} & \textbf{Completado} & \textbf{Observaciones / Estado} \\
+\midrule
+Módulo de Ventanilla Única y Registro de Trámites & 100\% & 100\% & Hojas de ruta y comprobantes funcionales. \\
+Motor de Workflow, Escritorio Virtual y Proveídos & 100\% & 100\% & Derivación libre con bitácora inmutable. \\
+Módulo de Adjuntos y Repositorio Digital (PDFs) & 100\% & 100\% & Carga y visualización integrada. \\
+Portal Ciudadano de Consulta Pública en Tiempo Real & 100\% & 100\% & Trazabilidad sin login operativa. \\
+Centro de Supervisión y Control (Admin Wayka) & 100\% & 100\% & Anulación, reactivación y reasignación. \\
+Reingeniería integral a ASP\dotnet{} Core (\dotnet{} 8 LTS) & 100\% & 100\% & 11 Controladores y EF Core operativos. \\
+Expansión de Esquema de Base de Datos (12 Migraciones) & 100\% & 100\% & Dominio transaccional y DBNotasCMS. \\
+Documentación Swagger / OpenAPI y Pruebas E2E & 100\% & 100\% & Consola interactiva en \texttt{/swagger}. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Conclusiones y Proyección para el Sprint 3}
+Con la culminación exitosa del Sprint 2, el Sistema Wayka MVP cuenta con su núcleo transaccional completo, seguro y respaldado por una arquitectura corporativa moderna en \dotnet{} 8 y React 19 sobre Microsoft SQL Server. El próximo \textbf{Sprint 3 (Consolidación y Despliegue)} abordará el módulo avanzado de reportes institucionales, generación de estadísticas consolidadas de mora y despacho, optimizaciones de rendimiento y la preparación para el despliegue en el entorno de producción de la Municipalidad de Sucre.
+
+\end{document}
