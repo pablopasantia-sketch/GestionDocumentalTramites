@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Data;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using GestionDocumental.Api.Data;
 using GestionDocumental.Api.DTOs.Common;
 using GestionDocumental.Api.DTOs.Personas;
-using GestionDocumental.Api.Entities;
 
 namespace GestionDocumental.Api.Controllers
 {
@@ -17,61 +16,51 @@ namespace GestionDocumental.Api.Controllers
     [Route("api/[controller]")]
     public class PersonasController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IStoredProcedureService _sp;
 
-        public PersonasController(AppDbContext context)
+        public PersonasController(IStoredProcedureService sp)
         {
-            _context = context;
+            _sp = sp;
         }
+
+        private static PersonaDto MapPersona(SqlDataReader reader) => new PersonaDto
+        {
+            Id = reader.GetSafeInt32("id"),
+            Nombres = reader.GetSafeString("nombres"),
+            ApellidoPaterno = reader.GetSafeString("apellido_paterno"),
+            ApellidoMaterno = reader.GetNullableString("apellido_materno"),
+            Ci = reader.GetSafeString("ci"),
+            CiExpedido = reader.GetNullableString("ci_expedido"),
+            Sexo = reader.GetNullableString("sexo"),
+            EstadoCivil = reader.GetNullableString("estado_civil"),
+            Telefono = reader.GetNullableString("telefono"),
+            Email = reader.GetNullableString("email"),
+            EmpresaTelefonica = reader.GetNullableString("empresa_telefonica"),
+            Direccion = reader.GetNullableString("direccion"),
+            Activo = reader.GetSafeBoolean("activo")
+        };
 
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] string? activo)
         {
-            var query = _context.Personas.AsQueryable();
-
+            string activoParam = "activos";
             if (activo == "all" || activo == "todos")
             {
-                // Incluir todos (activos e inactivos)
+                activoParam = "todos";
             }
             else if (activo == "false" || activo == "inactivos")
             {
-                query = query.Where(p => !p.Activo);
-            }
-            else // Por defecto solo activos
-            {
-                query = query.Where(p => p.Activo);
+                activoParam = "inactivos";
             }
 
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var term = search.Trim().ToLower();
-                query = query.Where(p => 
-                    p.Nombres.ToLower().Contains(term) ||
-                    p.ApellidoPaterno.ToLower().Contains(term) ||
-                    (p.ApellidoMaterno != null && p.ApellidoMaterno.ToLower().Contains(term)) ||
-                    p.Ci.ToLower().Contains(term));
-            }
-
-            var personas = await query
-                .OrderBy(p => p.ApellidoPaterno)
-                .ThenBy(p => p.Nombres)
-                .Select(p => new PersonaDto
-                {
-                    Id = p.Id,
-                    Nombres = p.Nombres,
-                    ApellidoPaterno = p.ApellidoPaterno,
-                    ApellidoMaterno = p.ApellidoMaterno,
-                    Ci = p.Ci,
-                    CiExpedido = p.CiExpedido,
-                    Sexo = p.Sexo,
-                    EstadoCivil = p.EstadoCivil,
-                    Telefono = p.Telefono,
-                    Email = p.Email,
-                    EmpresaTelefonica = p.EmpresaTelefonica,
-                    Direccion = p.Direccion,
-                    Activo = p.Activo
-                })
-                .ToListAsync();
+            var personas = await _sp.QueryAsync(
+                "dbo.usp_Personas_Listar",
+                MapPersona,
+                new SqlParameter("@Search", SqlDbType.VarChar, 100) { Value = (object?)search?.Trim() ?? DBNull.Value },
+                new SqlParameter("@Activo", SqlDbType.VarChar, 20) { Value = activoParam },
+                new SqlParameter("@Offset", SqlDbType.Int) { Value = 0 },
+                new SqlParameter("@Limit", SqlDbType.Int) { Value = 500 }
+            );
 
             return Ok(ApiResponse<List<PersonaDto>>.Ok(personas));
         }
@@ -79,27 +68,15 @@ namespace GestionDocumental.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var p = await _context.Personas.FindAsync(id);
+            var p = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Personas_ObtenerPorId",
+                MapPersona,
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
+
             if (p == null) return NotFound(ApiResponse.ErrorResult("Persona no encontrada."));
 
-            var dto = new PersonaDto
-            {
-                Id = p.Id,
-                Nombres = p.Nombres,
-                ApellidoPaterno = p.ApellidoPaterno,
-                ApellidoMaterno = p.ApellidoMaterno,
-                Ci = p.Ci,
-                CiExpedido = p.CiExpedido,
-                Sexo = p.Sexo,
-                EstadoCivil = p.EstadoCivil,
-                Telefono = p.Telefono,
-                Email = p.Email,
-                EmpresaTelefonica = p.EmpresaTelefonica,
-                Direccion = p.Direccion,
-                Activo = p.Activo
-            };
-
-            return Ok(ApiResponse<PersonaDto>.Ok(dto));
+            return Ok(ApiResponse<PersonaDto>.Ok(p));
         }
 
         [HttpPost]
@@ -110,134 +87,190 @@ namespace GestionDocumental.Api.Controllers
                 return BadRequest(ApiResponse.ErrorResult("Datos inválidos."));
             }
 
-            var existingPersona = await _context.Personas.FirstOrDefaultAsync(p => p.Ci == dto.Ci.Trim());
-            if (existingPersona != null)
+            // Verificar si el CI ya existe mediante SP
+            var existing = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Personas_ObtenerPorCI",
+                MapPersona,
+                new SqlParameter("@Ci", SqlDbType.VarChar, 20) { Value = dto.Ci.Trim() }
+            );
+
+            if (existing != null)
             {
-                if (!existingPersona.Activo)
+                if (!existing.Activo)
                 {
-                    return Conflict(ApiResponse.ErrorResult($"Existe una persona dada de baja con el CI '{dto.Ci}' ({existingPersona.Nombres} {existingPersona.ApellidoPaterno}). Puede reactivarla cambiando el filtro a 'Dados de Baja (Inactivos)'."));
+                    return Conflict(ApiResponse.ErrorResult($"Existe una persona dada de baja con el CI '{dto.Ci}' ({existing.Nombres} {existing.ApellidoPaterno}). Puede reactivarla cambiando el filtro a 'Dados de Baja (Inactivos)'."));
                 }
                 return Conflict(ApiResponse.ErrorResult($"Ya existe una persona registrada con el CI {dto.Ci}."));
             }
 
-            var persona = new Persona
+            var outParam = new SqlParameter("@NuevoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+            try
             {
-                Nombres = dto.Nombres.Trim(),
-                ApellidoPaterno = dto.ApellidoPaterno.Trim(),
-                ApellidoMaterno = dto.ApellidoMaterno?.Trim(),
-                Ci = dto.Ci.Trim(),
-                CiExpedido = dto.CiExpedido?.Trim() ?? "CH",
-                Sexo = dto.Sexo?.Trim() ?? "M",
-                EstadoCivil = dto.EstadoCivil?.Trim(),
-                Telefono = dto.Telefono?.Trim(),
-                Email = dto.Email?.Trim(),
-                EmpresaTelefonica = dto.EmpresaTelefonica?.Trim(),
-                Direccion = dto.Direccion?.Trim(),
-                Activo = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Personas_Insertar",
+                    new SqlParameter("@Nombres", SqlDbType.VarChar, 100) { Value = dto.Nombres.Trim() },
+                    new SqlParameter("@ApellidoPaterno", SqlDbType.VarChar, 100) { Value = dto.ApellidoPaterno.Trim() },
+                    new SqlParameter("@ApellidoMaterno", SqlDbType.VarChar, 100) { Value = (object?)dto.ApellidoMaterno?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@Ci", SqlDbType.VarChar, 20) { Value = dto.Ci.Trim() },
+                    new SqlParameter("@CiExpedido", SqlDbType.VarChar, 5) { Value = dto.CiExpedido?.Trim() ?? "CH" },
+                    new SqlParameter("@Sexo", SqlDbType.VarChar, 10) { Value = dto.Sexo?.Trim() ?? "M" },
+                    new SqlParameter("@EstadoCivil", SqlDbType.VarChar, 20) { Value = (object?)dto.EstadoCivil?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@Telefono", SqlDbType.VarChar, 20) { Value = (object?)dto.Telefono?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@Email", SqlDbType.VarChar, 150) { Value = (object?)dto.Email?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@EmpresaTelefonica", SqlDbType.VarChar, 20) { Value = (object?)dto.EmpresaTelefonica?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@Direccion", SqlDbType.VarChar, 255) { Value = (object?)dto.Direccion?.Trim() ?? DBNull.Value },
+                    outParam
+                );
 
-            _context.Personas.Add(persona);
-            await _context.SaveChangesAsync();
+                int nuevoId = (int)outParam.Value;
 
-            var resultDto = new PersonaDto
+                var resultDto = new PersonaDto
+                {
+                    Id = nuevoId,
+                    Nombres = dto.Nombres.Trim(),
+                    ApellidoPaterno = dto.ApellidoPaterno.Trim(),
+                    ApellidoMaterno = dto.ApellidoMaterno?.Trim(),
+                    Ci = dto.Ci.Trim(),
+                    CiExpedido = dto.CiExpedido?.Trim() ?? "CH",
+                    Sexo = dto.Sexo?.Trim() ?? "M",
+                    EstadoCivil = dto.EstadoCivil?.Trim(),
+                    Telefono = dto.Telefono?.Trim(),
+                    Email = dto.Email?.Trim(),
+                    EmpresaTelefonica = dto.EmpresaTelefonica?.Trim(),
+                    Direccion = dto.Direccion?.Trim(),
+                    Activo = true
+                };
+
+                return CreatedAtAction(nameof(GetById), new { id = nuevoId }, 
+                    ApiResponse<PersonaDto>.Ok(resultDto, "Persona registrada exitosamente."));
+            }
+            catch (SqlException ex)
             {
-                Id = persona.Id,
-                Nombres = persona.Nombres,
-                ApellidoPaterno = persona.ApellidoPaterno,
-                ApellidoMaterno = persona.ApellidoMaterno,
-                Ci = persona.Ci,
-                CiExpedido = persona.CiExpedido,
-                Sexo = persona.Sexo,
-                EstadoCivil = persona.EstadoCivil,
-                Telefono = persona.Telefono,
-                Email = persona.Email,
-                EmpresaTelefonica = persona.EmpresaTelefonica,
-                Direccion = persona.Direccion,
-                Activo = persona.Activo
-            };
-
-            return CreatedAtAction(nameof(GetById), new { id = persona.Id }, 
-                ApiResponse<PersonaDto>.Ok(resultDto, "Persona registrada exitosamente."));
+                return StatusCode(500, ApiResponse.ErrorResult($"Error al registrar persona: {ex.Message}"));
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdatePersonaDto dto)
         {
-            var persona = await _context.Personas.FindAsync(id);
+            var persona = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Personas_ObtenerPorId",
+                MapPersona,
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
+
             if (persona == null) return NotFound(ApiResponse.ErrorResult("Persona no encontrada."));
 
-            if (!string.IsNullOrWhiteSpace(dto.Ci) && dto.Ci.Trim() != persona.Ci)
+            string ci = !string.IsNullOrWhiteSpace(dto.Ci) ? dto.Ci.Trim() : persona.Ci;
+            string nombres = !string.IsNullOrWhiteSpace(dto.Nombres) ? dto.Nombres.Trim() : persona.Nombres;
+            string apellidoPaterno = !string.IsNullOrWhiteSpace(dto.ApellidoPaterno) ? dto.ApellidoPaterno.Trim() : persona.ApellidoPaterno;
+            string? apellidoMaterno = dto.ApellidoMaterno != null ? dto.ApellidoMaterno.Trim() : persona.ApellidoMaterno;
+            string ciExpedido = !string.IsNullOrWhiteSpace(dto.CiExpedido) ? dto.CiExpedido.Trim() : (persona.CiExpedido ?? "CH");
+            string sexo = !string.IsNullOrWhiteSpace(dto.Sexo) ? dto.Sexo.Trim() : (persona.Sexo ?? "M");
+            string? estadoCivil = dto.EstadoCivil != null ? dto.EstadoCivil.Trim() : persona.EstadoCivil;
+            string? telefono = dto.Telefono != null ? dto.Telefono.Trim() : persona.Telefono;
+            string? email = dto.Email != null ? dto.Email.Trim() : persona.Email;
+            string? empresaTelefonica = dto.EmpresaTelefonica != null ? dto.EmpresaTelefonica.Trim() : persona.EmpresaTelefonica;
+            string? direccion = dto.Direccion != null ? dto.Direccion.Trim() : persona.Direccion;
+
+            try
             {
-                bool ciExists = await _context.Personas.AnyAsync(p => p.Ci == dto.Ci.Trim() && p.Id != id);
-                if (ciExists) return Conflict(ApiResponse.ErrorResult($"Ya existe otra persona con el CI {dto.Ci}."));
-                persona.Ci = dto.Ci.Trim();
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Personas_Actualizar",
+                    new SqlParameter("@Id", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@Nombres", SqlDbType.VarChar, 100) { Value = nombres },
+                    new SqlParameter("@ApellidoPaterno", SqlDbType.VarChar, 100) { Value = apellidoPaterno },
+                    new SqlParameter("@ApellidoMaterno", SqlDbType.VarChar, 100) { Value = (object?)apellidoMaterno ?? DBNull.Value },
+                    new SqlParameter("@Ci", SqlDbType.VarChar, 20) { Value = ci },
+                    new SqlParameter("@CiExpedido", SqlDbType.VarChar, 5) { Value = ciExpedido },
+                    new SqlParameter("@Sexo", SqlDbType.VarChar, 10) { Value = sexo },
+                    new SqlParameter("@EstadoCivil", SqlDbType.VarChar, 20) { Value = (object?)estadoCivil ?? DBNull.Value },
+                    new SqlParameter("@Telefono", SqlDbType.VarChar, 20) { Value = (object?)telefono ?? DBNull.Value },
+                    new SqlParameter("@Email", SqlDbType.VarChar, 150) { Value = (object?)email ?? DBNull.Value },
+                    new SqlParameter("@EmpresaTelefonica", SqlDbType.VarChar, 20) { Value = (object?)empresaTelefonica ?? DBNull.Value },
+                    new SqlParameter("@Direccion", SqlDbType.VarChar, 255) { Value = (object?)direccion ?? DBNull.Value },
+                    new SqlParameter("@Activo", SqlDbType.Bit) { Value = persona.Activo }
+                );
+
+                var resultDto = new PersonaDto
+                {
+                    Id = id,
+                    Nombres = nombres,
+                    ApellidoPaterno = apellidoPaterno,
+                    ApellidoMaterno = apellidoMaterno,
+                    Ci = ci,
+                    CiExpedido = ciExpedido,
+                    Sexo = sexo,
+                    EstadoCivil = estadoCivil,
+                    Telefono = telefono,
+                    Email = email,
+                    EmpresaTelefonica = empresaTelefonica,
+                    Direccion = direccion,
+                    Activo = persona.Activo
+                };
+
+                return Ok(ApiResponse<PersonaDto>.Ok(resultDto, "Persona actualizada exitosamente."));
             }
-
-            if (!string.IsNullOrWhiteSpace(dto.Nombres)) persona.Nombres = dto.Nombres.Trim();
-            if (!string.IsNullOrWhiteSpace(dto.ApellidoPaterno)) persona.ApellidoPaterno = dto.ApellidoPaterno.Trim();
-            if (dto.ApellidoMaterno != null) persona.ApellidoMaterno = dto.ApellidoMaterno.Trim();
-            if (!string.IsNullOrWhiteSpace(dto.CiExpedido)) persona.CiExpedido = dto.CiExpedido.Trim();
-            if (!string.IsNullOrWhiteSpace(dto.Sexo)) persona.Sexo = dto.Sexo.Trim();
-            if (dto.EstadoCivil != null) persona.EstadoCivil = dto.EstadoCivil.Trim();
-            if (dto.Telefono != null) persona.Telefono = dto.Telefono.Trim();
-            if (dto.Email != null) persona.Email = dto.Email.Trim();
-            if (dto.EmpresaTelefonica != null) persona.EmpresaTelefonica = dto.EmpresaTelefonica.Trim();
-            if (dto.Direccion != null) persona.Direccion = dto.Direccion.Trim();
-
-            persona.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            var resultDto = new PersonaDto
+            catch (SqlException ex)
             {
-                Id = persona.Id,
-                Nombres = persona.Nombres,
-                ApellidoPaterno = persona.ApellidoPaterno,
-                ApellidoMaterno = persona.ApellidoMaterno,
-                Ci = persona.Ci,
-                CiExpedido = persona.CiExpedido,
-                Sexo = persona.Sexo,
-                EstadoCivil = persona.EstadoCivil,
-                Telefono = persona.Telefono,
-                Email = persona.Email,
-                EmpresaTelefonica = persona.EmpresaTelefonica,
-                Direccion = persona.Direccion,
-                Activo = persona.Activo
-            };
-
-            return Ok(ApiResponse<PersonaDto>.Ok(resultDto, "Persona actualizada exitosamente."));
+                return StatusCode(500, ApiResponse.ErrorResult($"Error al actualizar persona: {ex.Message}"));
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var persona = await _context.Personas.Include(p => p.Usuarios).FirstOrDefaultAsync(p => p.Id == id);
-            if (persona == null) return NotFound(ApiResponse.ErrorResult("Persona no encontrada."));
-
-            if (persona.Usuarios.Any(u => u.Activo))
+            try
             {
-                return BadRequest(ApiResponse.ErrorResult("No se puede eliminar la persona: tiene cuentas de usuario activas asociadas."));
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Personas_EliminarLogico",
+                    new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+                );
+                return Ok(ApiResponse.SuccessResult("Persona dada de baja exitosamente."));
             }
-
-            persona.Activo = false;
-            persona.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            return Ok(ApiResponse.SuccessResult("Persona dada de baja exitosamente."));
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
         }
 
         [HttpPatch("{id}/reactivar")]
         public async Task<IActionResult> Reactivar(int id)
         {
-            var persona = await _context.Personas.FindAsync(id);
+            var persona = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Personas_ObtenerPorId",
+                MapPersona,
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
+
             if (persona == null) return NotFound(ApiResponse.ErrorResult("Persona no encontrada."));
 
-            persona.Activo = true;
-            persona.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Personas_Actualizar",
+                    new SqlParameter("@Id", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@Nombres", SqlDbType.VarChar, 100) { Value = persona.Nombres },
+                    new SqlParameter("@ApellidoPaterno", SqlDbType.VarChar, 100) { Value = persona.ApellidoPaterno },
+                    new SqlParameter("@ApellidoMaterno", SqlDbType.VarChar, 100) { Value = (object?)persona.ApellidoMaterno ?? DBNull.Value },
+                    new SqlParameter("@Ci", SqlDbType.VarChar, 20) { Value = persona.Ci },
+                    new SqlParameter("@CiExpedido", SqlDbType.VarChar, 5) { Value = persona.CiExpedido ?? "CH" },
+                    new SqlParameter("@Sexo", SqlDbType.VarChar, 10) { Value = persona.Sexo ?? "M" },
+                    new SqlParameter("@EstadoCivil", SqlDbType.VarChar, 20) { Value = (object?)persona.EstadoCivil ?? DBNull.Value },
+                    new SqlParameter("@Telefono", SqlDbType.VarChar, 20) { Value = (object?)persona.Telefono ?? DBNull.Value },
+                    new SqlParameter("@Email", SqlDbType.VarChar, 150) { Value = (object?)persona.Email ?? DBNull.Value },
+                    new SqlParameter("@EmpresaTelefonica", SqlDbType.VarChar, 20) { Value = (object?)persona.EmpresaTelefonica ?? DBNull.Value },
+                    new SqlParameter("@Direccion", SqlDbType.VarChar, 255) { Value = (object?)persona.Direccion ?? DBNull.Value },
+                    new SqlParameter("@Activo", SqlDbType.Bit) { Value = true }
+                );
 
-            return Ok(ApiResponse.SuccessResult("Persona reactivada exitosamente."));
+                return Ok(ApiResponse.SuccessResult("Persona reactivada exitosamente."));
+            }
+            catch (SqlException ex)
+            {
+                return StatusCode(500, ApiResponse.ErrorResult($"Error al reactivar persona: {ex.Message}"));
+            }
         }
     }
 }

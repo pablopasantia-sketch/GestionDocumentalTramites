@@ -62,7 +62,7 @@ export default function InstitucionalCatalogosManager() {
       setCargos(listC);
     } catch (err) {
       console.error(err);
-      showMsg('error', 'Error al cargar catálogos institucionales de DBNotasCMS.');
+      showMsg('error', 'Error al cargar catálogos institucionales de DB_TRAMITES_EXTERNOS.');
     } finally {
       setLoading(false);
     }
@@ -268,7 +268,7 @@ export default function InstitucionalCatalogosManager() {
             onClick={loadAll} 
             disabled={loading} 
             className="btn btn-secondary btn-sm"
-            title="Recargar datos de DBNotasCMS"
+            title="Recargar datos de DB_TRAMITES_EXTERNOS"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             <span>Actualizar</span>
@@ -362,7 +362,7 @@ export default function InstitucionalCatalogosManager() {
                       </td>
                       <td>
                         <div style={{ fontWeight: 600, color: '#1B365D' }}>{u.nombU}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#6C757D' }}>Catálogo Oficial DBNotasCMS</div>
+                        <div style={{ fontSize: '0.75rem', color: '#6C757D' }}>Catálogo Oficial DB_TRAMITES_EXTERNOS</div>
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         <span className="badge badge-sucre" style={{ fontSize: '0.8rem' }}>
@@ -524,7 +524,7 @@ export default function InstitucionalCatalogosManager() {
                     value={unidadForm.nombU}
                     onChange={(e) => setUnidadForm({ ...unidadForm, nombU: e.target.value })}
                   />
-                  <small style={{ color: '#6C757D', fontSize: '0.75rem' }}>Se guardará en mayúsculas conforme al estándar de DBNotasCMS.</small>
+                  <small style={{ color: '#6C757D', fontSize: '0.75rem' }}>Se guardará en mayúsculas conforme al estándar de DB_TRAMITES_EXTERNOS.</small>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>

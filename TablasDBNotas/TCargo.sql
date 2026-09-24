@@ -1,4 +1,4 @@
-USE [DBNotasCMS]
+USE [DB_TRAMITES_EXTERNOS]
 GO
 
 /****** Object:  Table [dbo].[TCargo]    Script Date: 17/09/2026 11:45:57 ******/

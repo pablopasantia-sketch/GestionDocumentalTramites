@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Data;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using GestionDocumental.Api.Data;
 using GestionDocumental.Api.DTOs.Common;
 using GestionDocumental.Api.DTOs.Roles;
-using GestionDocumental.Api.Entities;
 
 namespace GestionDocumental.Api.Controllers
 {
@@ -17,38 +16,38 @@ namespace GestionDocumental.Api.Controllers
     [Route("api/usuario-roles")]
     public class UsuarioRolesController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IStoredProcedureService _sp;
 
-        public UsuarioRolesController(AppDbContext context)
+        public UsuarioRolesController(IStoredProcedureService sp)
         {
-            _context = context;
+            _sp = sp;
         }
+
+        private static UsuarioRolItemDto MapUsuarioRol(SqlDataReader reader) => new UsuarioRolItemDto
+        {
+            Id = reader.GetSafeInt32("id"),
+            UsuarioId = reader.GetSafeInt32("usuario_id"),
+            RolId = reader.GetSafeInt32("rol_id"),
+            RolCodigo = reader.GetSafeString("rol_codigo"),
+            RolNombre = reader.GetSafeString("rol_nombre"),
+            UbicacionOrgId = reader.GetSafeInt32("ubicacion_org_id"),
+            UbicacionCodigo = reader.GetSafeString("ubicacion_codigo"),
+            UbicacionNombre = reader.GetSafeString("ubicacion_nombre"),
+            UbicacionSigla = reader.GetNullableString("ubicacion_sigla"),
+            NivelAcceso = reader.GetSafeString("nivel_acceso", "CONTROL_TOTAL"),
+            FechaExpiracion = reader.GetNullableDateTime("fecha_expiracion"),
+            EsPrincipal = reader.GetSafeBoolean("es_principal"),
+            Activo = reader.GetSafeBoolean("activo", true)
+        };
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var asignaciones = await _context.UsuarioRoles
-                .Include(ur => ur.Rol)
-                .Include(ur => ur.UbicacionOrg)
-                .Where(ur => ur.Activo)
-                .OrderBy(ur => ur.UsuarioId)
-                .Select(ur => new UsuarioRolItemDto
-                {
-                    Id = ur.Id,
-                    UsuarioId = ur.UsuarioId,
-                    RolId = ur.RolId,
-                    RolCodigo = ur.Rol.Codigo,
-                    RolNombre = ur.Rol.Nombre,
-                    UbicacionOrgId = ur.UbicacionOrgId,
-                    UbicacionCodigo = ur.UbicacionOrg.Codigo,
-                    UbicacionNombre = ur.UbicacionOrg.Nombre,
-                    UbicacionSigla = ur.UbicacionOrg.Sigla,
-                    NivelAcceso = ur.NivelAcceso,
-                    FechaExpiracion = ur.FechaExpiracion,
-                    EsPrincipal = ur.EsPrincipal,
-                    Activo = ur.Activo
-                })
-                .ToListAsync();
+            var asignaciones = await _sp.QueryAsync(
+                "dbo.usp_UsuarioRoles_Listar",
+                MapUsuarioRol,
+                new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = DBNull.Value }
+            );
 
             return Ok(ApiResponse<List<UsuarioRolItemDto>>.Ok(asignaciones));
         }
@@ -56,29 +55,11 @@ namespace GestionDocumental.Api.Controllers
         [HttpGet("usuario/{usuarioId}")]
         public async Task<IActionResult> GetByUsuario(int usuarioId)
         {
-            var asignaciones = await _context.UsuarioRoles
-                .Include(ur => ur.Rol)
-                .Include(ur => ur.UbicacionOrg)
-                .Where(ur => ur.UsuarioId == usuarioId && ur.Activo)
-                .OrderByDescending(ur => ur.EsPrincipal)
-                .ThenBy(ur => ur.Rol.Nombre)
-                .Select(ur => new UsuarioRolItemDto
-                {
-                    Id = ur.Id,
-                    UsuarioId = ur.UsuarioId,
-                    RolId = ur.RolId,
-                    RolCodigo = ur.Rol.Codigo,
-                    RolNombre = ur.Rol.Nombre,
-                    UbicacionOrgId = ur.UbicacionOrgId,
-                    UbicacionCodigo = ur.UbicacionOrg.Codigo,
-                    UbicacionNombre = ur.UbicacionOrg.Nombre,
-                    UbicacionSigla = ur.UbicacionOrg.Sigla,
-                    NivelAcceso = ur.NivelAcceso,
-                    FechaExpiracion = ur.FechaExpiracion,
-                    EsPrincipal = ur.EsPrincipal,
-                    Activo = ur.Activo
-                })
-                .ToListAsync();
+            var asignaciones = await _sp.QueryAsync(
+                "dbo.usp_UsuarioRoles_Listar",
+                MapUsuarioRol,
+                new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = usuarioId }
+            );
 
             return Ok(ApiResponse<List<UsuarioRolItemDto>>.Ok(asignaciones));
         }
@@ -88,87 +69,85 @@ namespace GestionDocumental.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ApiResponse.ErrorResult("Datos inválidos."));
 
-            var usuario = await _context.Usuarios.FindAsync(dto.UsuarioId);
-            if (usuario == null || !usuario.Activo) return NotFound(ApiResponse.ErrorResult("Usuario no encontrado o inactivo."));
+            var outParam = new SqlParameter("@NuevoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
 
-            var rol = await _context.Roles.FindAsync(dto.RolId);
-            if (rol == null || !rol.Activo) return NotFound(ApiResponse.ErrorResult("Rol no encontrado o inactivo."));
-
-            var ubicacion = await _context.UbicacionesOrg.FindAsync(dto.UbicacionOrgId);
-            if (ubicacion == null || !ubicacion.Activo) return NotFound(ApiResponse.ErrorResult("Ubicación orgánica no encontrada o inactiva."));
-
-            // Verificar si ya existe asignación
-            var existing = await _context.UsuarioRoles.FirstOrDefaultAsync(ur =>
-                ur.UsuarioId == dto.UsuarioId && ur.RolId == dto.RolId && ur.UbicacionOrgId == dto.UbicacionOrgId);
-
-            if (existing != null)
+            try
             {
-                if (existing.Activo)
-                {
-                    return Conflict(ApiResponse.ErrorResult("El usuario ya tiene asignado este rol en la misma oficina."));
-                }
-                existing.Activo = true;
-                existing.NivelAcceso = dto.NivelAcceso ?? "CONTROL_TOTAL";
-                existing.FechaExpiracion = dto.FechaExpiracion;
-                existing.EsPrincipal = dto.EsPrincipal;
-                existing.UpdatedAt = DateTime.UtcNow;
-            }
-            else
-            {
-                var nuevaAsignacion = new UsuarioRol
-                {
-                    UsuarioId = dto.UsuarioId,
-                    RolId = dto.RolId,
-                    UbicacionOrgId = dto.UbicacionOrgId,
-                    NivelAcceso = dto.NivelAcceso ?? "CONTROL_TOTAL",
-                    FechaExpiracion = dto.FechaExpiracion,
-                    EsPrincipal = dto.EsPrincipal,
-                    Activo = true,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-                _context.UsuarioRoles.Add(nuevaAsignacion);
-            }
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_UsuarioRoles_Asignar",
+                    new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = dto.UsuarioId },
+                    new SqlParameter("@RolId", SqlDbType.Int) { Value = dto.RolId },
+                    new SqlParameter("@UbicacionOrgId", SqlDbType.Int) { Value = dto.UbicacionOrgId },
+                    new SqlParameter("@NivelAcceso", SqlDbType.VarChar, 20) { Value = dto.NivelAcceso ?? "CONTROL_TOTAL" },
+                    new SqlParameter("@FechaExpiracion", SqlDbType.Date) { Value = (object?)dto.FechaExpiracion ?? DBNull.Value },
+                    new SqlParameter("@EsPrincipal", SqlDbType.Bit) { Value = dto.EsPrincipal },
+                    outParam
+                );
 
-            if (dto.EsPrincipal)
-            {
-                var otherRoles = await _context.UsuarioRoles
-                    .Where(ur => ur.UsuarioId == dto.UsuarioId && (ur.RolId != dto.RolId || ur.UbicacionOrgId != dto.UbicacionOrgId))
-                    .ToListAsync();
-                foreach (var r in otherRoles) r.EsPrincipal = false;
+                return Ok(ApiResponse.SuccessResult("Rol asignado al usuario exitosamente."));
             }
-
-            await _context.SaveChangesAsync();
-            return Ok(ApiResponse.SuccessResult("Rol asignado al usuario exitosamente."));
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
         }
 
         [HttpPatch("{id}/principal")]
         public async Task<IActionResult> SetPrincipal(int id)
         {
-            var asignacion = await _context.UsuarioRoles.FindAsync(id);
-            if (asignacion == null || !asignacion.Activo) return NotFound(ApiResponse.ErrorResult("Asignación no encontrada."));
+            // Primero obtener la asignación para conocer el usuarioId
+            var asignacion = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_UsuarioRoles_Listar",
+                reader => new { Id = reader.GetSafeInt32("id"), UsuarioId = reader.GetSafeInt32("usuario_id") },
+                new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = DBNull.Value }
+            );
 
-            var userRoles = await _context.UsuarioRoles.Where(ur => ur.UsuarioId == asignacion.UsuarioId).ToListAsync();
-            foreach (var r in userRoles)
+            // También podemos buscar directamente
+            try
             {
-                r.EsPrincipal = (r.Id == id);
-            }
+                // Buscar usuario_id del registro
+                int? usuarioId = await _sp.ExecuteScalarAsync<int?>(
+                    "dbo.usp_UsuarioRoles_Listar",
+                    new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = DBNull.Value }
+                );
 
-            await _context.SaveChangesAsync();
-            return Ok(ApiResponse.SuccessResult("Rol marcado como principal para el usuario."));
+                // Ejecutar SetPrincipal
+                var asig = await _sp.QueryFirstOrDefaultAsync(
+                    "dbo.usp_UsuarioRoles_Listar",
+                    MapUsuarioRol,
+                    new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = DBNull.Value }
+                );
+
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_UsuarioRoles_SetPrincipal",
+                    new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = asig?.UsuarioId ?? 1 },
+                    new SqlParameter("@UsuarioRolId", SqlDbType.Int) { Value = id }
+                );
+
+                return Ok(ApiResponse.SuccessResult("Rol marcado como principal para el usuario."));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var asignacion = await _context.UsuarioRoles.FindAsync(id);
-            if (asignacion == null) return NotFound(ApiResponse.ErrorResult("Asignación no encontrada."));
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_UsuarioRoles_Eliminar",
+                    new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+                );
 
-            asignacion.Activo = false;
-            asignacion.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            return Ok(ApiResponse.SuccessResult("Rol desasignado del usuario exitosamente."));
+                return Ok(ApiResponse.SuccessResult("Rol desasignado del usuario exitosamente."));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
         }
     }
 }

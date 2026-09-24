@@ -1,0 +1,58 @@
+# INSTRUCCIONES DE REFACTORIZACIÓN Y REFRACTORING TÉCNICO: PROYECTO SISTEMA WAYKA MVP
+
+## CONTEXTO Y OBJETIVO
+Estás actuando como un Arquitecto de Software .NET 8 + SQL Server 2022 Senior. 
+Debes aplicar dos observaciones de revisión técnica sobre la base de código actual desarrollada hasta el **Sprint 2** de nuestro sistema de Gestión de Trámites **Wayka MVP**.
+
+---
+
+## TAREA 1: REBRANDING Y RENOMBRADO DE LA BASE DE DATOS
+La base de datos actual se llama erróneamente `DBNotasCMS` (un nombre heredado de otro sistema). Debes renombrarla a **`DB_TRAMITES_EXTERNOS`** en todo el proyecto para evitar colisiones en producción.
+
+### Acciones requeridas:
+1. **Configuración del Backend (.NET 8):**
+   - Busca en `appsettings.json`, `appsettings.Development.json` o variables de entorno cualquier mención a `DBNotasCMS` y actualízala a `DB_TRAMITES_EXTERNOS`.
+   - Revisa si existen clases de Contexto (`DbContext`), configuraciones de EF Core o scripts de inicialización que contengan este string.
+2. **Entorno Docker / Scripts T-SQL:**
+   - Si el proyecto usa `docker-compose.yml` o scripts `.sql` de inicialización de la BD en Docker, actualiza la variable de entorno `MSSQL_DB` o los comandos `CREATE DATABASE` de `DBNotasCMS` a `DB_TRAMITES_EXTERNOS`.
+3. **Documentación:**
+   - Actualiza los archivos `README.md` o documentación del Sprint donde se haga referencia a la cadena de conexión o nombre de la base de datos.
+
+---
+
+## TAREA 2: MIGRACIÓN TOTAL A PROCEDIMIENTOS ALMACENADOS (STORED PROCEDURES)
+Está **estrictamente prohibido** ejecutar SQL directo, cadenas interpoladas inline o depender exclusivamente de LINQ-to-Entities para inserciones/consultas desde .NET. **Toda la interacción con SQL Server debe encapsularse en Stored Procedures (SPs).**
+
+### Acciones requeridas:
+
+### 1. Creación de Scripts T-SQL para Stored Procedures
+Genera un archivo de migración o script SQL unificado (`V2__Create_Stored_Procedures.sql`) en el proyecto que implemente los SPs para todos los módulos existentes hasta el Sprint 2:
+- **Módulo Autenticación y Seguridad:** `Personas`, `Usuarios`, `Roles`, `UsuarioRol`.
+- **Módulo Estructura e Institución:** `TUbicacionOrganica`, `TUnidad`, `TCargo`, `TEmpleados`.
+- **Módulo Trámites:** `TTipoTramite`, `TTramite`, `TCorrespondencia`, `TMovimiento`, `TAdjunto`.
+
+**Reglas de diseño para los Stored Procedures:**
+- Usa convenciones N-Tier/Clean Architecture: Nombres con prefijo `sp_` o `usp_` (ejemplo: `usp_Personas_Insertar`, `usp_Personas_ObtenerPorCI`, `usp_Personas_Listar`, `usp_Personas_Actualizar`, `usp_Personas_EliminarLogico`).
+- Incluye siempre `SET NOCOUNT ON;` y bloques `BEGIN TRY ... BEGIN CATCH` con manejo de transacciones (`BEGIN TRAN`, `COMMIT TRAN`, `ROLLBACK TRAN`) en operaciones de escritura.
+- Respeta la regla de **Borrado Lógico** (`Activo = 0` o `FechaEliminacion = GETDATE()`).
+- Incluye parámetros claros con sus respectivos tipos de datos T-SQL (ej. `VARCHAR`, `INT`, `DATETIME2`).
+
+### 2. Refactorización del Backend (.NET 8 Web API)
+Reescribe la capa de acceso a datos (Repositories / Services) para que invoque los Stored Procedures creados:
+- Utiliza **`FromSqlInterpolated` / `FromSqlRaw`** de Entity Framework Core o **Dapper** (si está instalado en el proyecto) para mapear los resultados a las entidades o DTOs.
+- Pasa los parámetros utilizando `SqlParameter` para evitar inyecciones SQL.
+- Ejemplo de firma requerida en C#:
+  ```csharp
+  // Ejemplo de ejecución de SP de Lectura
+  var resultado = await _context.Personas
+      .FromSqlRaw("EXEC dbo.usp_Personas_ObtenerPorCI @CI = {0}", ci)
+      .AsNoTracking()
+      .FirstOrDefaultAsync();
+
+  // Ejemplo de ejecución de SP de Escritura / Modificación
+  await _context.Database.ExecuteSqlRawAsync(
+      "EXEC dbo.usp_Personas_Insertar @Nombre = {0}, @Apellidos = {1}, @CI = {2}, ...",
+      persona.Nombre, persona.Apellidos, persona.CI);
+
+
+eso estaba hacicendo pero se corot, quiero que verifiques que falta y lo hagas

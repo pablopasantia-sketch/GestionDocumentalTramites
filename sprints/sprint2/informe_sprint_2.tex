@@ -325,7 +325,8 @@ En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa
 \begin{landscape}
 \begin{figure}[p]
 \centering
-\resizebox{0.96\linewidth}{!}{%
+\resizebox{0.88\linewidth}{!}{%
+\let\scriptsize\tiny
 \begin{tikzpicture}[
     entity/.style={
         rectangle, rounded corners=2pt, draw=colorAzulDark, line width=0.8pt,
@@ -350,9 +351,9 @@ En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa
     % =========================================================================
     % ETIQUETAS DE DOMINIO SUPERIOR
     % =========================================================================
-    \node[domainLabel] at (-8.5, 7.6) {IDENTIDAD Y SEGURIDAD\\(Fundación Sprint 1)};
-    \node[domainLabel, text=colorSucreDark] at (1.0, 7.6) {WORKFLOW, TRÁMITES Y GESTIÓN DOCUMENTAL\\(Dominio Transaccional Sprint 2)};
-    \node[domainLabel, text=colorInfo] at (10.5, 7.6) {CATÁLOGOS INSTITUCIONALES\\(Integración DBNotasCMS GAMS)};
+    \node[domainLabel] at (-8.5, 7.6) {IDENTIDAD Y SEGURIDAD\\Sprint 1};
+    \node[domainLabel, text=colorSucreDark] at (1.0, 7.6) {WORKFLOW Y GESTIÓN DOCUMENTAL\\Sprint 2};
+    \node[domainLabel, text=colorInfo] at (10.5, 7.6) {CATÁLOGOS INSTITUCIONALES\\DBNotasCMS};
 
     % =========================================================================
     % DOMINIO 1: IDENTIDAD Y ACCESO (SPRINT 1)
@@ -365,9 +366,7 @@ En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa
             \scriptsize\ttfamily \textbf{UQ} ci : VARCHAR(25)\\
             \scriptsize\ttfamily nombres : VARCHAR(100)\\
             \scriptsize\ttfamily apellido\_paterno : VARCHAR(100)\\
-            \scriptsize\ttfamily apellido\_materno : VARCHAR(100)\\
             \scriptsize\ttfamily email : VARCHAR(120)\\
-            \scriptsize\ttfamily telefono : VARCHAR(30)\\
             \scriptsize\ttfamily activo : BIT
         \end{tabular}
     };
@@ -381,12 +380,11 @@ En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa
             \scriptsize\ttfamily \textbf{UQ} login : VARCHAR(50)\\
             \scriptsize\ttfamily password\_hash : VARCHAR(255)\\
             \scriptsize\ttfamily cargo : VARCHAR(120)\\
-            \scriptsize\ttfamily ultimo\_acceso : DATETIME2\\
             \scriptsize\ttfamily activo : BIT
         \end{tabular}
     };
 
-    \node (roles) at (-10.5, -5.6) [entity] {
+    \node (roles) at (-10.5, -6.2) [entity] {
         \begin{tabular}{>{\raggedright\arraybackslash}p{3.8cm}}
             \centering\arraybackslash\textbf{roles} \\
             \hline
@@ -398,7 +396,7 @@ En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa
         \end{tabular}
     };
 
-    \node (usuario_roles) at (-6.2, -5.6) [entity] {
+    \node (usuario_roles) at (-6.2, -6.2) [entity] {
         \begin{tabular}{>{\raggedright\arraybackslash}p{4.0cm}}
             \centering\arraybackslash\textbf{usuario\_roles} \\
             \hline
@@ -406,7 +404,6 @@ En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa
             \scriptsize\ttfamily \textbf{FK} usuario\_id : INT\\
             \scriptsize\ttfamily \textbf{FK} rol\_id : INT\\
             \scriptsize\ttfamily \textbf{FK} ubicacion\_org\_id : INT\\
-            \scriptsize\ttfamily nivel\_acceso : VARCHAR(30)\\
             \scriptsize\ttfamily es\_principal : BIT\\
             \scriptsize\ttfamily activo : BIT
         \end{tabular}
@@ -448,25 +445,17 @@ En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa
             \centering\arraybackslash\textbf{tramites} \\
             \hline
             \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
-            \scriptsize\ttfamily \textbf{UQ} numero\_correlativo : VARCHAR(50)\\
-            \scriptsize\ttfamily \textbf{UQ} gestion : INT\\
+            \scriptsize\ttfamily \textbf{UQ} numero\_correlativo / gestion\\
             \scriptsize\ttfamily \textbf{FK} tipo\_proceso\_id : INT\\
-            \scriptsize\ttfamily estado : VARCHAR(30)\\
-            \scriptsize\ttfamily remitente : VARCHAR(200)\\
-            \scriptsize\ttfamily referencia : NVARCHAR(MAX)\\
-            \scriptsize\ttfamily tipo\_corres : VARCHAR(20)\\
-            \scriptsize\ttfamily nro\_hojas, nro\_anexos : INT\\
+            \scriptsize\ttfamily estado / tipo\_corres : VARCHAR(30)\\
             \scriptsize\ttfamily \textbf{FK} creado\_por : INT\\
-            \scriptsize\ttfamily \textbf{FK} ubicacion\_org\_id : INT\\
             \scriptsize\ttfamily \textbf{FK} usuario\_actual\_id : INT (NULL)\\
             \scriptsize\ttfamily \textbf{FK} ubicacion\_actual\_id : INT (NULL)\\
-            \scriptsize\ttfamily fecha\_creacion : DATETIME2\\
-            \scriptsize\ttfamily fecha\_conclusion : DATETIME2 (NULL)\\
-            \scriptsize\ttfamily activo : BIT
+            \scriptsize\ttfamily fecha\_creacion / fecha\_conclusion
         \end{tabular}
     };
 
-    \node (correlativos) at (-1.5, -5.6) [entityNew] {
+    \node (correlativos) at (-1.5, -6.2) [entityNew] {
         \begin{tabular}{>{\raggedright\arraybackslash}p{4.4cm}}
             \centering\arraybackslash\textbf{correlativos} \\
             \hline
@@ -485,20 +474,16 @@ En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa
             \hline
             \scriptsize\ttfamily \textbf{PK} id : INT (AI)\\
             \scriptsize\ttfamily \textbf{FK} tramite\_id : INT\\
-            \scriptsize\ttfamily orden : INT\\
-            \scriptsize\ttfamily tipo\_movimiento : VARCHAR(30)\\
-            \scriptsize\ttfamily \textbf{FK} usuario\_origen\_id : INT\\
-            \scriptsize\ttfamily \textbf{FK} ubicacion\_origen\_id : INT\\
-            \scriptsize\ttfamily \textbf{FK} usuario\_destino\_id : INT (NULL)\\
-            \scriptsize\ttfamily \textbf{FK} ubicacion\_destino\_id : INT (NULL)\\
+            \scriptsize\ttfamily orden / tipo\_movimiento\\
+            \scriptsize\ttfamily \textbf{FK} usuario\_origen\_id / destino\_id\\
+            \scriptsize\ttfamily \textbf{FK} ubicacion\_origen\_id / destino\_id\\
             \scriptsize\ttfamily estado\_movimiento : VARCHAR(50)\\
             \scriptsize\ttfamily proveido : NVARCHAR(MAX)\\
-            \scriptsize\ttfamily fecha\_envio, fecha\_recepcion\\
-            \scriptsize\ttfamily created\_at : DATETIME2
+            \scriptsize\ttfamily fecha\_envio / fecha\_recepcion
         \end{tabular}
     };
 
-    \node (adjuntos) at (4.5, -5.6) [entityNew] {
+    \node (adjuntos) at (4.5, -6.2) [entityNew] {
         \begin{tabular}{>{\raggedright\arraybackslash}p{4.7cm}}
             \centering\arraybackslash\textbf{adjuntos} \\
             \hline
@@ -507,10 +492,8 @@ En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa
             \scriptsize\ttfamily \textbf{FK} movimiento\_id : INT (NULL)\\
             \scriptsize\ttfamily nombre\_original : VARCHAR(255)\\
             \scriptsize\ttfamily ruta\_archivo : VARCHAR(500)\\
-            \scriptsize\ttfamily tipo\_mime : VARCHAR(100)\\
-            \scriptsize\ttfamily tamano\_bytes : BIGINT\\
-            \scriptsize\ttfamily \textbf{FK} subido\_por : INT\\
-            \scriptsize\ttfamily created\_at : DATETIME2
+            \scriptsize\ttfamily tipo\_mime / tamano\_bytes\\
+            \scriptsize\ttfamily \textbf{FK} subido\_por : INT
         \end{tabular}
     };
 
@@ -549,7 +532,7 @@ En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa
         \end{tabular}
     };
 
-    \node (templeados) at (10.5, -5.6) [entityNew] {
+    \node (templeados) at (10.5, -6.2) [entityNew] {
         \begin{tabular}{>{\raggedright\arraybackslash}p{4.0cm}}
             \centering\arraybackslash\textbf{TEmpleados (DBNotasCMS)} \\
             \hline
@@ -583,9 +566,6 @@ En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa
         node[cardAzul, pos=0.15, right] {1}
         node[cardAzul, pos=0.85, right] {N};
 
-    \draw[rel] (ubicaciones.north) to[out=60,in=120,distance=1.2cm] 
-        node[cardAzul, above] {padre\_id (1 : N)} (ubicaciones.north);
-
     % Tipos y Ubicaciones hacia Trámites
     \draw[relNew] (ubicaciones.east) -- (tipos.west)
         node[card, pos=0.2, above] {1}
@@ -608,9 +588,9 @@ En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa
         node[card, pos=0.2, right] {1}
         node[card, pos=0.8, right] {0..N};
 
-    \draw[relNew] (tramites.south) -- ++(0,-0.8) -| (adjuntos.south west)
+    \draw[relNew] (tramites.south east) -- ++(0.5,-0.5) -| (adjuntos.west)
         node[card, pos=0.08, left] {1}
-        node[card, near end, below] {0..N};
+        node[card, near end, above] {0..N};
 
     % Correlativos (Generador de Hojas de Ruta)
     \draw[dependency] (correlativos.north) -- (tramites.south)
@@ -624,17 +604,8 @@ En la Figura~\ref{fig:erd_sprint2} se presenta la topología relacional completa
     \draw[dependency] (tcargo.south) -- (templeados.north)
         node[relLabel, midway, right=2pt] {asigna cargo};
 
-    \draw[dependency] (templeados.west) -- (usuarios.south east)
-        node[relLabel, midway, above=2pt] {sincroniza funcionarios};
-
-    % =========================================================================
-    % LEYENDA TÉCNICA
-    % =========================================================================
-    \node[draw=colorBorde, fill=white, rounded corners=2pt, font=\scriptsize, align=left, inner sep=4pt] at (7.8, -8.0) {
-        \textbf{Convenciones del Diagrama ERD:}\\
-        \tikz[baseline=-0.5ex]\draw[rel, line width=0.8pt] (0,0)--(0.5,0); Borde Azul: Entidades base de Identidad y Seguridad (Sprint 1).\\
-        \tikz[baseline=-0.5ex]\draw[relNew, line width=1.1pt] (0,0)--(0.5,0); Borde Granate / Fondo: Entidades transaccionales y catálogos creados en el Sprint 2.\\
-        \tikz[baseline=-0.5ex]\draw[dependency] (0,0)--(0.5,0); Línea Discontinua: Dependencia lógica o sincronización atómica institucional.};
+    \draw[dependency] (templeados.south) -- ++(0,-0.7) -- (-13.0,-8.4) |- (usuarios.west)
+        node[relLabel, pos=0.48, below=2pt] {sincroniza funcionarios};
 
 \end{tikzpicture}%
 }

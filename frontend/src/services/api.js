@@ -273,7 +273,7 @@ export const tiposProcesoService = {
   }
 };
 
-// Servicios Institucionales (Sprint 2 - DBNotasCMS: TUnidad, TCargo, TEmpleados)
+// Servicios Institucionales (Sprint 2 - DB_TRAMITES_EXTERNOS: TUnidad, TCargo, TEmpleados)
 export const institucionalService = {
   getUnidades: async (params = {}) => {
     const response = await api.get('/institucional/unidades', { params });

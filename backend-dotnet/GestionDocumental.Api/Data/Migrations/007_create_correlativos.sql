@@ -7,6 +7,7 @@ BEGIN
       ubicacion_org_id INT NULL,
       gestion INT NOT NULL,
       ultimo_numero INT NOT NULL DEFAULT 0,
+      formato_patron VARCHAR(100) NOT NULL DEFAULT '{CODIGO}-{NUMERO}/{GESTION}',
       created_at DATETIME2 NOT NULL DEFAULT GETDATE(),
       updated_at DATETIME2 NOT NULL DEFAULT GETDATE(),
       CONSTRAINT uk_correlativo_seq UNIQUE (tipo_proceso_id, ubicacion_org_id, gestion),

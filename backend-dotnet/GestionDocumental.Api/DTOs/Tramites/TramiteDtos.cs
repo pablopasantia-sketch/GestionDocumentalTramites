@@ -207,7 +207,7 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("proveido_inicial")]
         public string? ProveidoInicial { get; set; }
 
-        // Destinatario Institucional (DBNotasCMS / TUnidad, TCargo, TEmpleados)
+        // Destinatario Institucional (DB_TRAMITES_EXTERNOS / TUnidad, TCargo, TEmpleados)
         [JsonPropertyName("cod_u_destino")]
         public short? CodUDestino { get; set; }
 

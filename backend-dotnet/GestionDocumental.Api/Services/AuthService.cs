@@ -1,48 +1,73 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using GestionDocumental.Api.Data;
 using GestionDocumental.Api.DTOs.Auth;
 using GestionDocumental.Api.DTOs.Common;
-using GestionDocumental.Api.Entities;
 
 namespace GestionDocumental.Api.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly AppDbContext _context;
+        private readonly IStoredProcedureService _sp;
         private readonly IConfiguration _config;
 
-        public AuthService(AppDbContext context, IConfiguration config)
+        public AuthService(IStoredProcedureService sp, IConfiguration config)
         {
-            _context = context;
+            _sp = sp;
             _config = config;
+        }
+
+        private class UsuarioAuthRecord
+        {
+            public int Id { get; set; }
+            public int PersonaId { get; set; }
+            public string Login { get; set; } = string.Empty;
+            public string PasswordHash { get; set; } = string.Empty;
+            public string? Email { get; set; }
+            public string? Cargo { get; set; }
+            public string Ci { get; set; } = string.Empty;
+            public string Nombres { get; set; } = string.Empty;
+            public string ApellidoPaterno { get; set; } = string.Empty;
+            public string? ApellidoMaterno { get; set; }
+            public bool Activo { get; set; }
         }
 
         public async Task<ApiResponse<AuthResponse>> LoginAsync(LoginRequest request)
         {
-            var user = await _context.Usuarios
-                .Include(u => u.Persona)
-                .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
-                    .ThenInclude(ur => ur.Rol)
-                .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
-                    .ThenInclude(ur => ur.UbicacionOrg)
-                .FirstOrDefaultAsync(u => u.Login == request.Login && u.Activo);
+            var user = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Usuarios_Autenticar",
+                reader => new UsuarioAuthRecord
+                {
+                    Id = reader.GetSafeInt32("id"),
+                    PersonaId = reader.GetSafeInt32("persona_id"),
+                    Login = reader.GetSafeString("login"),
+                    PasswordHash = reader.GetSafeString("password_hash"),
+                    Email = reader.GetNullableString("email"),
+                    Cargo = reader.GetNullableString("cargo"),
+                    Ci = reader.GetSafeString("ci"),
+                    Nombres = reader.GetSafeString("nombres"),
+                    ApellidoPaterno = reader.GetSafeString("apellido_paterno"),
+                    ApellidoMaterno = reader.GetNullableString("apellido_materno"),
+                    Activo = reader.GetSafeBoolean("activo")
+                },
+                new SqlParameter("@Login", SqlDbType.NVarChar, 50) { Value = request.Login.Trim() }
+            );
 
-            if (user == null)
+            if (user == null || !user.Activo)
             {
                 return ApiResponse<AuthResponse>.Fail("Credenciales inválidas o usuario inactivo.");
             }
 
-            // Validar hash BCrypt
             bool passwordValid = false;
             try
             {
@@ -58,27 +83,34 @@ namespace GestionDocumental.Api.Services
                 return ApiResponse<AuthResponse>.Fail("Credenciales inválidas.");
             }
 
-            var rolesAsignados = user.UsuarioRoles
-                .Where(ur => ur.Activo && ur.Rol.Activo && ur.UbicacionOrg.Activo)
-                .Select(ur => new RoleAssignmentDto
+            // Obtener roles asignados mediante Stored Procedure
+            var rolesAsignados = await _sp.QueryAsync(
+                "dbo.usp_Usuarios_ObtenerRoles",
+                reader => new RoleAssignmentDto
                 {
-                    RolId = ur.RolId,
-                    RolCodigo = ur.Rol.Codigo,
-                    RolNombre = ur.Rol.Nombre,
-                    UbicacionOrgId = ur.UbicacionOrgId,
-                    UbicacionNombre = ur.UbicacionOrg.Nombre,
-                    UbicacionSigla = ur.UbicacionOrg.Sigla,
-                    EsPrincipal = ur.EsPrincipal,
-                    NivelAcceso = ur.NivelAcceso
-                })
-                .ToList();
+                    RolId = reader.GetSafeInt32("rol_id"),
+                    RolCodigo = reader.GetSafeString("rol_codigo"),
+                    RolNombre = reader.GetSafeString("rol_nombre"),
+                    UbicacionOrgId = reader.GetSafeInt32("ubicacion_org_id"),
+                    UbicacionNombre = reader.GetSafeString("ubicacion_nombre"),
+                    UbicacionSigla = reader.GetNullableString("ubicacion_sigla"),
+                    EsPrincipal = reader.GetSafeBoolean("es_principal"),
+                    NivelAcceso = reader.GetSafeString("nivel_acceso", "CONTROL_TOTAL")
+                },
+                new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = user.Id }
+            );
 
             if (!rolesAsignados.Any())
             {
                 return ApiResponse<AuthResponse>.Fail("El usuario no tiene roles activos asignados en el sistema.");
             }
 
-            // Determinar rol activo
+            // Registrar último acceso de forma asíncrona
+            _ = _sp.ExecuteNonQueryAsync(
+                "dbo.usp_Usuarios_ActualizarUltimoAcceso",
+                new SqlParameter("@Id", SqlDbType.Int) { Value = user.Id }
+            );
+
             RoleAssignmentDto? selectedRole = null;
             if (request.RolId.HasValue && request.UbicacionOrgId.HasValue)
             {
@@ -106,12 +138,12 @@ namespace GestionDocumental.Api.Services
             {
                 Id = user.Id,
                 PersonaId = user.PersonaId,
-                Nombres = user.Persona.Nombres,
-                Apellidos = $"{user.Persona.ApellidoPaterno} {user.Persona.ApellidoMaterno}".Trim(),
-                Ci = user.Persona.Ci,
+                Nombres = user.Nombres,
+                Apellidos = $"{user.ApellidoPaterno} {user.ApellidoMaterno}".Trim(),
+                Ci = user.Ci,
                 Login = user.Login,
                 Username = user.Login,
-                Email = user.Persona.Email,
+                Email = user.Email,
                 Cargo = user.Cargo,
                 Roles = rolesAsignados,
                 ActiveRole = activeRole
@@ -128,33 +160,44 @@ namespace GestionDocumental.Api.Services
 
         public async Task<ApiResponse<UserDto>> GetProfileAsync(int userId, int? activeRolId, int? activeUbicacionId)
         {
-            var user = await _context.Usuarios
-                .Include(u => u.Persona)
-                .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
-                    .ThenInclude(ur => ur.Rol)
-                .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
-                    .ThenInclude(ur => ur.UbicacionOrg)
-                .FirstOrDefaultAsync(u => u.Id == userId && u.Activo);
+            var user = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Usuarios_ObtenerPorId",
+                reader => new UsuarioAuthRecord
+                {
+                    Id = reader.GetSafeInt32("id"),
+                    PersonaId = reader.GetSafeInt32("persona_id"),
+                    Login = reader.GetSafeString("login"),
+                    Cargo = reader.GetNullableString("cargo"),
+                    Ci = reader.GetSafeString("ci"),
+                    Nombres = reader.GetSafeString("nombres"),
+                    ApellidoPaterno = reader.GetSafeString("apellido_paterno"),
+                    ApellidoMaterno = reader.GetNullableString("apellido_materno"),
+                    Email = reader.GetNullableString("email"),
+                    Activo = reader.GetSafeBoolean("activo")
+                },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = userId }
+            );
 
-            if (user == null)
+            if (user == null || !user.Activo)
             {
                 return ApiResponse<UserDto>.Fail("Usuario no encontrado.");
             }
 
-            var rolesAsignados = user.UsuarioRoles
-                .Where(ur => ur.Activo && ur.Rol.Activo && ur.UbicacionOrg.Activo)
-                .Select(ur => new RoleAssignmentDto
+            var rolesAsignados = await _sp.QueryAsync(
+                "dbo.usp_Usuarios_ObtenerRoles",
+                reader => new RoleAssignmentDto
                 {
-                    RolId = ur.RolId,
-                    RolCodigo = ur.Rol.Codigo,
-                    RolNombre = ur.Rol.Nombre,
-                    UbicacionOrgId = ur.UbicacionOrgId,
-                    UbicacionNombre = ur.UbicacionOrg.Nombre,
-                    UbicacionSigla = ur.UbicacionOrg.Sigla,
-                    EsPrincipal = ur.EsPrincipal,
-                    NivelAcceso = ur.NivelAcceso
-                })
-                .ToList();
+                    RolId = reader.GetSafeInt32("rol_id"),
+                    RolCodigo = reader.GetSafeString("rol_codigo"),
+                    RolNombre = reader.GetSafeString("rol_nombre"),
+                    UbicacionOrgId = reader.GetSafeInt32("ubicacion_org_id"),
+                    UbicacionNombre = reader.GetSafeString("ubicacion_nombre"),
+                    UbicacionSigla = reader.GetNullableString("ubicacion_sigla"),
+                    EsPrincipal = reader.GetSafeBoolean("es_principal"),
+                    NivelAcceso = reader.GetSafeString("nivel_acceso", "CONTROL_TOTAL")
+                },
+                new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = user.Id }
+            );
 
             RoleAssignmentDto? selectedRole = null;
             if (activeRolId.HasValue && activeUbicacionId.HasValue)
@@ -183,12 +226,12 @@ namespace GestionDocumental.Api.Services
             {
                 Id = user.Id,
                 PersonaId = user.PersonaId,
-                Nombres = user.Persona.Nombres,
-                Apellidos = $"{user.Persona.ApellidoPaterno} {user.Persona.ApellidoMaterno}".Trim(),
-                Ci = user.Persona.Ci,
+                Nombres = user.Nombres,
+                Apellidos = $"{user.ApellidoPaterno} {user.ApellidoMaterno}".Trim(),
+                Ci = user.Ci,
                 Login = user.Login,
                 Username = user.Login,
-                Email = user.Persona.Email,
+                Email = user.Email,
                 Cargo = user.Cargo,
                 Roles = rolesAsignados,
                 ActiveRole = activeRole
@@ -199,7 +242,17 @@ namespace GestionDocumental.Api.Services
 
         public async Task<ApiResponse> ChangePasswordAsync(int userId, ChangePasswordRequest request)
         {
-            var user = await _context.Usuarios.FindAsync(userId);
+            var user = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Usuarios_ObtenerPorId",
+                reader => new
+                {
+                    Id = reader.GetSafeInt32("id"),
+                    Activo = reader.GetSafeBoolean("activo"),
+                    PasswordHash = reader.GetSafeString("password_hash")
+                },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = userId }
+            );
+
             if (user == null || !user.Activo)
             {
                 return ApiResponse.ErrorResult("Usuario no encontrado.");
@@ -220,52 +273,85 @@ namespace GestionDocumental.Api.Services
                 return ApiResponse.ErrorResult("La contraseña debe contener al menos un número.");
             }
 
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-            user.UpdatedAt = DateTime.UtcNow;
+            string newHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            await _sp.ExecuteNonQueryAsync(
+                "dbo.usp_Usuarios_CambiarPassword",
+                new SqlParameter("@Id", SqlDbType.Int) { Value = userId },
+                new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 255) { Value = newHash }
+            );
 
-            await _context.SaveChangesAsync();
             return ApiResponse.SuccessResult("Contraseña actualizada exitosamente.");
         }
 
         public async Task<ApiResponse<SwitchRoleResponse>> SwitchRoleAsync(int userId, SwitchRoleRequest request)
         {
-            var assignment = await _context.UsuarioRoles
-                .Include(ur => ur.Rol)
-                .Include(ur => ur.UbicacionOrg)
-                .Include(ur => ur.Usuario)
-                    .ThenInclude(u => u.Persona)
-                .FirstOrDefaultAsync(ur => ur.UsuarioId == userId &&
-                                           ur.RolId == request.RolId &&
-                                           ur.UbicacionOrgId == request.UbicacionOrgId &&
-                                           ur.Activo);
+            var roles = await _sp.QueryAsync(
+                "dbo.usp_Usuarios_ObtenerRoles",
+                reader => new RoleAssignmentDto
+                {
+                    RolId = reader.GetSafeInt32("rol_id"),
+                    RolCodigo = reader.GetSafeString("rol_codigo"),
+                    RolNombre = reader.GetSafeString("rol_nombre"),
+                    UbicacionOrgId = reader.GetSafeInt32("ubicacion_org_id"),
+                    UbicacionNombre = reader.GetSafeString("ubicacion_nombre"),
+                    UbicacionSigla = reader.GetNullableString("ubicacion_sigla"),
+                    EsPrincipal = reader.GetSafeBoolean("es_principal"),
+                    NivelAcceso = reader.GetSafeString("nivel_acceso", "CONTROL_TOTAL")
+                },
+                new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId }
+            );
 
+            var assignment = roles.FirstOrDefault(r => r.RolId == request.RolId && r.UbicacionOrgId == request.UbicacionOrgId);
             if (assignment == null)
             {
                 return ApiResponse<SwitchRoleResponse>.Fail("El rol u oficina seleccionada no está asignada o se encuentra inactiva.");
             }
 
+            var user = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Usuarios_ObtenerPorId",
+                reader => new UsuarioAuthRecord
+                {
+                    Id = reader.GetSafeInt32("id"),
+                    PersonaId = reader.GetSafeInt32("persona_id"),
+                    Login = reader.GetSafeString("login"),
+                    Cargo = reader.GetNullableString("cargo"),
+                    Ci = reader.GetSafeString("ci"),
+                    Nombres = reader.GetSafeString("nombres"),
+                    ApellidoPaterno = reader.GetSafeString("apellido_paterno"),
+                    ApellidoMaterno = reader.GetNullableString("apellido_materno"),
+                    Email = reader.GetNullableString("email"),
+                    Activo = reader.GetSafeBoolean("activo")
+                },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = userId }
+            );
+
+            if (user == null || !user.Activo)
+            {
+                return ApiResponse<SwitchRoleResponse>.Fail("Usuario no encontrado.");
+            }
+
             var activeRole = new ActiveRoleDto
             {
                 RolId = assignment.RolId,
-                RolCodigo = assignment.Rol.Codigo,
-                RolNombre = assignment.Rol.Nombre,
+                RolCodigo = assignment.RolCodigo,
+                RolNombre = assignment.RolNombre,
                 UbicacionOrgId = assignment.UbicacionOrgId,
-                UbicacionNombre = assignment.UbicacionOrg.Nombre,
-                UbicacionSigla = assignment.UbicacionOrg.Sigla,
+                UbicacionNombre = assignment.UbicacionNombre,
+                UbicacionSigla = assignment.UbicacionSigla,
                 NivelAcceso = assignment.NivelAcceso
             };
 
             var userDto = new UserDto
             {
-                Id = assignment.UsuarioId,
-                PersonaId = assignment.Usuario.PersonaId,
-                Nombres = assignment.Usuario.Persona.Nombres,
-                Apellidos = $"{assignment.Usuario.Persona.ApellidoPaterno} {assignment.Usuario.Persona.ApellidoMaterno}".Trim(),
-                Ci = assignment.Usuario.Persona.Ci,
-                Login = assignment.Usuario.Login,
-                Username = assignment.Usuario.Login,
-                Email = assignment.Usuario.Persona.Email,
-                Cargo = assignment.Usuario.Cargo,
+                Id = user.Id,
+                PersonaId = user.PersonaId,
+                Nombres = user.Nombres,
+                Apellidos = $"{user.ApellidoPaterno} {user.ApellidoMaterno}".Trim(),
+                Ci = user.Ci,
+                Login = user.Login,
+                Username = user.Login,
+                Email = user.Email,
+                Cargo = user.Cargo,
                 ActiveRole = activeRole
             };
 

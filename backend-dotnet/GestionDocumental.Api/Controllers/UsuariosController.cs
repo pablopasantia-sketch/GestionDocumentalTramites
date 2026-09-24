@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using GestionDocumental.Api.Data;
 using GestionDocumental.Api.DTOs.Common;
 using GestionDocumental.Api.DTOs.Roles;
 using GestionDocumental.Api.DTOs.Usuarios;
-using GestionDocumental.Api.Entities;
 
 namespace GestionDocumental.Api.Controllers
 {
@@ -18,85 +18,83 @@ namespace GestionDocumental.Api.Controllers
     [Route("api/[controller]")]
     public class UsuariosController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IStoredProcedureService _sp;
 
-        public UsuariosController(AppDbContext context)
+        public UsuariosController(IStoredProcedureService sp)
         {
-            _context = context;
+            _sp = sp;
+        }
+
+        private static UsuarioListItemDto MapUsuario(SqlDataReader reader) => new UsuarioListItemDto
+        {
+            Id = reader.GetSafeInt32("id"),
+            PersonaId = reader.GetSafeInt32("persona_id"),
+            Login = reader.GetSafeString("login"),
+            Cargo = reader.GetNullableString("cargo"),
+            Activo = reader.GetSafeBoolean("activo"),
+            Nombres = reader.GetSafeString("nombres"),
+            ApellidoPaterno = reader.GetSafeString("apellido_paterno"),
+            ApellidoMaterno = reader.GetNullableString("apellido_materno"),
+            Ci = reader.GetSafeString("ci"),
+            CiExpedido = reader.GetNullableString("ci_expedido"),
+            Email = reader.GetNullableString("email"),
+            RolesResumen = string.Empty,
+            Roles = new List<UsuarioRolItemDto>()
+        };
+
+        private async Task<List<UsuarioRolItemDto>> LoadRolesForUsuario(int usuarioId)
+        {
+            return await _sp.QueryAsync(
+                "dbo.usp_Usuarios_ObtenerRoles",
+                reader => new UsuarioRolItemDto
+                {
+                    Id = reader.GetSafeInt32("rol_id"), // rol assignment
+                    UsuarioId = usuarioId,
+                    RolId = reader.GetSafeInt32("rol_id"),
+                    RolCodigo = reader.GetSafeString("rol_codigo"),
+                    RolNombre = reader.GetSafeString("rol_nombre"),
+                    UbicacionOrgId = reader.GetSafeInt32("ubicacion_org_id"),
+                    UbicacionCodigo = string.Empty,
+                    UbicacionNombre = reader.GetSafeString("ubicacion_nombre"),
+                    UbicacionSigla = reader.GetNullableString("ubicacion_sigla"),
+                    NivelAcceso = reader.GetSafeString("nivel_acceso", "CONTROL_TOTAL"),
+                    FechaExpiracion = null,
+                    EsPrincipal = reader.GetSafeBoolean("es_principal"),
+                    Activo = reader.GetSafeBoolean("activo", true)
+                },
+                new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = usuarioId }
+            );
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] string? activo)
         {
-            var query = _context.Usuarios
-                .Include(u => u.Persona)
-                .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
-                    .ThenInclude(ur => ur.Rol)
-                .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
-                    .ThenInclude(ur => ur.UbicacionOrg)
-                .AsQueryable();
-
+            string activoParam = "activos";
             if (activo == "all" || activo == "todos")
             {
-                // Incluir todos
+                activoParam = "todos";
             }
             else if (activo == "false" || activo == "inactivos")
             {
-                query = query.Where(u => !u.Activo);
-            }
-            else // Por defecto solo activos
-            {
-                query = query.Where(u => u.Activo);
+                activoParam = "inactivos";
             }
 
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var term = search.Trim().ToLower();
-                query = query.Where(u =>
-                    u.Login.ToLower().Contains(term) ||
-                    (u.Cargo != null && u.Cargo.ToLower().Contains(term)) ||
-                    u.Persona.Nombres.ToLower().Contains(term) ||
-                    u.Persona.ApellidoPaterno.ToLower().Contains(term) ||
-                    u.Persona.Ci.ToLower().Contains(term));
-            }
+            var usuarios = await _sp.QueryAsync(
+                "dbo.usp_Usuarios_Listar",
+                MapUsuario,
+                new SqlParameter("@Search", SqlDbType.VarChar, 100) { Value = (object?)search?.Trim() ?? DBNull.Value },
+                new SqlParameter("@Activo", SqlDbType.VarChar, 20) { Value = activoParam },
+                new SqlParameter("@Offset", SqlDbType.Int) { Value = 0 },
+                new SqlParameter("@Limit", SqlDbType.Int) { Value = 500 }
+            );
 
-            var usuarios = await query
-                .OrderBy(u => u.Login)
-                .Select(u => new UsuarioListItemDto
-                {
-                    Id = u.Id,
-                    PersonaId = u.PersonaId,
-                    Login = u.Login,
-                    Cargo = u.Cargo,
-                    Activo = u.Activo,
-                    Nombres = u.Persona.Nombres,
-                    ApellidoPaterno = u.Persona.ApellidoPaterno,
-                    ApellidoMaterno = u.Persona.ApellidoMaterno,
-                    Ci = u.Persona.Ci,
-                    CiExpedido = u.Persona.CiExpedido,
-                    Email = u.Persona.Email,
-                    RolesResumen = string.Join(", ", u.UsuarioRoles.Where(ur => ur.Activo).Select(ur => ur.Rol.Nombre)),
-                    Roles = u.UsuarioRoles.Where(ur => ur.Activo)
-                        .OrderByDescending(ur => ur.EsPrincipal)
-                        .ThenBy(ur => ur.Rol.Nombre)
-                        .Select(ur => new UsuarioRolItemDto
-                        {
-                            Id = ur.Id,
-                            UsuarioId = ur.UsuarioId,
-                            RolId = ur.RolId,
-                            RolCodigo = ur.Rol.Codigo,
-                            RolNombre = ur.Rol.Nombre,
-                            UbicacionOrgId = ur.UbicacionOrgId,
-                            UbicacionCodigo = ur.UbicacionOrg.Codigo,
-                            UbicacionNombre = ur.UbicacionOrg.Nombre,
-                            UbicacionSigla = ur.UbicacionOrg.Sigla,
-                            NivelAcceso = ur.NivelAcceso,
-                            FechaExpiracion = ur.FechaExpiracion,
-                            EsPrincipal = ur.EsPrincipal,
-                            Activo = ur.Activo
-                        }).ToList()
-                })
-                .ToListAsync();
+            // Cargar roles asignados para cada usuario mediante SP
+            foreach (var u in usuarios)
+            {
+                var roles = await LoadRolesForUsuario(u.Id);
+                u.Roles = roles;
+                u.RolesResumen = string.Join(", ", roles.Select(r => r.RolNombre));
+            }
 
             return Ok(ApiResponse<List<UsuarioListItemDto>>.Ok(usuarios));
         }
@@ -104,52 +102,19 @@ namespace GestionDocumental.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var u = await _context.Usuarios
-                .Include(u => u.Persona)
-                .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
-                    .ThenInclude(ur => ur.Rol)
-                .Include(u => u.UsuarioRoles.Where(ur => ur.Activo))
-                    .ThenInclude(ur => ur.UbicacionOrg)
-                .FirstOrDefaultAsync(u => u.Id == id);
+            var u = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Usuarios_ObtenerPorId",
+                MapUsuario,
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
 
             if (u == null) return NotFound(ApiResponse.ErrorResult("Usuario no encontrado."));
 
-            var dto = new UsuarioListItemDto
-            {
-                Id = u.Id,
-                PersonaId = u.PersonaId,
-                Login = u.Login,
-                Cargo = u.Cargo,
-                Activo = u.Activo,
-                Nombres = u.Persona.Nombres,
-                ApellidoPaterno = u.Persona.ApellidoPaterno,
-                ApellidoMaterno = u.Persona.ApellidoMaterno,
-                Ci = u.Persona.Ci,
-                CiExpedido = u.Persona.CiExpedido,
-                Email = u.Persona.Email,
-                RolesResumen = string.Join(", ", u.UsuarioRoles.Where(ur => ur.Activo).Select(ur => ur.Rol.Nombre)),
-                Roles = u.UsuarioRoles.Where(ur => ur.Activo)
-                    .OrderByDescending(ur => ur.EsPrincipal)
-                    .ThenBy(ur => ur.Rol.Nombre)
-                    .Select(ur => new UsuarioRolItemDto
-                    {
-                        Id = ur.Id,
-                        UsuarioId = ur.UsuarioId,
-                        RolId = ur.RolId,
-                        RolCodigo = ur.Rol.Codigo,
-                        RolNombre = ur.Rol.Nombre,
-                        UbicacionOrgId = ur.UbicacionOrgId,
-                        UbicacionCodigo = ur.UbicacionOrg.Codigo,
-                        UbicacionNombre = ur.UbicacionOrg.Nombre,
-                        UbicacionSigla = ur.UbicacionOrg.Sigla,
-                        NivelAcceso = ur.NivelAcceso,
-                        FechaExpiracion = ur.FechaExpiracion,
-                        EsPrincipal = ur.EsPrincipal,
-                        Activo = ur.Activo
-                    }).ToList()
-            };
+            var roles = await LoadRolesForUsuario(u.Id);
+            u.Roles = roles;
+            u.RolesResumen = string.Join(", ", roles.Select(r => r.RolNombre));
 
-            return Ok(ApiResponse<UsuarioListItemDto>.Ok(dto));
+            return Ok(ApiResponse<UsuarioListItemDto>.Ok(u));
         }
 
         [HttpPost]
@@ -160,7 +125,13 @@ namespace GestionDocumental.Api.Controllers
                 return BadRequest(ApiResponse.ErrorResult("Datos inválidos."));
             }
 
-            var existingUser = await _context.Usuarios.FirstOrDefaultAsync(u => u.Login == dto.Login.Trim());
+            // Verificar si el usuario ya existe mediante SP
+            var existingUser = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Usuarios_Autenticar",
+                reader => new { Id = reader.GetSafeInt32("id"), Activo = reader.GetSafeBoolean("activo") },
+                new SqlParameter("@Login", SqlDbType.NVarChar, 50) { Value = dto.Login.Trim().ToLower() }
+            );
+
             if (existingUser != null)
             {
                 if (!existingUser.Activo)
@@ -170,49 +141,91 @@ namespace GestionDocumental.Api.Controllers
                 return Conflict(ApiResponse.ErrorResult($"Ya existe una cuenta con el login '{dto.Login}'."));
             }
 
-            bool personaExists = await _context.Personas.AnyAsync(p => p.Id == dto.PersonaId && p.Activo);
-            if (!personaExists)
+            // Validar que la persona existe
+            var persona = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Personas_ObtenerPorId",
+                reader => new { Id = reader.GetSafeInt32("id"), Activo = reader.GetSafeBoolean("activo") },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = dto.PersonaId }
+            );
+
+            if (persona == null || !persona.Activo)
             {
                 return NotFound(ApiResponse.ErrorResult("La persona seleccionada no existe o está inactiva."));
             }
 
-            var usuario = new Usuario
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            var outParam = new SqlParameter("@NuevoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+            try
             {
-                PersonaId = dto.PersonaId,
-                Login = dto.Login.Trim().ToLower(),
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Cargo = dto.Cargo?.Trim(),
-                Activo = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Usuarios_Insertar",
+                    new SqlParameter("@PersonaId", SqlDbType.Int) { Value = dto.PersonaId },
+                    new SqlParameter("@Login", SqlDbType.NVarChar, 50) { Value = dto.Login.Trim().ToLower() },
+                    new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 255) { Value = passwordHash },
+                    new SqlParameter("@Cargo", SqlDbType.NVarChar, 100) { Value = (object?)dto.Cargo?.Trim() ?? DBNull.Value },
+                    outParam
+                );
 
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
-
-            return Ok(ApiResponse<object>.Ok(new { id = usuario.Id, login = usuario.Login }, "Usuario creado exitosamente."));
+                int nuevoId = (int)outParam.Value;
+                return Ok(ApiResponse<object>.Ok(new { id = nuevoId, login = dto.Login.Trim().ToLower() }, "Usuario creado exitosamente."));
+            }
+            catch (SqlException ex)
+            {
+                return StatusCode(500, ApiResponse.ErrorResult(ex.Message));
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateUsuarioDto dto)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
+            var usuario = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Usuarios_ObtenerPorId",
+                reader => new
+                {
+                    Id = reader.GetSafeInt32("id"),
+                    PersonaId = reader.GetSafeInt32("persona_id"),
+                    Login = reader.GetSafeString("login"),
+                    Cargo = reader.GetNullableString("cargo"),
+                    Activo = reader.GetSafeBoolean("activo")
+                },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
+
             if (usuario == null) return NotFound(ApiResponse.ErrorResult("Usuario no encontrado."));
 
-            if (dto.PersonaId.HasValue) usuario.PersonaId = dto.PersonaId.Value;
-            if (dto.Cargo != null) usuario.Cargo = dto.Cargo.Trim();
-            if (dto.Activo.HasValue) usuario.Activo = dto.Activo.Value;
+            int personaId = dto.PersonaId ?? usuario.PersonaId;
+            string cargo = dto.Cargo != null ? dto.Cargo.Trim() : (usuario.Cargo ?? string.Empty);
+            bool activo = dto.Activo ?? usuario.Activo;
 
-            usuario.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Usuarios_Actualizar",
+                    new SqlParameter("@Id", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@PersonaId", SqlDbType.Int) { Value = personaId },
+                    new SqlParameter("@Login", SqlDbType.NVarChar, 50) { Value = usuario.Login },
+                    new SqlParameter("@Cargo", SqlDbType.NVarChar, 100) { Value = cargo },
+                    new SqlParameter("@Activo", SqlDbType.Bit) { Value = activo }
+                );
 
-            return Ok(ApiResponse.SuccessResult("Usuario actualizado exitosamente."));
+                return Ok(ApiResponse.SuccessResult("Usuario actualizado exitosamente."));
+            }
+            catch (SqlException ex)
+            {
+                return StatusCode(500, ApiResponse.ErrorResult(ex.Message));
+            }
         }
 
         [HttpPost("{id}/reset-password")]
         public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetPasswordDto dto)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
+            var usuario = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Usuarios_ObtenerPorId",
+                reader => new { Id = reader.GetSafeInt32("id"), Login = reader.GetSafeString("login"), Activo = reader.GetSafeBoolean("activo") },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
+
             if (usuario == null) return NotFound(ApiResponse.ErrorResult("Usuario no encontrado."));
 
             if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 6)
@@ -220,9 +233,12 @@ namespace GestionDocumental.Api.Controllers
                 return BadRequest(ApiResponse.ErrorResult("La contraseña debe tener al menos 6 caracteres."));
             }
 
-            usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
-            usuario.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            string newHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            await _sp.ExecuteNonQueryAsync(
+                "dbo.usp_Usuarios_CambiarPassword",
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id },
+                new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 255) { Value = newHash }
+            );
 
             return Ok(ApiResponse.SuccessResult($"Contraseña restablecida exitosamente para '{usuario.Login}'."));
         }
@@ -230,12 +246,18 @@ namespace GestionDocumental.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
+            var usuario = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Usuarios_ObtenerPorId",
+                reader => new { Id = reader.GetSafeInt32("id"), Login = reader.GetSafeString("login") },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
+
             if (usuario == null) return NotFound(ApiResponse.ErrorResult("Usuario no encontrado."));
 
-            usuario.Activo = false;
-            usuario.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            await _sp.ExecuteNonQueryAsync(
+                "dbo.usp_Usuarios_EliminarLogico",
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
 
             return Ok(ApiResponse.SuccessResult($"Usuario '{usuario.Login}' dado de baja."));
         }
@@ -243,17 +265,46 @@ namespace GestionDocumental.Api.Controllers
         [HttpPatch("{id}/reactivar")]
         public async Task<IActionResult> Reactivar(int id)
         {
-            var usuario = await _context.Usuarios.Include(u => u.Persona).FirstOrDefaultAsync(u => u.Id == id);
+            var usuario = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Usuarios_ObtenerPorId",
+                reader => new
+                {
+                    Id = reader.GetSafeInt32("id"),
+                    PersonaId = reader.GetSafeInt32("persona_id"),
+                    Login = reader.GetSafeString("login"),
+                    Cargo = reader.GetNullableString("cargo")
+                },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
+
             if (usuario == null) return NotFound(ApiResponse.ErrorResult("Usuario no encontrado."));
 
-            if (usuario.Persona != null && !usuario.Persona.Activo)
+            // Validar que la persona esté activa
+            var persona = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Personas_ObtenerPorId",
+                reader => new
+                {
+                    Id = reader.GetSafeInt32("id"),
+                    Activo = reader.GetSafeBoolean("activo"),
+                    Nombres = reader.GetSafeString("nombres"),
+                    ApellidoPaterno = reader.GetSafeString("apellido_paterno")
+                },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = usuario.PersonaId }
+            );
+
+            if (persona != null && !persona.Activo)
             {
-                return BadRequest(ApiResponse.ErrorResult($"No se puede reactivar el usuario: la persona asociada '{usuario.Persona.Nombres} {usuario.Persona.ApellidoPaterno}' se encuentra inactiva. Primero reactive la persona."));
+                return BadRequest(ApiResponse.ErrorResult($"No se puede reactivar el usuario: la persona asociada '{persona.Nombres} {persona.ApellidoPaterno}' se encuentra inactiva. Primero reactive la persona."));
             }
 
-            usuario.Activo = true;
-            usuario.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            await _sp.ExecuteNonQueryAsync(
+                "dbo.usp_Usuarios_Actualizar",
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id },
+                new SqlParameter("@PersonaId", SqlDbType.Int) { Value = usuario.PersonaId },
+                new SqlParameter("@Login", SqlDbType.NVarChar, 50) { Value = usuario.Login },
+                new SqlParameter("@Cargo", SqlDbType.NVarChar, 100) { Value = (object?)usuario.Cargo ?? DBNull.Value },
+                new SqlParameter("@Activo", SqlDbType.Bit) { Value = true }
+            );
 
             return Ok(ApiResponse.SuccessResult($"Usuario '{usuario.Login}' reactivado exitosamente."));
         }

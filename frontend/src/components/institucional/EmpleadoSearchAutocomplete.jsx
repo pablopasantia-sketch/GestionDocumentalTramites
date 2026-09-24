@@ -3,7 +3,7 @@ import { institucionalService } from '../../services/api';
 import { Search, UserCheck, AlertCircle, Loader2, Sparkles } from 'lucide-react';
 
 /**
- * Componente Reutilizable: Buscador y Autocompletado desde Padrón TEmpleados (DBNotasCMS)
+ * Componente Reutilizable: Buscador y Autocompletado desde Padrón TEmpleados (DB_TRAMITES_EXTERNOS)
  * 
  * Props:
  *  - onSelectEmpleado: (empleadoData) => void
