@@ -502,9 +502,9 @@ El sistema consolida el motor de **Trámites y Correspondencias en un solo flujo
                         └──────────────────┘
 ```
 
-### 6.1 Detalle de Tablas Institucionales (`DBNotasCMS`)
+### 6.1 Detalle de Tablas Institucionales (`DB_TRAMITES_EXTERNOS`)
 
-A requerimiento del Concejo Municipal de Sucre, el sistema opera sobre **Microsoft SQL Server (T-SQL)** incorporando tres tablas maestras de su base institucional `DBNotasCMS` para el manejo de correspondencia y trámites externos (Sprint 2):
+A requerimiento del Concejo Municipal de Sucre, el sistema opera sobre **Microsoft SQL Server (T-SQL)** incorporando tres tablas maestras de su base institucional `DB_TRAMITES_EXTERNOS` para el manejo de correspondencia y trámites externos (Sprint 2):
 
 1. **`TUnidad` (Catálogo Oficial de Unidades)**:
    - `CodU` (`smallint`, PK): Identificador numérico de la unidad municipal.
@@ -564,15 +564,15 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 **Cronograma:** 01 de Septiembre al 19 de Noviembre (6 Sprints de 2 semanas)
 
 ### Sprint 1 (01 Sep - 14 Sep): Fundación
-- [x] Configuración del entorno (React + .NET 8 Web API) y BD Microsoft SQL Server 2022 en Docker (`DBNotasCMS`)
+- [x] Configuración del entorno (React + .NET 8 Web API) y BD Microsoft SQL Server 2022 en Docker (`DB_TRAMITES_EXTERNOS`)
 - [x] Modelo de datos y migraciones T-SQL (flujo unificado)
 - [x] Autenticación JWT (login, logout, cambio clave, roles activos)
 - [x] CRUD Personas, Usuarios, Roles, Usuario-Rol (con borrado lógico y filtros de estado)
 - [x] CRUD Ubicaciones Orgánicas (organigrama jerárquico en árbol)
 - [x] Incorporación de tablas institucionales en BD y endpoints backend (`TUnidad`, `TCargo`, `TEmpleados`)
 
-### Sprint 2 (15 Sep - 28 Sep): Core del proceso y Trámites Externos (DBNotasCMS)
-- [x] **Paso Introductorio (Integración y Gestión de Catálogos Institucionales DBNotasCMS)**:
+### Sprint 2 (15 Sep - 28 Sep): Core del proceso y Trámites Externos (DB_TRAMITES_EXTERNOS)
+- [x] **Paso Introductorio (Integración y Gestión de Catálogos Institucionales DB_TRAMITES_EXTERNOS)**:
   - [x] Buscador y autocompletado de funcionarios desde `TEmpleados` por CI en el registro de Personas.
   - [x] Selectores institucionales en cascada: Unidad (`TUnidad`) y Cargo dependiente (`TCargo`).
   - [x] CRUD completo y administración de Unidades (`TUnidad`) y Cargos dependientes (`TCargo`) en Hub Administrativo (Escenario 1).
@@ -581,6 +581,7 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 - [x] Generación automática de correlativo institucional anual (`[CÓDIGO]-[NRO]/[GESTIÓN]`).
 - [x] Registro de proveídos iniciales e instrucciones oficiales.
 - [x] Adjuntar y descargar documentos PDF.
+- [x] Migración total a Stored Procedures (SPs) fuertemente tipados en SQL Server (`usp_*`).
 
 ### Sprint 3 (29 Sep - 12 Oct): Flujo directo de trabajo
 - [ ] Escritorio Virtual con bandejas (pendientes, recibidos, despachados)

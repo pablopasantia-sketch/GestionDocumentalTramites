@@ -59,6 +59,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddTransient<DatabaseManager>();
 
 // 2. Inyección de Dependencias
+builder.Services.AddScoped<IStoredProcedureService, StoredProcedureService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // 3. Configuración de Autenticación JWT

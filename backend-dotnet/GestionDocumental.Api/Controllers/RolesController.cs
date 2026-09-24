@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Data;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using GestionDocumental.Api.Data;
 using GestionDocumental.Api.DTOs.Common;
 using GestionDocumental.Api.Entities;
@@ -16,28 +16,28 @@ namespace GestionDocumental.Api.Controllers
     [Route("api/[controller]")]
     public class RolesController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IStoredProcedureService _sp;
 
-        public RolesController(AppDbContext context)
+        public RolesController(IStoredProcedureService sp)
         {
-            _context = context;
+            _sp = sp;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var roles = await _context.Roles
-                .Where(r => r.Activo)
-                .OrderBy(r => r.Id)
-                .Select(r => new
+            var roles = await _sp.QueryAsync(
+                "dbo.usp_Roles_Listar",
+                reader => new
                 {
-                    id = r.Id,
-                    codigo = r.Codigo,
-                    nombre = r.Nombre,
-                    descripcion = r.Descripcion,
-                    activo = r.Activo
-                })
-                .ToListAsync();
+                    id = reader.GetSafeInt32("id"),
+                    codigo = reader.GetSafeString("codigo"),
+                    nombre = reader.GetSafeString("nombre"),
+                    descripcion = reader.GetNullableString("descripcion"),
+                    activo = reader.GetSafeBoolean("activo")
+                },
+                new SqlParameter("@Activo", SqlDbType.VarChar, 20) { Value = "activos" }
+            );
 
             return Ok(ApiResponse<object>.Ok(roles));
         }
@@ -45,19 +45,22 @@ namespace GestionDocumental.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var r = await _context.Roles.FindAsync(id);
-            if (r == null) return NotFound(ApiResponse.ErrorResult("Rol no encontrado."));
+            var rol = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Roles_ObtenerPorId",
+                reader => new
+                {
+                    id = reader.GetSafeInt32("id"),
+                    codigo = reader.GetSafeString("codigo"),
+                    nombre = reader.GetSafeString("nombre"),
+                    descripcion = reader.GetNullableString("descripcion"),
+                    activo = reader.GetSafeBoolean("activo")
+                },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
 
-            var data = new
-            {
-                id = r.Id,
-                codigo = r.Codigo,
-                nombre = r.Nombre,
-                descripcion = r.Descripcion,
-                activo = r.Activo
-            };
+            if (rol == null) return NotFound(ApiResponse.ErrorResult("Rol no encontrado."));
 
-            return Ok(ApiResponse<object>.Ok(data));
+            return Ok(ApiResponse<object>.Ok(rol));
         }
 
         [HttpPost]
@@ -68,62 +71,90 @@ namespace GestionDocumental.Api.Controllers
                 return BadRequest(ApiResponse.ErrorResult("Código y nombre son obligatorios."));
             }
 
-            bool exists = await _context.Roles.AnyAsync(r => r.Codigo == model.Codigo.Trim());
-            if (exists) return Conflict(ApiResponse.ErrorResult($"Ya existe un rol con el código {model.Codigo}."));
+            var outParam = new SqlParameter("@NuevoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
 
-            var rol = new Rol
+            try
             {
-                Codigo = model.Codigo.Trim().ToUpper(),
-                Nombre = model.Nombre.Trim(),
-                Descripcion = model.Descripcion?.Trim(),
-                Activo = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Roles_Insertar",
+                    new SqlParameter("@Codigo", SqlDbType.VarChar, 30) { Value = model.Codigo.Trim().ToUpper() },
+                    new SqlParameter("@Nombre", SqlDbType.VarChar, 100) { Value = model.Nombre.Trim() },
+                    new SqlParameter("@Descripcion", SqlDbType.VarChar, 255) { Value = (object?)model.Descripcion?.Trim() ?? DBNull.Value },
+                    outParam
+                );
 
-            _context.Roles.Add(rol);
-            await _context.SaveChangesAsync();
+                int nuevoId = (int)outParam.Value;
 
-            return Ok(ApiResponse<object>.Ok(new
+                return Ok(ApiResponse<object>.Ok(new
+                {
+                    id = nuevoId,
+                    nombre = model.Nombre.Trim(),
+                    codigo = model.Codigo.Trim().ToUpper(),
+                    descripcion = model.Descripcion?.Trim(),
+                    activo = true
+                }, "Rol creado exitosamente."));
+            }
+            catch (SqlException ex)
             {
-                id = rol.Id,
-                nombre = rol.Nombre,
-                codigo = rol.Codigo,
-                descripcion = rol.Descripcion,
-                activo = rol.Activo
-            }, "Rol creado exitosamente."));
+                return Conflict(ApiResponse.ErrorResult(ex.Message));
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] Rol model)
         {
-            var rol = await _context.Roles.FindAsync(id);
-            if (rol == null) return NotFound(ApiResponse.ErrorResult("Rol no encontrado."));
+            var existing = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Roles_ObtenerPorId",
+                reader => new
+                {
+                    id = reader.GetSafeInt32("id"),
+                    codigo = reader.GetSafeString("codigo"),
+                    nombre = reader.GetSafeString("nombre"),
+                    descripcion = reader.GetNullableString("descripcion"),
+                    activo = reader.GetSafeBoolean("activo")
+                },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
 
-            if (!string.IsNullOrWhiteSpace(model.Nombre)) rol.Nombre = model.Nombre.Trim();
-            if (model.Descripcion != null) rol.Descripcion = model.Descripcion.Trim();
-            rol.UpdatedAt = DateTime.UtcNow;
+            if (existing == null) return NotFound(ApiResponse.ErrorResult("Rol no encontrado."));
 
-            await _context.SaveChangesAsync();
-            return Ok(ApiResponse.SuccessResult("Rol actualizado exitosamente."));
+            string nombre = !string.IsNullOrWhiteSpace(model.Nombre) ? model.Nombre.Trim() : existing.nombre;
+            string? descripcion = model.Descripcion != null ? model.Descripcion.Trim() : existing.descripcion;
+
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Roles_Actualizar",
+                    new SqlParameter("@Id", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@Codigo", SqlDbType.VarChar, 30) { Value = existing.codigo },
+                    new SqlParameter("@Nombre", SqlDbType.VarChar, 100) { Value = nombre },
+                    new SqlParameter("@Descripcion", SqlDbType.VarChar, 255) { Value = (object?)descripcion ?? DBNull.Value },
+                    new SqlParameter("@Activo", SqlDbType.Bit) { Value = existing.activo }
+                );
+
+                return Ok(ApiResponse.SuccessResult("Rol actualizado exitosamente."));
+            }
+            catch (SqlException ex)
+            {
+                return StatusCode(500, ApiResponse.ErrorResult(ex.Message));
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var rol = await _context.Roles.Include(r => r.UsuarioRoles).FirstOrDefaultAsync(r => r.Id == id);
-            if (rol == null) return NotFound(ApiResponse.ErrorResult("Rol no encontrado."));
-
-            if (rol.UsuarioRoles.Any(ur => ur.Activo))
+            try
             {
-                return BadRequest(ApiResponse.ErrorResult("No se puede eliminar el rol: tiene asignaciones activas a usuarios."));
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Roles_EliminarLogico",
+                    new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+                );
+                return Ok(ApiResponse.SuccessResult("Rol dado de baja exitosamente."));
             }
-
-            rol.Activo = false;
-            rol.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            return Ok(ApiResponse.SuccessResult("Rol dado de baja exitosamente."));
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
         }
     }
 }

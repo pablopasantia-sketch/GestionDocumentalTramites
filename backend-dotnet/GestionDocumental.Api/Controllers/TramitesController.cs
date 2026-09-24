@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Data;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using GestionDocumental.Api.Data;
 using GestionDocumental.Api.DTOs.Common;
 using GestionDocumental.Api.DTOs.Tramites;
-using GestionDocumental.Api.Entities;
 
 namespace GestionDocumental.Api.Controllers
 {
@@ -17,11 +16,11 @@ namespace GestionDocumental.Api.Controllers
     [Route("api/[controller]")]
     public class TramitesController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IStoredProcedureService _sp;
 
-        public TramitesController(AppDbContext context)
+        public TramitesController(IStoredProcedureService sp)
         {
-            _context = context;
+            _sp = sp;
         }
 
         /// <summary>
@@ -41,54 +40,65 @@ namespace GestionDocumental.Api.Controllers
             int year = gestion ?? DateTime.UtcNow.Year;
             var cleanCorrelativo = searchCorr.Trim();
 
-            var tramite = await _context.Tramites
-                .Include(t => t.TipoProceso)
-                .Include(t => t.UbicacionOrg)
-                .Include(t => t.UbicacionActual)
-                .Include(t => t.Movimientos)
-                    .ThenInclude(m => m.UbicacionOrigen)
-                .Include(t => t.Movimientos)
-                    .ThenInclude(m => m.UbicacionDestino)
-                .FirstOrDefaultAsync(t => t.NumeroCorrelativo == cleanCorrelativo && t.Gestion == year && t.Activo);
+            var resultado = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Tramites_ConsultaPublica",
+                reader => new TramiteConsultaPublicaDto
+                {
+                    Id = reader.GetSafeInt32("id"),
+                    NumeroCorrelativo = reader.GetSafeString("numero_correlativo"),
+                    Gestion = reader.GetSafeInt32("gestion"),
+                    TipoProceso = reader.GetSafeString("tipo_proceso"),
+                    TipoCategoria = reader.GetSafeString("tipo_categoria"),
+                    Referencia = reader.GetSafeString("referencia"),
+                    Remitente = reader.GetSafeString("remitente"),
+                    Estado = reader.GetSafeString("estado"),
+                    Prioridad = reader.GetSafeString("prioridad"),
+                    NroHojas = reader.GetSafeInt32("nro_hojas", 1),
+                    FechaCreacion = reader.GetSafeDateTime("fecha_creacion"),
+                    FechaConclusion = reader.GetNullableDateTime("fecha_conclusion"),
+                    UbicacionActual = reader.GetSafeString("ubicacion_actual"),
+                    UnidadOrigen = reader.GetSafeString("unidad_origen"),
+                    Historial = new List<MovimientoTimelineDto>()
+                },
+                new SqlParameter("@Correlativo", SqlDbType.NVarChar, 50) { Value = cleanCorrelativo },
+                new SqlParameter("@Gestion", SqlDbType.Int) { Value = year }
+            );
 
-            if (tramite == null)
+            if (resultado == null)
             {
                 return NotFound(ApiResponse.ErrorResult($"No se encontró ningún trámite registrado con el correlativo '{cleanCorrelativo}' en la gestión {year}."));
             }
 
-            var historial = tramite.Movimientos
-                .OrderBy(m => m.Orden)
-                .Select(m => new MovimientoTimelineDto
+            // Cargar timeline de movimientos para la consulta pública si existe
+            var historial = new List<MovimientoTimelineDto>();
+            await _sp.ExecuteMultiReaderAsync(
+                "dbo.usp_Tramites_ObtenerPorId",
+                async reader =>
                 {
-                    Orden = m.Orden,
-                    Actividad = m.ActividadNombre,
-                    TipoMovimiento = m.TipoMovimiento,
-                    UnidadOrigen = m.UbicacionOrigen != null ? m.UbicacionOrigen.Nombre : "Ventanilla Central",
-                    UnidadDestino = m.UbicacionDestino != null ? m.UbicacionDestino.Nombre : null,
-                    Estado = m.EstadoMovimiento,
-                    Proveido = m.Proveido,
-                    Fecha = m.FechaRecepcion ?? m.FechaEnvio ?? m.CreatedAt
-                })
-                .ToList();
+                    // Saltar resultset 1
+                    if (await reader.NextResultAsync())
+                    {
+                        // Resultset 2: Movimientos
+                        while (await reader.ReadAsync())
+                        {
+                            historial.Add(new MovimientoTimelineDto
+                            {
+                                Orden = reader.GetSafeInt32("orden"),
+                                Actividad = reader.GetSafeString("actividad"),
+                                TipoMovimiento = reader.GetSafeString("tipo_movimiento"),
+                                UnidadOrigen = reader.GetSafeString("unidad_origen"),
+                                UnidadDestino = reader.GetNullableString("unidad_destino"),
+                                Estado = reader.GetSafeString("estado"),
+                                Proveido = reader.GetNullableString("proveido"),
+                                Fecha = reader.GetSafeDateTime("fecha")
+                            });
+                        }
+                    }
+                },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = resultado.Id }
+            );
 
-            var resultado = new TramiteConsultaPublicaDto
-            {
-                Id = tramite.Id,
-                NumeroCorrelativo = tramite.NumeroCorrelativo,
-                Gestion = tramite.Gestion,
-                TipoProceso = tramite.TipoProceso.Nombre,
-                TipoCategoria = tramite.TipoProceso.TipoCategoria,
-                Referencia = tramite.Referencia,
-                Remitente = tramite.Remitente,
-                Estado = tramite.Estado,
-                Prioridad = tramite.Prioridad,
-                NroHojas = tramite.NroHojas,
-                FechaCreacion = tramite.FechaCreacion,
-                FechaConclusion = tramite.FechaConclusion,
-                UbicacionActual = tramite.UbicacionActual != null ? tramite.UbicacionActual.Nombre : "Despacho Central",
-                UnidadOrigen = tramite.UbicacionOrg != null ? tramite.UbicacionOrg.Nombre : "Ventanilla Única",
-                Historial = historial
-            };
+            resultado.Historial = historial;
 
             return Ok(ApiResponse<TramiteConsultaPublicaDto>.Ok(resultado, "Trámite localizado exitosamente."));
         }
@@ -102,56 +112,32 @@ namespace GestionDocumental.Api.Controllers
             [FromQuery] int limit = 50,
             [FromQuery] int offset = 0)
         {
-            var query = _context.Tramites
-                .Include(t => t.TipoProceso)
-                .Include(t => t.UbicacionActual)
-                .Include(t => t.UsuarioActual)
-                .Where(t => t.Activo)
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(estado) && estado != "TODOS")
-            {
-                query = query.Where(t => t.Estado == estado.Trim());
-            }
-
-            if (gestion.HasValue)
-            {
-                query = query.Where(t => t.Gestion == gestion.Value);
-            }
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var term = search.Trim().ToLower();
-                query = query.Where(t =>
-                    t.NumeroCorrelativo.ToLower().Contains(term) ||
-                    t.Remitente.ToLower().Contains(term) ||
-                    t.Referencia.ToLower().Contains(term) ||
-                    t.TipoProceso.Nombre.ToLower().Contains(term));
-            }
-
-            var list = await query
-                .OrderByDescending(t => t.Id)
-                .Skip(offset)
-                .Take(limit)
-                .Select(t => new TramiteListItemDto
+            var list = await _sp.QueryAsync(
+                "dbo.usp_Tramites_Listar",
+                reader => new TramiteListItemDto
                 {
-                    Id = t.Id,
-                    NumeroCorrelativo = t.NumeroCorrelativo,
-                    Gestion = t.Gestion,
-                    TipoProcesoId = t.TipoProcesoId,
-                    TipoProcesoNombre = t.TipoProceso.Nombre,
-                    TipoCorres = t.TipoCorres,
-                    Remitente = t.Remitente,
-                    Referencia = t.Referencia,
-                    Prioridad = t.Prioridad,
-                    NroHojas = t.NroHojas,
-                    Estado = t.Estado,
-                    UbicacionActualNombre = t.UbicacionActual != null ? t.UbicacionActual.Nombre : null,
-                    UsuarioActualLogin = t.UsuarioActual != null ? t.UsuarioActual.Login : null,
-                    FechaCreacion = t.FechaCreacion,
-                    NroAdjuntos = t.Adjuntos.Count(a => a.Activo)
-                })
-                .ToListAsync();
+                    Id = reader.GetSafeInt32("id"),
+                    NumeroCorrelativo = reader.GetSafeString("numero_correlativo"),
+                    Gestion = reader.GetSafeInt32("gestion"),
+                    TipoProcesoId = reader.GetSafeInt32("tipo_proceso_id"),
+                    TipoProcesoNombre = reader.GetSafeString("tipo_proceso_nombre"),
+                    TipoCorres = reader.GetSafeString("tipo_corres"),
+                    Remitente = reader.GetSafeString("remitente"),
+                    Referencia = reader.GetSafeString("referencia"),
+                    Prioridad = reader.GetSafeString("prioridad"),
+                    NroHojas = reader.GetSafeInt32("nro_hojas", 1),
+                    Estado = reader.GetSafeString("estado"),
+                    UbicacionActualNombre = reader.GetNullableString("ubicacion_actual_nombre"),
+                    UsuarioActualLogin = reader.GetNullableString("usuario_actual_login"),
+                    FechaCreacion = reader.GetSafeDateTime("fecha_creacion"),
+                    NroAdjuntos = reader.GetSafeInt32("nro_adjuntos")
+                },
+                new SqlParameter("@Estado", SqlDbType.NVarChar, 30) { Value = (object?)estado?.Trim() ?? DBNull.Value },
+                new SqlParameter("@Gestion", SqlDbType.Int) { Value = (object?)gestion ?? DBNull.Value },
+                new SqlParameter("@Search", SqlDbType.NVarChar, 200) { Value = (object?)search?.Trim() ?? DBNull.Value },
+                new SqlParameter("@Limit", SqlDbType.Int) { Value = limit },
+                new SqlParameter("@Offset", SqlDbType.Int) { Value = offset }
+            );
 
             return Ok(ApiResponse<List<TramiteListItemDto>>.Ok(list));
         }
@@ -162,23 +148,24 @@ namespace GestionDocumental.Api.Controllers
         {
             int year = gestion ?? DateTime.UtcNow.Year;
 
-            var all = await _context.Tramites
-                .Where(t => t.Gestion == year && t.Activo)
-                .Select(t => t.Estado)
-                .ToListAsync();
+            var stats = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Tramites_ObtenerEstadisticas",
+                reader => new TramiteStatsDto
+                {
+                    Gestion = reader.GetSafeInt32("gestion", year),
+                    Total = reader.GetSafeInt32("total"),
+                    Creados = reader.GetSafeInt32("creados"),
+                    EnAtencion = reader.GetSafeInt32("en_atencion"),
+                    EnTransito = reader.GetSafeInt32("en_transito"),
+                    Recibidos = reader.GetSafeInt32("recibidos"),
+                    Bloqueados = reader.GetSafeInt32("bloqueados"),
+                    Concluidos = reader.GetSafeInt32("concluidos"),
+                    Anulados = reader.GetSafeInt32("anulados")
+                },
+                new SqlParameter("@Gestion", SqlDbType.Int) { Value = year }
+            );
 
-            var stats = new TramiteStatsDto
-            {
-                Gestion = year,
-                Total = all.Count,
-                Creados = all.Count(e => e == "CREADO"),
-                EnAtencion = all.Count(e => e == "EN_ATENCION"),
-                EnTransito = all.Count(e => e == "EN_TRANSITO" || e == "POR_RECIBIR"),
-                Recibidos = all.Count(e => e == "RECIBIDO"),
-                Bloqueados = all.Count(e => e == "BLOQUEADO"),
-                Concluidos = all.Count(e => e == "CONCLUIDO"),
-                Anulados = all.Count(e => e == "ANULADO")
-            };
+            stats ??= new TramiteStatsDto { Gestion = year };
 
             return Ok(ApiResponse<TramiteStatsDto>.Ok(stats));
         }
@@ -190,29 +177,28 @@ namespace GestionDocumental.Api.Controllers
         [HttpGet("next-correlativo")]
         public async Task<IActionResult> GetNextCorrelativo([FromQuery] int tipo_proceso_id, [FromQuery] int? gestion)
         {
-            var tipo = await _context.TiposProceso.FirstOrDefaultAsync(tp => tp.Id == tipo_proceso_id && tp.Activo);
-            if (tipo == null)
+            int year = gestion ?? DateTime.UtcNow.Year;
+
+            var preview = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Tramites_PreviewCorrelativo",
+                reader => new NextCorrelativoPreviewDto
+                {
+                    NumeroCorrelativo = reader.GetSafeString("numero_correlativo"),
+                    Gestion = reader.GetSafeInt32("gestion", year),
+                    CodigoTipo = reader.GetSafeString("codigo_tipo"),
+                    NombreTipo = reader.GetSafeString("nombre_tipo"),
+                    TiempoEstimadoHoras = reader.GetSafeInt32("tiempo_estimado_horas", 24)
+                },
+                new SqlParameter("@TipoProcesoId", SqlDbType.Int) { Value = tipo_proceso_id },
+                new SqlParameter("@Gestion", SqlDbType.Int) { Value = year }
+            );
+
+            if (preview == null)
             {
                 return NotFound(ApiResponse.ErrorResult("Tipo de trámite externo no encontrado o inactivo."));
             }
 
-            int year = gestion ?? DateTime.UtcNow.Year;
-            var corr = await _context.Correlativos
-                .FirstOrDefaultAsync(c => c.TipoProcesoId == tipo.Id && c.Gestion == year);
-
-            int nextNum = (corr != null ? corr.UltimoNumero : 0) + 1;
-            string preview = $"{tipo.Codigo}-{nextNum}/{year}";
-
-            var result = new NextCorrelativoPreviewDto
-            {
-                NumeroCorrelativo = preview,
-                Gestion = year,
-                CodigoTipo = tipo.Codigo,
-                NombreTipo = tipo.Nombre,
-                TiempoEstimadoHoras = tipo.TiempoEstimadoHoras
-            };
-
-            return Ok(ApiResponse<NextCorrelativoPreviewDto>.Ok(result));
+            return Ok(ApiResponse<NextCorrelativoPreviewDto>.Ok(preview));
         }
 
         /// <summary>
@@ -222,94 +208,95 @@ namespace GestionDocumental.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var tramite = await _context.Tramites
-                .Include(t => t.TipoProceso)
-                .Include(t => t.CreadoPorUsuario)
-                    .ThenInclude(u => u.Persona)
-                .Include(t => t.UbicacionOrg)
-                .Include(t => t.Movimientos)
-                    .ThenInclude(m => m.UsuarioOrigen)
-                        .ThenInclude(u => u.Persona)
-                .Include(t => t.Movimientos)
-                    .ThenInclude(m => m.UbicacionOrigen)
-                .Include(t => t.Movimientos)
-                    .ThenInclude(m => m.UbicacionDestino)
-                .Include(t => t.Adjuntos.Where(a => a.Activo))
-                    .ThenInclude(a => a.SubidoPorUsuario)
-                        .ThenInclude(u => u.Persona)
-                .FirstOrDefaultAsync(t => t.Id == id && t.Activo);
+            TramiteDetalleCompletoDto? detalle = null;
+            var historial = new List<MovimientoTimelineDto>();
+            var adjuntos = new List<GestionDocumental.Api.DTOs.Adjuntos.AdjuntoItemDto>();
 
-            if (tramite == null)
+            await _sp.ExecuteMultiReaderAsync(
+                "dbo.usp_Tramites_ObtenerPorId",
+                async reader =>
+                {
+                    // Resultset 1: Trámite
+                    if (await reader.ReadAsync())
+                    {
+                        detalle = new TramiteDetalleCompletoDto
+                        {
+                            Id = reader.GetSafeInt32("id"),
+                            NumeroCorrelativo = reader.GetSafeString("numero_correlativo"),
+                            Gestion = reader.GetSafeInt32("gestion"),
+                            TipoProcesoId = reader.GetSafeInt32("tipo_proceso_id"),
+                            TipoProcesoCodigo = reader.GetSafeString("tipo_proceso_codigo"),
+                            TipoProcesoNombre = reader.GetSafeString("tipo_proceso_nombre"),
+                            TipoCategoria = reader.GetSafeString("tipo_categoria"),
+                            Estado = reader.GetSafeString("estado"),
+                            Remitente = reader.GetSafeString("remitente"),
+                            InstitucionRemitente = reader.GetNullableString("institucion_remitente"),
+                            CiteExterno = reader.GetNullableString("cite_externo"),
+                            Referencia = reader.GetSafeString("referencia"),
+                            Prioridad = reader.GetSafeString("prioridad"),
+                            NroHojas = reader.GetSafeInt32("nro_hojas", 1),
+                            NroAnexos = reader.GetSafeInt32("nro_anexos"),
+                            Instruccion = reader.GetNullableString("instruccion"),
+                            DestinatarioNombre = reader.GetNullableString("destinatario_nombre"),
+                            DestinatarioCargo = reader.GetNullableString("destinatario_cargo"),
+                            DestinatarioUnidad = reader.GetNullableString("destinatario_unidad"),
+                            CodUDestino = reader.GetNullableInt16("cod_u_destino"),
+                            CodCargoDestino = reader.GetNullableInt16("cod_cargo_destino"),
+                            CiEmpleadoDestino = reader.GetNullableInt32("ci_empleado_destino"),
+                            FechaCreacion = reader.GetSafeDateTime("fecha_creacion"),
+                            FechaLimiteRespuesta = reader.GetNullableDateTime("fecha_limite_respuesta"),
+                            CreadoPorUsuario = reader.GetSafeString("creado_por_usuario"),
+                            UnidadOrigen = reader.GetSafeString("unidad_origen"),
+                            Historial = historial,
+                            Adjuntos = adjuntos
+                        };
+                    }
+
+                    // Resultset 2: Movimientos
+                    if (await reader.NextResultAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            historial.Add(new MovimientoTimelineDto
+                            {
+                                Orden = reader.GetSafeInt32("orden"),
+                                Actividad = reader.GetSafeString("actividad"),
+                                TipoMovimiento = reader.GetSafeString("tipo_movimiento"),
+                                UnidadOrigen = reader.GetSafeString("unidad_origen"),
+                                UnidadDestino = reader.GetNullableString("unidad_destino"),
+                                Estado = reader.GetSafeString("estado"),
+                                Proveido = reader.GetNullableString("proveido"),
+                                Fecha = reader.GetSafeDateTime("fecha")
+                            });
+                        }
+                    }
+
+                    // Resultset 3: Adjuntos
+                    if (await reader.NextResultAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            adjuntos.Add(new GestionDocumental.Api.DTOs.Adjuntos.AdjuntoItemDto
+                            {
+                                Id = reader.GetSafeInt32("id"),
+                                TramiteId = reader.GetSafeInt32("tramite_id"),
+                                MovimientoId = reader.GetNullableInt32("movimiento_id"),
+                                NombreOriginal = reader.GetSafeString("nombre_original"),
+                                TamanoBytes = reader.GetSafeInt64("tamano_bytes"),
+                                TipoMime = reader.GetSafeString("tipo_mime"),
+                                SubidoPorNombre = reader.GetSafeString("subido_por_nombre"),
+                                FechaSubida = reader.GetSafeDateTime("fecha_subida")
+                            });
+                        }
+                    }
+                },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
+
+            if (detalle == null)
             {
                 return NotFound(ApiResponse.ErrorResult("Trámite no encontrado."));
             }
-
-            var historial = tramite.Movimientos
-                .OrderBy(m => m.Orden)
-                .Select(m => new MovimientoTimelineDto
-                {
-                    Orden = m.Orden,
-                    Actividad = m.ActividadNombre,
-                    TipoMovimiento = m.TipoMovimiento,
-                    UnidadOrigen = m.UbicacionOrigen != null ? m.UbicacionOrigen.Nombre : "Ventanilla Central",
-                    UnidadDestino = m.UbicacionDestino != null ? m.UbicacionDestino.Nombre : null,
-                    Estado = m.EstadoMovimiento,
-                    Proveido = m.Proveido,
-                    Fecha = m.FechaRecepcion ?? m.FechaEnvio ?? m.CreatedAt
-                })
-                .ToList();
-
-            var creadorNombre = tramite.CreadoPorUsuario?.Persona != null
-                ? $"{tramite.CreadoPorUsuario.Persona.Nombres} {tramite.CreadoPorUsuario.Persona.ApellidoPaterno}".Trim()
-                : tramite.CreadoPorUsuario?.Login ?? "Operador Ventanilla";
-
-            var detalle = new TramiteDetalleCompletoDto
-            {
-                Id = tramite.Id,
-                NumeroCorrelativo = tramite.NumeroCorrelativo,
-                Gestion = tramite.Gestion,
-                TipoProcesoId = tramite.TipoProcesoId,
-                TipoProcesoCodigo = tramite.TipoProceso.Codigo,
-                TipoProcesoNombre = tramite.TipoProceso.Nombre,
-                TipoCategoria = tramite.TipoProceso.TipoCategoria,
-                Estado = tramite.Estado,
-                Remitente = tramite.Remitente,
-                InstitucionRemitente = tramite.InstitucionRemitente,
-                CiteExterno = tramite.CiteExterno,
-                Referencia = tramite.Referencia,
-                Prioridad = tramite.Prioridad,
-                NroHojas = tramite.NroHojas,
-                NroAnexos = tramite.NroAnexos,
-                Instruccion = tramite.Instruccion,
-                DestinatarioNombre = tramite.DestinatarioNombre,
-                DestinatarioCargo = tramite.DestinatarioCargo,
-                DestinatarioUnidad = tramite.DestinatarioUnidad,
-                CodUDestino = tramite.CodUDestino,
-                CodCargoDestino = tramite.CodCargoDestino,
-                CiEmpleadoDestino = tramite.CiEmpleadoDestino,
-                FechaCreacion = tramite.FechaCreacion,
-                FechaLimiteRespuesta = tramite.FechaLimiteRespuesta,
-                CreadoPorUsuario = creadorNombre,
-                UnidadOrigen = tramite.UbicacionOrg?.Nombre ?? "Ventanilla Única",
-                Historial = historial,
-                Adjuntos = tramite.Adjuntos
-                    .Where(a => a.Activo)
-                    .OrderByDescending(a => a.Id)
-                    .Select(a => new GestionDocumental.Api.DTOs.Adjuntos.AdjuntoItemDto
-                    {
-                        Id = a.Id,
-                        TramiteId = a.TramiteId,
-                        MovimientoId = a.MovimientoId,
-                        NombreOriginal = a.NombreOriginal,
-                        TamanoBytes = a.TamanoBytes,
-                        TipoMime = a.TipoMime,
-                        SubidoPorNombre = a.SubidoPorUsuario?.Persona != null
-                            ? $"{a.SubidoPorUsuario.Persona.Nombres} {a.SubidoPorUsuario.Persona.ApellidoPaterno}".Trim()
-                            : a.SubidoPorUsuario?.Login ?? "Operador Ventanilla",
-                        FechaSubida = a.CreatedAt
-                    })
-                    .ToList()
-            };
 
             return Ok(ApiResponse<TramiteDetalleCompletoDto>.Ok(detalle));
         }
@@ -327,167 +314,81 @@ namespace GestionDocumental.Api.Controllers
                 return BadRequest(ApiResponse.ErrorResult("Datos de correspondencia inválidos. Verifique los campos obligatorios."));
             }
 
-            var tipo = await _context.TiposProceso.FirstOrDefaultAsync(tp => tp.Id == dto.TipoProcesoId && tp.Activo);
-            if (tipo == null)
-            {
-                return BadRequest(ApiResponse.ErrorResult("El tipo de trámite seleccionado no existe o no está activo."));
-            }
-
-            // Exclusividad Trámites Externos
-            if (tipo.TipoCategoria != "CORRESPONDENCIA")
-            {
-                return BadRequest(ApiResponse.ErrorResult("Solo se permite la recepción de correspondencia y trámites externos en este módulo."));
-            }
-
             var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(userIdClaim, out int userId);
-            if (userId <= 0) userId = 1; // Default admin/operador
+            if (userId <= 0) userId = 1;
 
             var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
             int.TryParse(ubiClaim, out int ubicacionId);
-            if (ubicacionId <= 0)
-            {
-                var userRol = await _context.UsuarioRoles
-                    .FirstOrDefaultAsync(ur => ur.UsuarioId == userId && ur.Activo);
-                ubicacionId = userRol?.UbicacionOrgId ?? tipo.UbicacionOrgId ?? 3; // 3: Ventanilla Única
-            }
+            if (ubicacionId <= 0) ubicacionId = 3; // 3: Ventanilla Única
 
-            int year = DateTime.UtcNow.Year;
+            var outNuevoId = new SqlParameter("@NuevoTramiteId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+            var outNumeroCorrelativo = new SqlParameter("@NumeroCorrelativo", SqlDbType.VarChar, 50) { Direction = ParameterDirection.Output };
 
-            // Iniciar transacción para garantizar correlativo atómico sin colisiones
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var corr = await _context.Correlativos
-                    .FirstOrDefaultAsync(c => c.TipoProcesoId == tipo.Id && c.Gestion == year);
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_Crear",
+                    new SqlParameter("@TipoProcesoId", SqlDbType.Int) { Value = dto.TipoProcesoId },
+                    new SqlParameter("@Remitente", SqlDbType.VarChar, 200) { Value = dto.Remitente.Trim() },
+                    new SqlParameter("@InstitucionRemitente", SqlDbType.NVarChar, 200) { Value = (object?)dto.InstitucionRemitente?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@CiteExterno", SqlDbType.VarChar, 100) { Value = (object?)dto.CiteExterno?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@Referencia", SqlDbType.NVarChar, -1) { Value = dto.Referencia.Trim() },
+                    new SqlParameter("@Prioridad", SqlDbType.VarChar, 20) { Value = !string.IsNullOrWhiteSpace(dto.Prioridad) ? dto.Prioridad.Trim().ToUpper() : "NORMAL" },
+                    new SqlParameter("@NroHojas", SqlDbType.Int) { Value = dto.NroHojas },
+                    new SqlParameter("@NroAnexos", SqlDbType.Int) { Value = dto.NroAnexos },
+                    new SqlParameter("@Instruccion", SqlDbType.VarChar, 255) { Value = (object?)dto.Instruccion?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@ProveidoInicial", SqlDbType.NVarChar, -1) { Value = (object?)dto.ProveidoInicial?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@CodUDestino", SqlDbType.SmallInt) { Value = (object?)dto.CodUDestino ?? DBNull.Value },
+                    new SqlParameter("@CodCargoDestino", SqlDbType.SmallInt) { Value = (object?)dto.CodCargoDestino ?? DBNull.Value },
+                    new SqlParameter("@CiEmpleadoDestino", SqlDbType.Int) { Value = (object?)dto.CiEmpleadoDestino ?? DBNull.Value },
+                    new SqlParameter("@DestinatarioNombre", SqlDbType.NVarChar, 150) { Value = (object?)dto.DestinatarioNombre?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@DestinatarioCargo", SqlDbType.NVarChar, 150) { Value = (object?)dto.DestinatarioCargo?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@DestinatarioUnidad", SqlDbType.NVarChar, 150) { Value = (object?)dto.DestinatarioUnidad?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@PrimerDestinatarioId", SqlDbType.Int) { Value = (object?)dto.PrimerDestinatarioId ?? DBNull.Value },
+                    new SqlParameter("@UserId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@UbicacionId", SqlDbType.Int) { Value = ubicacionId },
+                    outNuevoId,
+                    outNumeroCorrelativo
+                );
 
-                if (corr == null)
+                int nuevoId = (int)outNuevoId.Value;
+                string numeroCorrelativo = (string)outNumeroCorrelativo.Value;
+
+                var resultDto = new TramiteDetalleCompletoDto
                 {
-                    corr = new Correlativo
-                    {
-                        TipoProcesoId = tipo.Id,
-                        UbicacionOrgId = ubicacionId,
-                        Gestion = year,
-                        UltimoNumero = 1,
-                        FormatoPatron = "{CODIGO}-{NUMERO}/{GESTION}",
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    _context.Correlativos.Add(corr);
-                }
-                else
-                {
-                    corr.UltimoNumero += 1;
-                    corr.UpdatedAt = DateTime.UtcNow;
-                }
-
-                int nextSeq = corr.UltimoNumero;
-                tipo.CorrelativoSeq = nextSeq;
-                tipo.UpdatedAt = DateTime.UtcNow;
-
-                string numeroCorrelativo = $"{tipo.Codigo}-{nextSeq}/{year}";
-                DateTime ahora = DateTime.UtcNow;
-                DateTime? fechaLimite = tipo.TiempoEstimadoHoras > 0
-                    ? ahora.AddHours(tipo.TiempoEstimadoHoras)
-                    : (DateTime?)null;
-
-                var nuevoTramite = new Tramite
-                {
+                    Id = nuevoId,
                     NumeroCorrelativo = numeroCorrelativo,
-                    Gestion = year,
-                    TipoProcesoId = tipo.Id,
+                    Gestion = DateTime.UtcNow.Year,
+                    TipoProcesoId = dto.TipoProcesoId,
+                    TipoProcesoCodigo = string.Empty,
+                    TipoProcesoNombre = string.Empty,
+                    TipoCategoria = "CORRESPONDENCIA",
                     Estado = "CREADO",
                     Remitente = dto.Remitente.Trim(),
-                    InstitucionRemitente = !string.IsNullOrWhiteSpace(dto.InstitucionRemitente) ? dto.InstitucionRemitente.Trim() : null,
-                    CiteExterno = !string.IsNullOrWhiteSpace(dto.CiteExterno) ? dto.CiteExterno.Trim() : null,
+                    InstitucionRemitente = dto.InstitucionRemitente,
+                    CiteExterno = dto.CiteExterno,
                     Referencia = dto.Referencia.Trim(),
-                    TipoCorres = "CORRESPONDENCIA",
+                    Prioridad = dto.Prioridad ?? "NORMAL",
                     NroHojas = dto.NroHojas,
                     NroAnexos = dto.NroAnexos,
-                    Instruccion = !string.IsNullOrWhiteSpace(dto.Instruccion) ? dto.Instruccion.Trim() : null,
-                    Prioridad = !string.IsNullOrWhiteSpace(dto.Prioridad) ? dto.Prioridad.Trim().ToUpper() : "NORMAL",
+                    Instruccion = dto.Instruccion,
+                    DestinatarioNombre = dto.DestinatarioNombre,
+                    DestinatarioCargo = dto.DestinatarioCargo,
+                    DestinatarioUnidad = dto.DestinatarioUnidad,
                     CodUDestino = dto.CodUDestino,
                     CodCargoDestino = dto.CodCargoDestino,
                     CiEmpleadoDestino = dto.CiEmpleadoDestino,
-                    DestinatarioNombre = !string.IsNullOrWhiteSpace(dto.DestinatarioNombre) ? dto.DestinatarioNombre.Trim() : null,
-                    DestinatarioCargo = !string.IsNullOrWhiteSpace(dto.DestinatarioCargo) ? dto.DestinatarioCargo.Trim() : null,
-                    DestinatarioUnidad = !string.IsNullOrWhiteSpace(dto.DestinatarioUnidad) ? dto.DestinatarioUnidad.Trim() : null,
-                    PrimerDestinatarioId = dto.PrimerDestinatarioId,
-                    FechaCreacion = ahora,
-                    FechaLimiteRespuesta = fechaLimite,
-                    CreadoPor = userId,
-                    UbicacionOrgId = ubicacionId,
-                    UsuarioActualId = userId,
-                    UbicacionActualId = ubicacionId,
-                    Activo = true,
-                    CreatedAt = ahora,
-                    UpdatedAt = ahora
+                    FechaCreacion = DateTime.UtcNow,
+                    CreadoPorUsuario = "Operador Ventanilla",
+                    UnidadOrigen = "Ventanilla Única"
                 };
 
-                _context.Tramites.Add(nuevoTramite);
-                await _context.SaveChangesAsync();
-
-                // Movimiento 1: Recepción inicial en Ventanilla Única
-                var provText = !string.IsNullOrWhiteSpace(dto.ProveidoInicial)
-                    ? dto.ProveidoInicial.Trim()
-                    : $"Recepción y apertura de Hoja de Ruta externa {numeroCorrelativo}.";
-
-                var primerMovimiento = new Movimiento
-                {
-                    TramiteId = nuevoTramite.Id,
-                    Orden = 1,
-                    TipoMovimiento = "INICIO",
-                    ActividadNombre = "Recepción en Ventanilla Única",
-                    UsuarioOrigenId = userId,
-                    UbicacionOrigenId = ubicacionId,
-                    EstadoMovimiento = "CREADO",
-                    Proveido = provText,
-                    Instruccion = nuevoTramite.Instruccion,
-                    TiempoEstimadoMinutos = tipo.TiempoEstimadoHoras * 60,
-                    FechaEnvio = ahora,
-                    FechaRecepcion = ahora,
-                    CreatedAt = ahora
-                };
-
-                _context.Movimientos.Add(primerMovimiento);
-                await _context.SaveChangesAsync();
-
-                await transaction.CommitAsync();
-
-                return CreatedAtAction(nameof(GetById), new { id = nuevoTramite.Id },
-                    ApiResponse<TramiteDetalleCompletoDto>.Ok(new TramiteDetalleCompletoDto
-                    {
-                        Id = nuevoTramite.Id,
-                        NumeroCorrelativo = nuevoTramite.NumeroCorrelativo,
-                        Gestion = nuevoTramite.Gestion,
-                        TipoProcesoId = nuevoTramite.TipoProcesoId,
-                        TipoProcesoCodigo = tipo.Codigo,
-                        TipoProcesoNombre = tipo.Nombre,
-                        TipoCategoria = tipo.TipoCategoria,
-                        Estado = nuevoTramite.Estado,
-                        Remitente = nuevoTramite.Remitente,
-                        InstitucionRemitente = nuevoTramite.InstitucionRemitente,
-                        CiteExterno = nuevoTramite.CiteExterno,
-                        Referencia = nuevoTramite.Referencia,
-                        Prioridad = nuevoTramite.Prioridad,
-                        NroHojas = nuevoTramite.NroHojas,
-                        NroAnexos = nuevoTramite.NroAnexos,
-                        Instruccion = nuevoTramite.Instruccion,
-                        DestinatarioNombre = nuevoTramite.DestinatarioNombre,
-                        DestinatarioCargo = nuevoTramite.DestinatarioCargo,
-                        DestinatarioUnidad = nuevoTramite.DestinatarioUnidad,
-                        CodUDestino = nuevoTramite.CodUDestino,
-                        CodCargoDestino = nuevoTramite.CodCargoDestino,
-                        CiEmpleadoDestino = nuevoTramite.CiEmpleadoDestino,
-                        FechaCreacion = nuevoTramite.FechaCreacion,
-                        FechaLimiteRespuesta = nuevoTramite.FechaLimiteRespuesta,
-                        CreadoPorUsuario = "Operador Ventanilla",
-                        UnidadOrigen = "Ventanilla Única"
-                    }, $"Hoja de Ruta {nuevoTramite.NumeroCorrelativo} creada exitosamente."));
+                return CreatedAtAction(nameof(GetById), new { id = nuevoId },
+                    ApiResponse<TramiteDetalleCompletoDto>.Ok(resultDto, $"Hoja de Ruta {numeroCorrelativo} creada exitosamente."));
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
-                await transaction.RollbackAsync();
                 return StatusCode(500, ApiResponse.ErrorResult($"Error al emitir la Hoja de Ruta: {ex.Message}"));
             }
         }
@@ -501,42 +402,30 @@ namespace GestionDocumental.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ApiResponse.ErrorResult("Motivo de anulación requerido."));
 
-            var tramite = await _context.Tramites
-                .Include(t => t.Movimientos)
-                .FirstOrDefaultAsync(t => t.Id == id && t.Activo);
-
-            if (tramite == null) return NotFound(ApiResponse.ErrorResult("Trámite no encontrado."));
-
             var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
 
             var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
             int.TryParse(ubiClaim, out int ubicacionId);
+            if (ubiClaim == null || ubicacionId <= 0) ubicacionId = 3;
 
-            tramite.Estado = "ANULADO";
-            tramite.MotivoAnulacion = dto.Motivo.Trim();
-            tramite.UpdatedAt = DateTime.UtcNow;
-
-            int nextOrden = (tramite.Movimientos.Any() ? tramite.Movimientos.Max(m => m.Orden) : 0) + 1;
-
-            var movimientoAnulacion = new Movimiento
+            try
             {
-                TramiteId = tramite.Id,
-                Orden = nextOrden,
-                TipoMovimiento = "ANULACION",
-                ActividadNombre = "Anulación de trámite",
-                UsuarioOrigenId = userId > 0 ? userId : tramite.CreadoPor,
-                UbicacionOrigenId = ubicacionId > 0 ? ubicacionId : tramite.UbicacionOrgId,
-                EstadoMovimiento = "ANULADO",
-                Proveido = $"Anulación: {dto.Motivo.Trim()}",
-                FechaEnvio = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
-            };
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_Anular",
+                    new SqlParameter("@Id", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@Motivo", SqlDbType.NVarChar, -1) { Value = dto.Motivo.Trim() },
+                    new SqlParameter("@UserId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@UbicacionId", SqlDbType.Int) { Value = ubicacionId }
+                );
 
-            _context.Movimientos.Add(movimientoAnulacion);
-            await _context.SaveChangesAsync();
-
-            return Ok(ApiResponse.SuccessResult($"Trámite {tramite.NumeroCorrelativo} anulado exitosamente."));
+                return Ok(ApiResponse.SuccessResult("Trámite anulado exitosamente."));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
         }
     }
 }

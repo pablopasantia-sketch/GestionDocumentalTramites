@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -8,24 +9,23 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using GestionDocumental.Api.Data;
 using GestionDocumental.Api.DTOs.Adjuntos;
 using GestionDocumental.Api.DTOs.Common;
-using GestionDocumental.Api.Entities;
 
 namespace GestionDocumental.Api.Controllers
 {
     [ApiController]
     public class AdjuntosController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IStoredProcedureService _sp;
         private readonly IWebHostEnvironment _env;
         private const long MaxFileSize = 25 * 1024 * 1024; // 25 MB
 
-        public AdjuntosController(AppDbContext context, IWebHostEnvironment env)
+        public AdjuntosController(IStoredProcedureService sp, IWebHostEnvironment env)
         {
-            _context = context;
+            _sp = sp;
             _env = env;
         }
 
@@ -39,6 +39,21 @@ namespace GestionDocumental.Api.Controllers
             return uploadDir;
         }
 
+        private class AdjuntoRecord
+        {
+            public int Id { get; set; }
+            public int TramiteId { get; set; }
+            public int? MovimientoId { get; set; }
+            public string NombreOriginal { get; set; } = string.Empty;
+            public string NombreAlmacenado { get; set; } = string.Empty;
+            public string RutaArchivo { get; set; } = string.Empty;
+            public string TipoMime { get; set; } = string.Empty;
+            public long TamanoBytes { get; set; }
+            public int SubidoPor { get; set; }
+            public bool Activo { get; set; }
+            public DateTime CreatedAt { get; set; }
+        }
+
         /// <summary>
         /// Subir uno o más documentos PDF a una Hoja de Ruta / Trámite Externo (RF-07.1)
         /// </summary>
@@ -46,7 +61,13 @@ namespace GestionDocumental.Api.Controllers
         [HttpPost("api/tramites/{tramiteId}/adjuntos")]
         public async Task<IActionResult> UploadAdjuntos(int tramiteId, [FromForm] List<IFormFile> files, [FromForm] int? movimiento_id)
         {
-            var tramite = await _context.Tramites.FirstOrDefaultAsync(t => t.Id == tramiteId && t.Activo);
+            // Validar trámite mediante SP
+            var tramite = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Tramites_ObtenerPorId",
+                reader => new { Id = reader.GetSafeInt32("id"), CreadoPorUsuario = reader.GetSafeString("creado_por_usuario") },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = tramiteId }
+            );
+
             if (tramite == null)
             {
                 return NotFound(ApiResponse.ErrorResult("Trámite no encontrado."));
@@ -54,7 +75,6 @@ namespace GestionDocumental.Api.Controllers
 
             if (files == null || files.Count == 0)
             {
-                // Intentar leer de Request.Form.Files si no llegó por binding
                 if (Request.HasFormContentType && Request.Form.Files.Count > 0)
                 {
                     files = Request.Form.Files.ToList();
@@ -67,7 +87,7 @@ namespace GestionDocumental.Api.Controllers
 
             var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(userIdClaim, out int userId);
-            if (userId <= 0) userId = tramite.CreadoPor;
+            if (userId <= 0) userId = 1;
 
             var uploadDir = GetUploadDirectory();
             var uploadedList = new List<AdjuntoItemDto>();
@@ -76,7 +96,6 @@ namespace GestionDocumental.Api.Controllers
             {
                 if (file.Length == 0) continue;
 
-                // Validación de extensión y tamaño
                 var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (ext != ".pdf")
                 {
@@ -97,46 +116,35 @@ namespace GestionDocumental.Api.Controllers
                     await file.CopyToAsync(stream);
                 }
 
-                var adjunto = new Adjunto
-                {
-                    TramiteId = tramite.Id,
-                    MovimientoId = movimiento_id,
-                    NombreOriginal = safeFileName,
-                    NombreAlmacenado = storedFileName,
-                    RutaArchivo = destinationPath,
-                    TipoMime = "application/pdf",
-                    TamanoBytes = file.Length,
-                    SubidoPor = userId,
-                    Activo = true,
-                    CreatedAt = DateTime.UtcNow
-                };
+                var outParam = new SqlParameter("@NuevoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
 
-                _context.Adjuntos.Add(adjunto);
-                await _context.SaveChangesAsync();
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Adjuntos_Insertar",
+                    new SqlParameter("@TramiteId", SqlDbType.Int) { Value = tramiteId },
+                    new SqlParameter("@MovimientoId", SqlDbType.Int) { Value = (object?)movimiento_id ?? DBNull.Value },
+                    new SqlParameter("@NombreOriginal", SqlDbType.VarChar, 255) { Value = safeFileName },
+                    new SqlParameter("@NombreAlmacenado", SqlDbType.VarChar, 255) { Value = storedFileName },
+                    new SqlParameter("@RutaArchivo", SqlDbType.VarChar, 500) { Value = destinationPath },
+                    new SqlParameter("@TipoMime", SqlDbType.VarChar, 100) { Value = "application/pdf" },
+                    new SqlParameter("@TamanoBytes", SqlDbType.BigInt) { Value = file.Length },
+                    new SqlParameter("@SubidoPor", SqlDbType.Int) { Value = userId },
+                    outParam
+                );
 
-                var usuarioSubio = await _context.Usuarios
-                    .Include(u => u.Persona)
-                    .FirstOrDefaultAsync(u => u.Id == userId);
-
-                var nombreUsuario = usuarioSubio?.Persona != null
-                    ? $"{usuarioSubio.Persona.Nombres} {usuarioSubio.Persona.ApellidoPaterno}".Trim()
-                    : usuarioSubio?.Login ?? "Operador Ventanilla";
+                int nuevoId = (int)outParam.Value;
 
                 uploadedList.Add(new AdjuntoItemDto
                 {
-                    Id = adjunto.Id,
-                    TramiteId = adjunto.TramiteId,
-                    MovimientoId = adjunto.MovimientoId,
-                    NombreOriginal = adjunto.NombreOriginal,
-                    TamanoBytes = adjunto.TamanoBytes,
-                    TipoMime = adjunto.TipoMime,
-                    SubidoPorNombre = nombreUsuario,
-                    FechaSubida = adjunto.CreatedAt
+                    Id = nuevoId,
+                    TramiteId = tramiteId,
+                    MovimientoId = movimiento_id,
+                    NombreOriginal = safeFileName,
+                    TamanoBytes = file.Length,
+                    TipoMime = "application/pdf",
+                    SubidoPorNombre = "Usuario Actual",
+                    FechaSubida = DateTime.UtcNow
                 });
             }
-
-            tramite.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
 
             return Ok(ApiResponse<List<AdjuntoItemDto>>.Ok(uploadedList, $"{uploadedList.Count} archivo(s) PDF adjuntado(s) exitosamente."));
         }
@@ -148,25 +156,21 @@ namespace GestionDocumental.Api.Controllers
         [HttpGet("api/tramites/{tramiteId}/adjuntos")]
         public async Task<IActionResult> GetAdjuntosByTramite(int tramiteId)
         {
-            var adjuntos = await _context.Adjuntos
-                .Include(a => a.SubidoPorUsuario)
-                    .ThenInclude(u => u.Persona)
-                .Where(a => a.TramiteId == tramiteId && a.Activo)
-                .OrderByDescending(a => a.Id)
-                .Select(a => new AdjuntoItemDto
+            var adjuntos = await _sp.QueryAsync(
+                "dbo.usp_Adjuntos_ListarPorTramite",
+                reader => new AdjuntoItemDto
                 {
-                    Id = a.Id,
-                    TramiteId = a.TramiteId,
-                    MovimientoId = a.MovimientoId,
-                    NombreOriginal = a.NombreOriginal,
-                    TamanoBytes = a.TamanoBytes,
-                    TipoMime = a.TipoMime,
-                    SubidoPorNombre = a.SubidoPorUsuario.Persona != null
-                        ? $"{a.SubidoPorUsuario.Persona.Nombres} {a.SubidoPorUsuario.Persona.ApellidoPaterno}".Trim()
-                        : a.SubidoPorUsuario.Login,
-                    FechaSubida = a.CreatedAt
-                })
-                .ToListAsync();
+                    Id = reader.GetSafeInt32("id"),
+                    TramiteId = reader.GetSafeInt32("tramite_id"),
+                    MovimientoId = reader.GetNullableInt32("movimiento_id"),
+                    NombreOriginal = reader.GetSafeString("nombre_original"),
+                    TamanoBytes = reader.GetSafeInt64("tamano_bytes"),
+                    TipoMime = reader.GetSafeString("tipo_mime"),
+                    SubidoPorNombre = reader.GetSafeString("subido_por_nombre"),
+                    FechaSubida = reader.GetSafeDateTime("fecha_subida")
+                },
+                new SqlParameter("@TramiteId", SqlDbType.Int) { Value = tramiteId }
+            );
 
             return Ok(ApiResponse<List<AdjuntoItemDto>>.Ok(adjuntos));
         }
@@ -179,8 +183,19 @@ namespace GestionDocumental.Api.Controllers
         [HttpHead("api/adjuntos/{id}/descargar")]
         public async Task<IActionResult> DescargarAdjunto(int id)
         {
-            var adjunto = await _context.Adjuntos.FirstOrDefaultAsync(a => a.Id == id && a.Activo);
-            if (adjunto == null)
+            var adjunto = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Adjuntos_ObtenerPorId",
+                reader => new AdjuntoRecord
+                {
+                    Id = reader.GetSafeInt32("id"),
+                    RutaArchivo = reader.GetSafeString("ruta_archivo"),
+                    NombreOriginal = reader.GetSafeString("nombre_original"),
+                    Activo = reader.GetSafeBoolean("activo")
+                },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
+
+            if (adjunto == null || !adjunto.Activo)
             {
                 return NotFound(ApiResponse.ErrorResult("Documento PDF no encontrado."));
             }
@@ -202,8 +217,19 @@ namespace GestionDocumental.Api.Controllers
         [HttpHead("api/adjuntos/{id}/ver")]
         public async Task<IActionResult> VerAdjunto(int id)
         {
-            var adjunto = await _context.Adjuntos.FirstOrDefaultAsync(a => a.Id == id && a.Activo);
-            if (adjunto == null)
+            var adjunto = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Adjuntos_ObtenerPorId",
+                reader => new AdjuntoRecord
+                {
+                    Id = reader.GetSafeInt32("id"),
+                    RutaArchivo = reader.GetSafeString("ruta_archivo"),
+                    NombreOriginal = reader.GetSafeString("nombre_original"),
+                    Activo = reader.GetSafeBoolean("activo")
+                },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
+
+            if (adjunto == null || !adjunto.Activo)
             {
                 return NotFound(ApiResponse.ErrorResult("Documento PDF no encontrado."));
             }
@@ -225,14 +251,26 @@ namespace GestionDocumental.Api.Controllers
         [HttpDelete("api/adjuntos/{id}")]
         public async Task<IActionResult> DeleteAdjunto(int id)
         {
-            var adjunto = await _context.Adjuntos.FirstOrDefaultAsync(a => a.Id == id && a.Activo);
-            if (adjunto == null)
+            var adjunto = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Adjuntos_ObtenerPorId",
+                reader => new AdjuntoRecord
+                {
+                    Id = reader.GetSafeInt32("id"),
+                    NombreOriginal = reader.GetSafeString("nombre_original"),
+                    Activo = reader.GetSafeBoolean("activo")
+                },
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
+
+            if (adjunto == null || !adjunto.Activo)
             {
                 return NotFound(ApiResponse.ErrorResult("Documento PDF no encontrado."));
             }
 
-            adjunto.Activo = false;
-            await _context.SaveChangesAsync();
+            await _sp.ExecuteNonQueryAsync(
+                "dbo.usp_Adjuntos_EliminarLogico",
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+            );
 
             return Ok(ApiResponse.SuccessResult($"Documento '{adjunto.NombreOriginal}' eliminado exitosamente."));
         }
