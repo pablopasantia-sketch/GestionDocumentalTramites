@@ -19,10 +19,10 @@ namespace GestionDocumental.Api.Data
         public DatabaseManager(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection") 
-                ?? "Server=127.0.0.1,1433;Database=DBNotasCMS;User Id=sa;Password=SqlAdminSucre2026!;TrustServerCertificate=True;MultipleActiveResultSets=True;";
+                ?? "Server=127.0.0.1,1433;Database=DB_TRAMITES_EXTERNOS;User Id=sa;Password=SqlAdminSucre2026!;TrustServerCertificate=True;MultipleActiveResultSets=True;";
             
             var builder = new SqlConnectionStringBuilder(_connectionString);
-            _databaseName = string.IsNullOrWhiteSpace(builder.InitialCatalog) ? "DBNotasCMS" : builder.InitialCatalog;
+            _databaseName = string.IsNullOrWhiteSpace(builder.InitialCatalog) ? "DB_TRAMITES_EXTERNOS" : builder.InitialCatalog;
 
             // Carpeta de migraciones
             var baseDir = AppContext.BaseDirectory;
@@ -412,7 +412,7 @@ namespace GestionDocumental.Api.Data
             using (var cmd = new SqlCommand(rolAsignSql, conn)) await cmd.ExecuteNonQueryAsync();
 
             // 6. Tipos de Proceso
-            Console.WriteLine("🔹 Sembrando Tipos de Proceso Externo (Hojas de Ruta DBNotasCMS)...");
+            Console.WriteLine("🔹 Sembrando Tipos de Proceso Externo (Hojas de Ruta DB_TRAMITES_EXTERNOS)...");
             var procSql = @"
                 -- Trámites Externos Oficiales (Hojas de Ruta Institucionales)
                 IF NOT EXISTS (SELECT 1 FROM dbo.tipos_proceso WHERE codigo = 'CM')
@@ -453,8 +453,8 @@ namespace GestionDocumental.Api.Data
                     INSERT INTO dbo.parametros (clave, valor, tipo_dato, descripcion, editable) VALUES ('CORRELATIVO_AUTO_RESET', 'TRUE', 'BOOLEAN', 'Reinicio automático de correlativo anual', 1);";
             using (var cmd = new SqlCommand(paramSql, conn)) await cmd.ExecuteNonQueryAsync();
 
-            // 8. Tablas Institucionales (Sprint 2 - DBNotasCMS)
-            Console.WriteLine("🔹 Sembrando Unidades, Cargos y Empleados Institucionales (DBNotasCMS)...");
+            // 8. Tablas Institucionales (Sprint 2 - DB_TRAMITES_EXTERNOS)
+            Console.WriteLine("🔹 Sembrando Unidades, Cargos y Empleados Institucionales (DB_TRAMITES_EXTERNOS)...");
             var instSql = @"
                 -- TUnidad (Catálogo Institucional de Unidades)
                 IF NOT EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 1)

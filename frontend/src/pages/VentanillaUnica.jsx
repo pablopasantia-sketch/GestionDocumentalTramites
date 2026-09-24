@@ -62,7 +62,7 @@ export default function VentanillaUnica() {
     nro_anexos: 0,
     instruccion: INSTRUCCIONES_SUGERIDAS[0],
     proveido_inicial: '',
-    // Destinatario institucional DBNotasCMS
+    // Destinatario institucional DB_TRAMITES_EXTERNOS
     cod_u_destino: '',
     cod_cargo_destino: '',
     ci_empleado_destino: '',
@@ -145,7 +145,7 @@ export default function VentanillaUnica() {
     }
   };
 
-  // 3. Manejo de cambios en selectores de unidad y cargo institucional (DBNotasCMS)
+  // 3. Manejo de cambios en selectores de unidad y cargo institucional (DB_TRAMITES_EXTERNOS)
   const handleUnidadChange = (codU, unidadObj) => {
     setFormData(prev => ({
       ...prev,
@@ -568,13 +568,13 @@ export default function VentanillaUnica() {
                 </div>
               </div>
 
-              {/* BLOQUE 4: DESTINATARIO INSTITUCIONAL (DBNotasCMS) */}
+              {/* BLOQUE 4: DESTINATARIO INSTITUCIONAL (DB_TRAMITES_EXTERNOS) */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #1B365D' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Building2 size={18} color="#1B365D" />
                     <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                      4. Asignación y Destinatario Institucional (DBNotasCMS)
+                      4. Asignación y Destinatario Institucional (DB_TRAMITES_EXTERNOS)
                     </h3>
                   </div>
                   <span className="badge badge-sucre" style={{ fontSize: '0.72rem' }}>
@@ -821,7 +821,7 @@ export default function VentanillaUnica() {
                   <span>Seguridad y Validez Oficial</span>
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#64748B', lineHeight: 1.4 }}>
-                  Cada Hoja de Ruta registrada en Ventanilla Única cuenta con correlativo protegido y trazabilidad histórica auditada en SQL Server (DBNotasCMS).
+                  Cada Hoja de Ruta registrada en Ventanilla Única cuenta con correlativo protegido y trazabilidad histórica auditada en SQL Server (DB_TRAMITES_EXTERNOS).
                 </div>
               </div>
 

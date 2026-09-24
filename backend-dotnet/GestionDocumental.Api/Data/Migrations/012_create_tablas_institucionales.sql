@@ -1,4 +1,4 @@
--- Migración 012: Crear tablas institucionales (TUnidad, TCargo, TEmpleados) - DBNotasCMS T-SQL
+-- Migración 012: Crear tablas institucionales (TUnidad, TCargo, TEmpleados) - DB_TRAMITES_EXTERNOS T-SQL
 
 -- 1. Tabla TUnidad
 IF OBJECT_ID(N'dbo.TUnidad', N'U') IS NULL

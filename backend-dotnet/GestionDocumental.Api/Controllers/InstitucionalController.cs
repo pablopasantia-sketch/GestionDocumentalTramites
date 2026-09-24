@@ -185,7 +185,7 @@ namespace GestionDocumental.Api.Controllers
             var unidadExiste = await _context.TUnidades.AnyAsync(u => u.CodU == request.CodU);
             if (!unidadExiste)
             {
-                return BadRequest(ApiResponse<object>.Fail($"La unidad con código {request.CodU} no existe en DBNotasCMS."));
+                return BadRequest(ApiResponse<object>.Fail($"La unidad con código {request.CodU} no existe en DB_TRAMITES_EXTERNOS."));
             }
 
             short nuevoCodCargo = request.CodCargo ?? 0;
@@ -324,7 +324,7 @@ namespace GestionDocumental.Api.Controllers
 
             if (empleado == null)
             {
-                return NotFound(ApiResponse<object>.Fail($"Empleado con CI {ci} no encontrado en DBNotasCMS."));
+                return NotFound(ApiResponse<object>.Fail($"Empleado con CI {ci} no encontrado en DB_TRAMITES_EXTERNOS."));
             }
 
             return Ok(ApiResponse<object>.Ok(empleado, "Empleado institucional encontrado"));

@@ -8,7 +8,7 @@ Sistema institucional de control, seguimiento y trazabilidad de expedientes, cor
 
 | Componente | Tecnología | Descripción |
 |---|---|---|
-| **Base de Datos** | Microsoft SQL Server 2022 (Linux) | Contenedor oficial en Docker, base institucional `DBNotasCMS` |
+| **Base de Datos** | Microsoft SQL Server 2022 (Linux) | Contenedor oficial en Docker, base institucional `DB_TRAMITES_EXTERNOS` |
 | **Backend** | .NET 8 Web API (C#) | Entity Framework Core con `Microsoft.EntityFrameworkCore.SqlServer`, JWT, BCrypt, arquitectura en capas |
 | **Frontend** | React 19 + Vite | SPA moderna, React Router v7, Lucide Icons, diseño accesible con estética institucional |
 | **Infraestructura** | Docker & Docker Compose | Orquestación contenerizada con persistencia en volúmenes |
@@ -41,7 +41,7 @@ docker ps
 > - **Puerto**: `1433`
 > - **Usuario SA**: `sa`
 > - **Contraseña SA**: `SqlAdminSucre2026!`
-> - **Base de datos principal**: `DBNotasCMS`
+> - **Base de datos principal**: `DB_TRAMITES_EXTERNOS`
 
 ---
 
@@ -99,7 +99,7 @@ El backend incorpora un ejecutor de migraciones y gestión de base de datos inte
 
 | Comando | Descripción |
 |---|---|
-| `dotnet run -- db:init` | Crea la base de datos `DBNotasCMS` si no existe y aplica todas las migraciones T-SQL pendientes. |
+| `dotnet run -- db:init` | Crea la base de datos `DB_TRAMITES_EXTERNOS` si no existe y aplica todas las migraciones T-SQL pendientes. |
 | `dotnet run -- db:seed` | Inserta datos semilla estándar (roles, usuarios, organigrama, y catálogo institucional `TUnidad`, `TCargo`, `TEmpleados`). |
 | `dotnet run -- migrate:status` | Muestra una tabla detallada con el estado (APLICADA / PENDIENTE), batch y fecha de cada script de migración. |
 | `dotnet run -- migrate:up` | Aplica únicamente las migraciones que aún no se hayan ejecutado. |
@@ -141,14 +141,14 @@ docker compose down -v
 Puedes ejecutar consultas SQL directamente en la base de datos mediante la herramienta de línea de comandos incluida en el contenedor:
 
 ```bash
-# Conectarse a la base de datos DBNotasCMS e interactuar interactivamente:
-docker exec -it gestion_documental_mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'SqlAdminSucre2026!' -C -d DBNotasCMS
+# Conectarse a la base de datos DB_TRAMITES_EXTERNOS e interactuar interactivamente:
+docker exec -it gestion_documental_mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'SqlAdminSucre2026!' -C -d DB_TRAMITES_EXTERNOS
 
 # Ejemplo de consulta directa: Listar tablas existentes
-docker exec -it gestion_documental_mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'SqlAdminSucre2026!' -C -d DBNotasCMS -Q "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';"
+docker exec -it gestion_documental_mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'SqlAdminSucre2026!' -C -d DB_TRAMITES_EXTERNOS -Q "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';"
 
 # Ejemplo: Consultar las unidades institucionales
-docker exec -it gestion_documental_mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'SqlAdminSucre2026!' -C -d DBNotasCMS -Q "SELECT CodU, NombU, Activo FROM dbo.TUnidad;"
+docker exec -it gestion_documental_mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'SqlAdminSucre2026!' -C -d DB_TRAMITES_EXTERNOS -Q "SELECT CodU, NombU, Activo FROM dbo.TUnidad;"
 ```
 
 ---
@@ -173,7 +173,7 @@ El comando `dotnet run -- db:seed` crea las siguientes cuentas de prueba:
 │   └── GestionDocumental.Api/
 │       ├── Controllers/          # Endpoints REST (Auth, Personas, Ubicaciones, Institucional...)
 │       ├── Data/                 # AppDbContext, DatabaseManager y Migraciones T-SQL
-│       │   └── Migrations/       # Scripts 001 a 012 (incluyendo tablas DBNotasCMS)
+│       │   └── Migrations/       # Scripts 001 a 012 (incluyendo tablas DB_TRAMITES_EXTERNOS)
 │       ├── DTOs/                 # Objetos de transferencia de datos validados
 │       ├── Entities/             # Modelos de EF Core (Persona, Usuario, TUnidad, TCargo, TEmpleado...)
 │       ├── Services/             # Lógica de negocio (AuthService, Jwt...)

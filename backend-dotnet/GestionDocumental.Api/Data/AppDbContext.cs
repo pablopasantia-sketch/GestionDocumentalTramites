@@ -21,7 +21,7 @@ namespace GestionDocumental.Api.Data
         public DbSet<Adjunto> Adjuntos => Set<Adjunto>();
         public DbSet<Parametro> Parametros => Set<Parametro>();
 
-        // Tablas Institucionales (Sprint 2 - DBNotasCMS)
+        // Tablas Institucionales (Sprint 2 - DB_TRAMITES_EXTERNOS)
         public DbSet<TUnidad> TUnidades => Set<TUnidad>();
         public DbSet<TCargo> TCargos => Set<TCargo>();
         public DbSet<TEmpleado> TEmpleados => Set<TEmpleado>();

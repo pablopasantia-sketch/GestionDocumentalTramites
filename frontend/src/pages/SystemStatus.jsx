@@ -173,7 +173,7 @@ export default function SystemStatus() {
               <tr>
                 <td><strong>3. Base de Datos</strong></td>
                 <td>Base de Datos & Proveedor</td>
-                <td>{healthData?.database?.databaseName || 'DBNotasCMS'} ({healthData?.database?.provider || 'EF Core 8 SqlServer'})</td>
+                <td>{healthData?.database?.databaseName || 'DB_TRAMITES_EXTERNOS'} ({healthData?.database?.provider || 'EF Core 8 SqlServer'})</td>
                 <td>
                   {healthData?.database?.connected ? (
                     <span className="badge badge-vigente">OPERATIVO (15 Tablas)</span>
@@ -206,8 +206,8 @@ export default function SystemStatus() {
           <div style={{ color: '#A0AEC0', marginBottom: '4px' }}># 1. Iniciar contenedor de Microsoft SQL Server 2022:</div>
           <div style={{ color: '#68D391', marginBottom: '10px' }}>docker compose up -d</div>
 
-          <div style={{ color: '#A0AEC0', marginBottom: '4px' }}># 2. Verificar tablas de DBNotasCMS en el contenedor:</div>
-          <div style={{ color: '#68D391', marginBottom: '10px' }}>docker exec gestion_documental_mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'SqlAdminSucre2026!' -C -Q "USE DBNotasCMS; SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES;"</div>
+          <div style={{ color: '#A0AEC0', marginBottom: '4px' }}># 2. Verificar tablas de DB_TRAMITES_EXTERNOS en el contenedor:</div>
+          <div style={{ color: '#68D391', marginBottom: '10px' }}>docker exec gestion_documental_mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'SqlAdminSucre2026!' -C -Q "USE DB_TRAMITES_EXTERNOS; SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES;"</div>
 
           <div style={{ color: '#A0AEC0', marginBottom: '4px' }}># 3. Iniciar el backend .NET 8:</div>
           <div style={{ color: '#68D391' }}>cd backend-dotnet/GestionDocumental.Api && dotnet run --launch-profile http</div>
@@ -216,7 +216,7 @@ export default function SystemStatus() {
         <div style={{ background: 'var(--color-primary-sucre-light)', padding: '12px 16px', borderRadius: '4px', border: '1px solid #f5c2c2', fontSize: '0.85rem' }}>
           <strong style={{ color: '#800000' }}>Nota Institucional:</strong>
           <span style={{ color: 'var(--color-text-main)', marginLeft: '6px' }}>
-            El sistema utiliza <strong>DBNotasCMS</strong> en Microsoft SQL Server con los catálogos <code>TUnidad</code>, <code>TCargo</code> y el padrón de <code>TEmpleados</code>.
+            El sistema utiliza <strong>DB_TRAMITES_EXTERNOS</strong> en Microsoft SQL Server con los catálogos <code>TUnidad</code>, <code>TCargo</code> y el padrón de <code>TEmpleados</code>.
           </span>
         </div>
       </div>

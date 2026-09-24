@@ -4,7 +4,7 @@ import { Building2, Briefcase, Loader2, AlertCircle } from 'lucide-react';
 
 /**
  * Componente Reutilizable: Selectores Institucionales en Cascada (TUnidad -> TCargo)
- * Conforme a DBNotasCMS para Trámites Externos y Asignación Institucional.
+ * Conforme a DB_TRAMITES_EXTERNOS para Trámites Externos y Asignación Institucional.
  * 
  * Props:
  *  - selectedCodU: number | string (CodU seleccionado)
@@ -14,7 +14,7 @@ import { Building2, Briefcase, Loader2, AlertCircle } from 'lucide-react';
  *  - required: boolean (si los campos son requeridos)
  *  - disabled: boolean (si los campos están deshabilitados)
  *  - layout: 'grid' | 'stack' (diseño de los campos, default: 'grid')
- *  - showBadges: boolean (mostrar etiqueta DBNotasCMS, default: true)
+ *  - showBadges: boolean (mostrar etiqueta DB_TRAMITES_EXTERNOS, default: true)
  */
 export default function InstitucionalSelectors({
   selectedCodU = '',
@@ -46,7 +46,7 @@ export default function InstitucionalSelectors({
         }
       } catch (err) {
         if (isMounted) {
-          setError('No se pudo cargar el catálogo de unidades de DBNotasCMS.');
+          setError('No se pudo cargar el catálogo de unidades de DB_TRAMITES_EXTERNOS.');
           console.error(err);
         }
       } finally {

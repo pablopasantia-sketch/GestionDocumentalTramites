@@ -51,7 +51,7 @@ if (args.Length > 0)
 
 // 1. Cadena de conexión Microsoft SQL Server
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? "Server=127.0.0.1,1433;Database=DBNotasCMS;User Id=sa;Password=SqlAdminSucre2026!;TrustServerCertificate=True;MultipleActiveResultSets=True;";
+    ?? "Server=127.0.0.1,1433;Database=DB_TRAMITES_EXTERNOS;User Id=sa;Password=SqlAdminSucre2026!;TrustServerCertificate=True;MultipleActiveResultSets=True;";
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
