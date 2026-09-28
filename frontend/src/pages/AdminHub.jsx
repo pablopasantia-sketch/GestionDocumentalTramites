@@ -89,7 +89,9 @@ export default function AdminHub() {
     );
   }
 
-  const [activeTab, setActiveTab] = useState('personas'); // 'personas' | 'usuarios' | 'roles' | 'ubicaciones'
+  const [activeTab, setActiveTab] = useState('personas'); // 'personas' | 'usuarios' | 'roles' | 'estructura' | 'tipos_externos'
+  const [estructuraSubTab, setEstructuraSubTab] = useState('catalogos'); // 'catalogos' | 'arbol'
+  const [catalogosRefreshKey, setCatalogosRefreshKey] = useState(0);
 
   // Datos del backend
   const [personas, setPersonas] = useState([]);
@@ -556,6 +558,7 @@ export default function AdminHub() {
         }
       }
       setShowUbicacionModal(false);
+      setCatalogosRefreshKey(k => k + 1);
       const resUbic = await ubicacionesService.getAll({ search: '', activo: 'all' });
       if (resUbic.success) setUbicaciones(resUbic.data || []);
     } catch (err) {
@@ -575,6 +578,7 @@ export default function AdminHub() {
         showFeedbackMsg('success', `La unidad "${ubicacion.nombre}" fue dada de baja.`);
         setConfirmDelete(null);
         setDeleteModalError(null);
+        setCatalogosRefreshKey(k => k + 1);
         const resUbic = await ubicacionesService.getAll({ search: '', activo: 'all' });
         if (resUbic.success) setUbicaciones(resUbic.data || []);
       }
@@ -595,6 +599,7 @@ export default function AdminHub() {
       const res = await ubicacionesService.reactivar(ubicacion.id);
       if (res.success) {
         showFeedbackMsg('success', `Unidad orgánica "${ubicacion.nombre}" reactivada exitosamente.`);
+        setCatalogosRefreshKey(k => k + 1);
         const resUbic = await ubicacionesService.getAll({ search: '', activo: 'all' });
         if (resUbic.success) setUbicaciones(resUbic.data || []);
       } else {
@@ -900,7 +905,7 @@ export default function AdminHub() {
 
         <button
           onClick={() => {
-            setActiveTab('ubicaciones');
+            setActiveTab('estructura');
             setSearchTerm('');
           }}
           style={{
@@ -913,37 +918,13 @@ export default function AdminHub() {
             cursor: 'pointer',
             fontSize: '0.95rem',
             fontWeight: 600,
-            color: activeTab === 'ubicaciones' ? '#800000' : '#6C757D',
-            borderBottom: activeTab === 'ubicaciones' ? '3px solid #800000' : '3px solid transparent',
-            marginBottom: '-2px'
-          }}
-        >
-          <Network size={18} />
-          <span>Organigrama</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab('catalogos');
-            setSearchTerm('');
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 18px',
-            border: 'none',
-            background: 'none',
-            cursor: 'pointer',
-            fontSize: '0.95rem',
-            fontWeight: 600,
-            color: activeTab === 'catalogos' ? '#800000' : '#6C757D',
-            borderBottom: activeTab === 'catalogos' ? '3px solid #800000' : '3px solid transparent',
+            color: activeTab === 'estructura' ? '#800000' : '#6C757D',
+            borderBottom: activeTab === 'estructura' ? '3px solid #800000' : '3px solid transparent',
             marginBottom: '-2px'
           }}
         >
           <Building2 size={18} />
-          <span>Catálogos Institucionales</span>
+          <span>Estructura Institucional</span>
         </button>
 
         <button
@@ -973,7 +954,7 @@ export default function AdminHub() {
       </div>
 
       {/* Barra de Búsqueda, Filtros y Botón de Acción */}
-      {activeTab !== 'catalogos' && activeTab !== 'tipos_externos' && (
+      {activeTab !== 'estructura' && activeTab !== 'tipos_externos' && (
         <div
           style={{
             display: 'flex',
@@ -998,9 +979,7 @@ export default function AdminHub() {
                     ? 'Buscar por nombre o CI...'
                     : activeTab === 'usuarios'
                       ? 'Buscar por login, nombre, cargo...'
-                      : activeTab === 'ubicaciones'
-                        ? 'Buscar por código, nombre o sigla...'
-                        : 'Buscar roles...'
+                      : 'Buscar roles...'
                 }
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -1033,19 +1012,6 @@ export default function AdminHub() {
                 <option value="todos">Mostrar: Todos los Registros</option>
               </select>
             )}
-
-            {activeTab === 'ubicaciones' && (
-              <select
-                className="form-control"
-                value={ubicacionFiltroActivo}
-                onChange={(e) => setUbicacionFiltroActivo(e.target.value)}
-                style={{ width: 'auto', fontSize: '0.85rem', cursor: 'pointer', borderColor: '#CED4DA' }}
-              >
-                <option value="activos">Mostrar: Solo Vigentes (Activas)</option>
-                <option value="inactivos">Mostrar: Dadas de Baja (Inactivas)</option>
-                <option value="todos">Mostrar: Todos los Registros</option>
-              </select>
-            )}
           </div>
 
           {activeTab === 'personas' && (
@@ -1059,13 +1025,6 @@ export default function AdminHub() {
             <button onClick={handleOpenUsuarioModal} className="btn btn-primary btn-sm">
               <Plus size={16} />
               <span>Nuevo Usuario</span>
-            </button>
-          )}
-
-          {activeTab === 'ubicaciones' && (
-            <button onClick={() => handleOpenUbicacionModal()} className="btn btn-primary btn-sm">
-              <Plus size={16} />
-              <span>Nueva Unidad</span>
             </button>
           )}
         </div>
@@ -1385,172 +1344,323 @@ export default function AdminHub() {
       )}
 
       {/* ==================================================== */}
-      {/* PESTAÑA 4: ORGANIGRAMA - UBICACIONES ORGÁNICAS       */}
+      {/* PESTAÑA 4: ESTRUCTURA INSTITUCIONAL                 */}
+      {/* (Unifica Catálogos Oficiales y Árbol Jerárquico)    */}
       {/* ==================================================== */}
-      {activeTab === 'ubicaciones' && (
+      {activeTab === 'estructura' && (
         <div>
-          {/* Panel de Árbol Interactivo */}
-          <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: '1.5rem' }}>
-            <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #E9ECEF', background: '#F8F9FA', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Network size={18} color="#800000" />
-                <span style={{ fontWeight: 700, color: '#1B365D', fontSize: '0.95rem' }}>Vista de Árbol Jerárquico</span>
-                <span style={{ fontSize: '0.78rem', color: '#6C757D' }}>— Haga clic en las flechas para expandir/colapsar</span>
-              </div>
+          {/* Selector de Sub-pestaña */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#FFFFFF',
+              padding: '0.75rem 1.25rem',
+              borderRadius: '8px',
+              border: '1px solid #E9ECEF',
+              marginBottom: '1.25rem',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              flexWrap: 'wrap',
+              gap: '12px'
+            }}
+          >
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <button
-                className="btn btn-secondary btn-sm"
-                style={{ fontSize: '0.78rem', padding: '3px 10px' }}
-                onClick={() => setExpandedNodes(new Set(ubicaciones.map(u => u.id)))}
+                type="button"
+                onClick={() => {
+                  setEstructuraSubTab('catalogos');
+                  setSearchTerm('');
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  border: estructuraSubTab === 'catalogos' ? '1px solid #800000' : '1px solid #DEE2E6',
+                  background: estructuraSubTab === 'catalogos' ? '#800000' : '#F8F9FA',
+                  color: estructuraSubTab === 'catalogos' ? '#FFFFFF' : '#495057',
+                  fontWeight: 600,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease-in-out'
+                }}
               >
-                Expandir todo
+                <Building2 size={16} />
+                <span>Catálogos Oficiales (TUnidad / TCargo)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEstructuraSubTab('arbol');
+                  setSearchTerm('');
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  border: estructuraSubTab === 'arbol' ? '1px solid #800000' : '1px solid #DEE2E6',
+                  background: estructuraSubTab === 'arbol' ? '#800000' : '#F8F9FA',
+                  color: estructuraSubTab === 'arbol' ? '#FFFFFF' : '#495057',
+                  fontWeight: 600,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease-in-out'
+                }}
+              >
+                <Network size={16} />
+                <span>Árbol Jerárquico Visual</span>
               </button>
             </div>
-            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              {loading ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: '#6C757D' }}>Cargando organigrama...</div>
-              ) : ubicaciones.length === 0 ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: '#6C757D' }}>
-                  No hay unidades orgánicas registradas. Cree la primera con el botón "Nueva Unidad".
-                </div>
-              ) : (() => {
-                // Build tree from flat ubicaciones for display
-                const visibleUbicaciones = ubicaciones.filter(u => {
-                  if (ubicacionFiltroActivo === 'activos') return u.activo;
-                  if (ubicacionFiltroActivo === 'inactivos') return !u.activo;
-                  return true;
-                });
-                const map = new Map();
-                const roots = [];
-                visibleUbicaciones.forEach(u => map.set(u.id, { ...u, hijos: [] }));
-                visibleUbicaciones.forEach(u => {
-                  if (u.padre_id && map.has(u.padre_id)) map.get(u.padre_id).hijos.push(map.get(u.id));
-                  else roots.push(map.get(u.id));
-                });
-                return roots.length === 0 ? (
-                  <div style={{ padding: '2rem', textAlign: 'center', color: '#6C757D' }}>
-                    No hay unidades orgánicas {ubicacionFiltroActivo === 'inactivos' ? 'dadas de baja' : 'registradas'}.
+
+            <button
+              onClick={() => handleOpenUbicacionModal()}
+              className="btn btn-primary btn-sm"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Plus size={16} />
+              <span>Nueva Unidad</span>
+            </button>
+          </div>
+
+          {/* Sub-vista 1: Catálogos Oficiales (TUnidad y TCargo) */}
+          {estructuraSubTab === 'catalogos' && (
+            <InstitucionalCatalogosManager
+              onOpenNuevaUnidad={() => handleOpenUbicacionModal()}
+              onEditUnidad={(u) => {
+                const match = ubicaciones.find(x => x.cod_u === u.codU || x.codU === u.codU);
+                if (match) {
+                  handleOpenUbicacionModal(match);
+                } else {
+                  setUbicacionEditing(null);
+                  setUbicacionForm({
+                    codigo: `UNI-${u.codU}`,
+                    nombre: u.nombU,
+                    sigla: '',
+                    padre_id: '',
+                    descripcion: ''
+                  });
+                  setShowUbicacionModal(true);
+                }
+              }}
+              refreshKey={catalogosRefreshKey}
+            />
+          )}
+
+          {/* Sub-vista 2: Árbol Jerárquico y Tabla de Unidades Orgánicas */}
+          {estructuraSubTab === 'arbol' && (
+            <div>
+              {/* Barra de Filtros, Búsqueda y Botón Nueva Unidad para el Árbol */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '1rem',
+                  flexWrap: 'wrap',
+                  gap: '10px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flex: 1, maxWidth: '650px' }}>
+                  <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
+                    <Search
+                      size={16}
+                      style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#6C757D' }}
+                    />
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Buscar por código, nombre o sigla..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      style={{ paddingLeft: '34px', fontSize: '0.88rem' }}
+                    />
                   </div>
-                ) : roots.map(root => renderTreeNode(root, 0));
-              })()}
-            </div>
-          </div>
 
-          {/* Tabla plana con búsqueda */}
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-            <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #E9ECEF', background: '#F8F9FA' }}>
-              <span style={{ fontWeight: 700, color: '#1B365D', fontSize: '0.95rem' }}>Vista de Lista</span>
-              <span style={{ fontSize: '0.8rem', color: '#6C757D', marginLeft: '8px' }}>
-                {filteredUbicaciones.length} unidad(es) encontrada(s)
-              </span>
-            </div>
-            <div className="table-container">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th style={{ width: '100px' }}>Código</th>
-                    <th>Nombre de la Unidad</th>
-                    <th style={{ width: '90px' }}>Sigla</th>
-                    <th>Unidad Padre</th>
-                    <th style={{ width: '70px', textAlign: 'center' }}>Nivel</th>
-                    <th style={{ textAlign: 'center', width: '80px' }}>Estado</th>
-                    <th style={{ textAlign: 'right', width: '100px' }}>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
+                  <select
+                    className="form-control"
+                    value={ubicacionFiltroActivo}
+                    onChange={(e) => setUbicacionFiltroActivo(e.target.value)}
+                    style={{ width: 'auto', fontSize: '0.85rem', cursor: 'pointer', borderColor: '#CED4DA' }}
+                  >
+                    <option value="activos">Mostrar: Solo Vigentes (Activas)</option>
+                    <option value="inactivos">Mostrar: Dadas de Baja (Inactivas)</option>
+                    <option value="todos">Mostrar: Todos los Registros</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Panel de Árbol Interactivo */}
+              <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: '1.5rem' }}>
+                <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #E9ECEF', background: '#F8F9FA', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Network size={18} color="#800000" />
+                    <span style={{ fontWeight: 700, color: '#1B365D', fontSize: '0.95rem' }}>Vista de Árbol Jerárquico</span>
+                    <span style={{ fontSize: '0.78rem', color: '#6C757D' }}>— Haga clic en las flechas para expandir/colapsar</span>
+                  </div>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    style={{ fontSize: '0.78rem', padding: '3px 10px' }}
+                    onClick={() => setExpandedNodes(new Set(ubicaciones.map(u => u.id)))}
+                  >
+                    Expandir todo
+                  </button>
+                </div>
+                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                   {loading ? (
-                    <tr><td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>Cargando...</td></tr>
-                  ) : filteredUbicaciones.length === 0 ? (
-                    <tr><td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: '#6C757D' }}>No se encontraron unidades.</td></tr>
-                  ) : (
-                    filteredUbicaciones.map((u) => (
-                      <tr key={u.id}>
-                        <td>
-                          <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#800000', fontSize: '0.85rem', background: '#FFF5F5', padding: '2px 6px', borderRadius: '3px', border: '1px solid #F5C6CB' }}>
-                            {u.codigo}
-                          </span>
-                        </td>
-                        <td>
-                          <span style={{ fontWeight: 600, color: '#1B365D' }}>{u.nombre}</span>
-                          {u.descripcion && (
-                            <div style={{ fontSize: '0.78rem', color: '#6C757D', marginTop: '2px' }}>{u.descripcion}</div>
-                          )}
-                        </td>
-                        <td style={{ fontSize: '0.85rem', fontStyle: 'italic', color: '#495057' }}>{u.sigla || '—'}</td>
-                        <td style={{ fontSize: '0.85rem', color: '#495057' }}>
-                          {u.padre_nombre ? (
-                            <span>
-                              {u.padre_nombre}
-                              {u.padre_sigla && <span style={{ color: '#6C757D', marginLeft: '4px' }}>({u.padre_sigla})</span>}
-                            </span>
-                          ) : (
-                            <span style={{ color: '#6C757D', fontStyle: 'italic' }}>Nivel raíz</span>
-                          )}
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1B365D' }}>{u.nivel}</span>
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <span className={`badge ${u.activo ? 'badge-active' : 'badge-inactive'}`}>
-                            {u.activo ? 'Activa' : 'Baja'}
-                          </span>
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', gap: '6px' }}>
-                            <button
-                              onClick={() => handleOpenUbicacionModal(u)}
-                              className="btn btn-secondary btn-sm"
-                              title="Editar unidad"
-                              style={{ padding: '4px 8px' }}
-                            >
-                              <Edit2 size={14} />
-                            </button>
-                            {Boolean(u.activo) ? (
-                              <button
-                                onClick={() => { setDeleteModalError(null); setConfirmDelete({ type: 'ubicacion', item: u }); }}
-                                className="btn btn-outline-danger btn-sm"
-                                title="Dar de baja"
-                                style={{ padding: '4px 8px' }}
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => handleReactivarUbicacion(u)}
-                                className="btn btn-sm"
-                                title="Reactivar unidad"
-                                style={{
-                                  padding: '4px 8px',
-                                  backgroundColor: '#E6F4EA',
-                                  color: '#137333',
-                                  border: '1px solid #CEEAD6',
-                                  borderRadius: '4px',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                <RotateCcw size={14} />
-                                <span style={{ fontSize: '0.78rem', fontWeight: 600 }}>Reactivar</span>
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
+                    <div style={{ padding: '2rem', textAlign: 'center', color: '#6C757D' }}>Cargando organigrama...</div>
+                  ) : ubicaciones.length === 0 ? (
+                    <div style={{ padding: '2rem', textAlign: 'center', color: '#6C757D' }}>
+                      No hay unidades orgánicas registradas. Cree la primera con el botón "Nueva Unidad".
+                    </div>
+                  ) : (() => {
+                    // Build tree from flat ubicaciones for display
+                    const visibleUbicaciones = ubicaciones.filter(u => {
+                      if (ubicacionFiltroActivo === 'activos') return u.activo;
+                      if (ubicacionFiltroActivo === 'inactivos') return !u.activo;
+                      return true;
+                    });
+                    const map = new Map();
+                    const roots = [];
+                    visibleUbicaciones.forEach(u => map.set(u.id, { ...u, hijos: [] }));
+                    visibleUbicaciones.forEach(u => {
+                      if (u.padre_id && map.has(u.padre_id)) map.get(u.padre_id).hijos.push(map.get(u.id));
+                      else roots.push(map.get(u.id));
+                    });
+                    return roots.length === 0 ? (
+                      <div style={{ padding: '2rem', textAlign: 'center', color: '#6C757D' }}>
+                        No hay unidades orgánicas {ubicacionFiltroActivo === 'inactivos' ? 'dadas de baja' : 'registradas'}.
+                      </div>
+                    ) : roots.map(root => renderTreeNode(root, 0));
+                  })()}
+                </div>
+              </div>
 
-      {/* ==================================================== */}
-      {/* PESTAÑA 5: CATÁLOGOS INSTITUCIONALES (TUnidad, TCargo)*/}
-      {/* ==================================================== */}
-      {activeTab === 'catalogos' && (
-        <InstitucionalCatalogosManager />
+              {/* Tabla plana con búsqueda */}
+              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #E9ECEF', background: '#F8F9FA' }}>
+                  <span style={{ fontWeight: 700, color: '#1B365D', fontSize: '0.95rem' }}>Vista de Lista</span>
+                  <span style={{ fontSize: '0.8rem', color: '#6C757D', marginLeft: '8px' }}>
+                    {filteredUbicaciones.length} unidad(es) encontrada(s)
+                  </span>
+                </div>
+                <div className="table-container">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '90px' }}>Código</th>
+                        <th style={{ width: '120px' }}>Catálogo Oficial</th>
+                        <th>Nombre de la Unidad</th>
+                        <th style={{ width: '80px' }}>Sigla</th>
+                        <th>Unidad Padre</th>
+                        <th style={{ width: '60px', textAlign: 'center' }}>Nivel</th>
+                        <th style={{ textAlign: 'center', width: '80px' }}>Estado</th>
+                        <th style={{ textAlign: 'right', width: '100px' }}>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loading ? (
+                        <tr><td colSpan="8" style={{ textAlign: 'center', padding: '2rem' }}>Cargando...</td></tr>
+                      ) : filteredUbicaciones.length === 0 ? (
+                        <tr><td colSpan="8" style={{ textAlign: 'center', padding: '2rem', color: '#6C757D' }}>No se encontraron unidades.</td></tr>
+                      ) : (
+                        filteredUbicaciones.map((u) => (
+                          <tr key={u.id}>
+                            <td>
+                              <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#800000', fontSize: '0.85rem', background: '#FFF5F5', padding: '2px 6px', borderRadius: '3px', border: '1px solid #F5C6CB' }}>
+                                {u.codigo}
+                              </span>
+                            </td>
+                            <td>
+                              {u.cod_u || u.codU ? (
+                                <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '0.8rem', background: '#E8F0FE', color: '#1A73E8', padding: '2px 6px', borderRadius: '4px', border: '1px solid #D2E3FC' }}>
+                                  TUnidad #{u.cod_u || u.codU}
+                                </span>
+                              ) : (
+                                <span style={{ color: '#ADB5BD', fontSize: '0.8rem' }}>—</span>
+                              )}
+                            </td>
+                            <td>
+                              <span style={{ fontWeight: 600, color: '#1B365D' }}>{u.nombre}</span>
+                              {u.descripcion && (
+                                <div style={{ fontSize: '0.78rem', color: '#6C757D', marginTop: '2px' }}>{u.descripcion}</div>
+                              )}
+                            </td>
+                            <td style={{ fontSize: '0.85rem', fontStyle: 'italic', color: '#495057' }}>{u.sigla || '—'}</td>
+                            <td style={{ fontSize: '0.85rem', color: '#495057' }}>
+                              {u.padre_nombre ? (
+                                <span>
+                                  {u.padre_nombre}
+                                  {u.padre_sigla && <span style={{ color: '#6C757D', marginLeft: '4px' }}>({u.padre_sigla})</span>}
+                                </span>
+                              ) : (
+                                <span style={{ color: '#6C757D', fontStyle: 'italic' }}>Nivel raíz</span>
+                              )}
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1B365D' }}>{u.nivel}</span>
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <span className={`badge ${u.activo ? 'badge-active' : 'badge-inactive'}`}>
+                                {u.activo ? 'Activa' : 'Baja'}
+                              </span>
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              <div style={{ display: 'inline-flex', gap: '6px' }}>
+                                <button
+                                  onClick={() => handleOpenUbicacionModal(u)}
+                                  className="btn btn-secondary btn-sm"
+                                  title="Editar unidad"
+                                  style={{ padding: '4px 8px' }}
+                                >
+                                  <Edit2 size={14} />
+                                </button>
+                                {Boolean(u.activo) ? (
+                                  <button
+                                    onClick={() => { setDeleteModalError(null); setConfirmDelete({ type: 'ubicacion', item: u }); }}
+                                    className="btn btn-outline-danger btn-sm"
+                                    title="Dar de baja"
+                                    style={{ padding: '4px 8px' }}
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleReactivarUbicacion(u)}
+                                    className="btn btn-sm"
+                                    title="Reactivar unidad"
+                                    style={{
+                                      padding: '4px 8px',
+                                      backgroundColor: '#E6F4EA',
+                                      color: '#137333',
+                                      border: '1px solid #CEEAD6',
+                                      borderRadius: '4px',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    <RotateCcw size={14} />
+                                    <span style={{ fontSize: '0.78rem', fontWeight: 600 }}>Reactivar</span>
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* ==================================================== */}
@@ -1585,6 +1695,25 @@ export default function AdminHub() {
 
             <form onSubmit={handleSaveUbicacion}>
               <div className="modal-body">
+                {/* Banner de Sincronización Automática */}
+                <div style={{
+                  marginBottom: '1rem',
+                  padding: '10px 14px',
+                  borderRadius: '6px',
+                  background: '#E8F0FE',
+                  border: '1px solid #D2E3FC',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontSize: '0.84rem',
+                  color: '#1A73E8'
+                }}>
+                  <Building2 size={18} style={{ flexShrink: 0 }} />
+                  <span>
+                    <strong>Sincronización Automática:</strong> Esta unidad se guardará simultáneamente en el <strong>Árbol Jerárquico</strong> y en el <strong>Catálogo Municipal Oficial (TUnidad)</strong> para correspondencia externa.
+                  </span>
+                </div>
+
                 {ubicacionModalError && (
                   <div style={{
                     marginBottom: '1rem', padding: '10px 14px', borderRadius: '4px',
