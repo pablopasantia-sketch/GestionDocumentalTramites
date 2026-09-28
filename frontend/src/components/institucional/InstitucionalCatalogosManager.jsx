@@ -16,7 +16,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-export default function InstitucionalCatalogosManager() {
+export default function InstitucionalCatalogosManager({ onOpenNuevaUnidad, onEditUnidad, refreshKey }) {
   const [subTab, setSubTab] = useState('unidades'); // 'unidades' | 'cargos'
   
   // Datos
@@ -70,7 +70,7 @@ export default function InstitucionalCatalogosManager() {
 
   useEffect(() => {
     loadAll();
-  }, []);
+  }, [refreshKey]);
 
   // Handlers para Unidad
   const handleOpenNuevaUnidad = () => {
@@ -274,16 +274,7 @@ export default function InstitucionalCatalogosManager() {
             <span>Actualizar</span>
           </button>
 
-          {subTab === 'unidades' ? (
-            <button 
-              onClick={handleOpenNuevaUnidad} 
-              className="btn btn-primary btn-sm"
-              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              <Plus size={15} />
-              <span>Nueva Unidad</span>
-            </button>
-          ) : (
+          {subTab === 'cargos' && (
             <button 
               onClick={handleOpenNuevoCargo} 
               className="btn btn-primary btn-sm"
@@ -379,7 +370,7 @@ export default function InstitucionalCatalogosManager() {
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: '4px' }}>
                           <button
-                            onClick={() => handleOpenEditarUnidad(u)}
+                            onClick={() => (onEditUnidad ? onEditUnidad(u) : handleOpenEditarUnidad(u))}
                             className="btn btn-secondary btn-xs"
                             title="Editar Unidad"
                           >

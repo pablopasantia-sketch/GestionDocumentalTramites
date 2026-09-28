@@ -38,6 +38,9 @@ namespace GestionDocumental.Api.DTOs.Ubicaciones
 
         [JsonPropertyName("total_usuarios")]
         public int TotalUsuarios { get; set; }
+
+        [JsonPropertyName("cod_u")]
+        public short? CodU { get; set; }
     }
 
     public class UbicacionArbolNodeDto
@@ -62,6 +65,9 @@ namespace GestionDocumental.Api.DTOs.Ubicaciones
 
         [JsonPropertyName("descripcion")]
         public string? Descripcion { get; set; }
+
+        [JsonPropertyName("cod_u")]
+        public short? CodU { get; set; }
 
         [JsonPropertyName("hijos")]
         public List<UbicacionArbolNodeDto> Hijos { get; set; } = new();

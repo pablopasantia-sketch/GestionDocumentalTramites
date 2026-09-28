@@ -45,9 +45,15 @@ namespace GestionDocumental.Api.Entities
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+        [Column("codU")]
+        public short? CodU { get; set; }
+
         // Jerarquía recursiva
         [ForeignKey("PadreId")]
         public virtual UbicacionOrg? Padre { get; set; }
+
+        [ForeignKey("CodU")]
+        public virtual TUnidad? UnidadInstitucional { get; set; }
 
         public virtual ICollection<UbicacionOrg> Hijos { get; set; } = new List<UbicacionOrg>();
         public virtual ICollection<UsuarioRol> UsuarioRoles { get; set; } = new List<UsuarioRol>();

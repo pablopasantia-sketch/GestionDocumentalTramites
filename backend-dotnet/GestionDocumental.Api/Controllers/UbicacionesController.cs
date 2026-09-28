@@ -35,6 +35,7 @@ namespace GestionDocumental.Api.Controllers
             PadreNombre = reader.GetNullableString("padre_nombre"),
             Descripcion = reader.GetNullableString("descripcion"),
             Activo = reader.GetSafeBoolean("activo"),
+            CodU = reader.GetNullableInt16("codU"),
             TotalUsuarios = 0
         };
 
@@ -82,6 +83,7 @@ namespace GestionDocumental.Api.Controllers
                 PadreId = u.PadreId,
                 Nivel = u.Nivel,
                 Descripcion = u.Descripcion,
+                CodU = u.CodU,
                 Hijos = new List<UbicacionArbolNodeDto>()
             }).ToDictionary(n => n.Id);
 
@@ -135,6 +137,7 @@ namespace GestionDocumental.Api.Controllers
             }
 
             var outParam = new SqlParameter("@NuevoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+            var outCodU = new SqlParameter("@NuevoCodU", SqlDbType.SmallInt) { Direction = ParameterDirection.Output };
 
             try
             {
@@ -146,10 +149,12 @@ namespace GestionDocumental.Api.Controllers
                     new SqlParameter("@Nivel", SqlDbType.Int) { Value = nivel },
                     new SqlParameter("@PadreId", SqlDbType.Int) { Value = (object?)dto.PadreId ?? DBNull.Value },
                     new SqlParameter("@Descripcion", SqlDbType.NVarChar, -1) { Value = (object?)dto.Descripcion?.Trim() ?? DBNull.Value },
-                    outParam
+                    outParam,
+                    outCodU
                 );
 
                 int nuevoId = (int)outParam.Value;
+                short? nuevoCodU = outCodU.Value != DBNull.Value ? Convert.ToInt16(outCodU.Value) : null;
 
                 var resultDto = new UbicacionDto
                 {
@@ -161,6 +166,7 @@ namespace GestionDocumental.Api.Controllers
                     Nivel = nivel,
                     Descripcion = dto.Descripcion?.Trim(),
                     Activo = true,
+                    CodU = nuevoCodU,
                     TotalUsuarios = 0
                 };
 
