@@ -15,29 +15,33 @@ BEGIN
 END;
 GO
 
--- 2. Enlazar registros históricos existentes (1 al 6)
-UPDATE dbo.ubicaciones_org SET codU = 1 WHERE id = 1 AND codU IS NULL;
-UPDATE dbo.ubicaciones_org SET codU = 2 WHERE id = 2 AND codU IS NULL;
-UPDATE dbo.ubicaciones_org SET codU = 3 WHERE id = 3 AND codU IS NULL;
-UPDATE dbo.ubicaciones_org SET codU = 4 WHERE id = 4 AND codU IS NULL;
-UPDATE dbo.ubicaciones_org SET codU = 5 WHERE id = 5 AND codU IS NULL;
-UPDATE dbo.ubicaciones_org SET codU = 6 WHERE id = 6 AND codU IS NULL;
+-- 2. Enlazar registros históricos existentes (1 al 6) si existen en TUnidad
+IF EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 1)
+BEGIN
+    UPDATE dbo.ubicaciones_org SET codU = 1 WHERE id = 1 AND codU IS NULL;
+    UPDATE dbo.ubicaciones_org SET codU = 2 WHERE id = 2 AND codU IS NULL;
+    UPDATE dbo.ubicaciones_org SET codU = 3 WHERE id = 3 AND codU IS NULL;
+    UPDATE dbo.ubicaciones_org SET codU = 4 WHERE id = 4 AND codU IS NULL;
+    UPDATE dbo.ubicaciones_org SET codU = 5 WHERE id = 5 AND codU IS NULL;
+    UPDATE dbo.ubicaciones_org SET codU = 6 WHERE id = 6 AND codU IS NULL;
+END;
 GO
 
 -- 3. Crear en ubicaciones_org los registros de TUnidad que aún no existían en el árbol (7 al 10)
-IF NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE codU = 7)
+-- Solo si TUnidad ya contiene dichos registros (por ejemplo en base de datos ya existente)
+IF EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 7) AND NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE codU = 7)
     INSERT INTO dbo.ubicaciones_org (codigo, nombre, sigla, nivel, padre_id, descripcion, activo, codU, created_at, updated_at)
     VALUES ('DIR-PLAN', 'DIRECCION DE PLANIFICACION Y MEDIO AMBIENTE', 'DPMA', 2, 1, 'Planificación territorial y medio ambiente municipal', 1, 7, GETDATE(), GETDATE());
 
-IF NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE codU = 8)
+IF EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 8) AND NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE codU = 8)
     INSERT INTO dbo.ubicaciones_org (codigo, nombre, sigla, nivel, padre_id, descripcion, activo, codU, created_at, updated_at)
     VALUES ('DIR-SAL', 'DIRECCION DE SALUD Y DESARROLLO SOCIAL', 'DSDS', 2, 1, 'Salud y programas sociales municipales', 1, 8, GETDATE(), GETDATE());
 
-IF NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE codU = 9)
+IF EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 9) AND NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE codU = 9)
     INSERT INTO dbo.ubicaciones_org (codigo, nombre, sigla, nivel, padre_id, descripcion, activo, codU, created_at, updated_at)
     VALUES ('DIR-OBR', 'DIRECCION DE OBRAS PUBLICAS E INFRAESTRUCTURA', 'DOPI', 2, 1, 'Obras públicas e infraestructura urbana', 1, 9, GETDATE(), GETDATE());
 
-IF NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE codU = 10)
+IF EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 10) AND NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE codU = 10)
     INSERT INTO dbo.ubicaciones_org (codigo, nombre, sigla, nivel, padre_id, descripcion, activo, codU, created_at, updated_at)
     VALUES ('DIR-ING', 'DIRECCION DE INGRESOS Y TRIBUTACION', 'DIT', 2, 1, 'Recaudaciones e ingresos tributarios municipales', 1, 10, GETDATE(), GETDATE());
 GO
