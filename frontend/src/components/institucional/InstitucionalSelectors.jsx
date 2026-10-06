@@ -150,7 +150,7 @@ export default function InstitucionalSelectors({
                 fontWeight: 600,
                 border: '1px solid #BFDBFE'
               }}>
-                TUnidad
+                Oficial
               </span>
             )}
           </div>
@@ -197,7 +197,7 @@ export default function InstitucionalSelectors({
                 fontWeight: 600,
                 border: '1px solid #BBF7D0'
               }}>
-                TCargo
+                Cargo
               </span>
             )}
           </div>

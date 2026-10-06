@@ -106,7 +106,7 @@ export default function EmpleadoSearchAutocomplete({ onSelectEmpleado, currentCi
           fontWeight: 600,
           border: '1px solid #BFDBFE'
         }}>
-          TEmpleados
+          Personal Municipal
         </span>
       </div>
 
@@ -214,7 +214,7 @@ export default function EmpleadoSearchAutocomplete({ onSelectEmpleado, currentCi
           gap: '5px'
         }}>
           <AlertCircle size={13} style={{ color: '#D97706' }} />
-          <span>No se encontró funcionario con ese CI en TEmpleados. Puede ingresar los datos manualmente.</span>
+          <span>No se encontró funcionario con ese CI en el padrón institucional. Puede ingresar los datos manualmente.</span>
         </div>
       )}
 

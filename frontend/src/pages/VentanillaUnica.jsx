@@ -574,11 +574,11 @@ export default function VentanillaUnica() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Building2 size={18} color="#1B365D" />
                     <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                      4. Asignación y Destinatario Institucional (DB_TRAMITES_EXTERNOS)
+                      4. Asignación y Destinatario Institucional
                     </h3>
                   </div>
                   <span className="badge badge-sucre" style={{ fontSize: '0.72rem' }}>
-                    TUnidad / TCargo / TEmpleados
+                    Estructura Institucional
                   </span>
                 </div>
 
@@ -595,11 +595,11 @@ export default function VentanillaUnica() {
                   showBadges={false}
                 />
 
-                {/* Buscador de Funcionario desde TEmpleados */}
+                {/* Buscador de Funcionario desde Padrón Municipal */}
                 <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px dashed #E5E7EB' }}>
                   <label className="form-label" style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <UserCheck size={16} color="#800000" />
-                    <span>Funcionario Asignado (Padrón TEmpleados por CI o Nombre):</span>
+                    <span>Funcionario Asignado (Padrón de Personal por CI o Nombre):</span>
                   </label>
                   <EmpleadoSearchAutocomplete
                     currentCi={formData.ci_empleado_destino}

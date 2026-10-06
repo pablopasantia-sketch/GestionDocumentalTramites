@@ -28,16 +28,22 @@ namespace GestionDocumental.Api.Controllers
         private static UsuarioListItemDto MapUsuario(SqlDataReader reader) => new UsuarioListItemDto
         {
             Id = reader.GetSafeInt32("id"),
-            PersonaId = reader.GetSafeInt32("persona_id"),
-            Login = reader.GetSafeString("login"),
+            PersonaId = reader.GetSafeInt32("id"),
+            Login = reader.GetNullableString("login"),
             Cargo = reader.GetNullableString("cargo"),
             Activo = reader.GetSafeBoolean("activo"),
             Nombres = reader.GetSafeString("nombres"),
             ApellidoPaterno = reader.GetSafeString("apellido_paterno"),
             ApellidoMaterno = reader.GetNullableString("apellido_materno"),
             Ci = reader.GetSafeString("ci"),
-            CiExpedido = reader.GetNullableString("ci_expedido"),
+            CiExpedido = "CH",
             Email = reader.GetNullableString("email"),
+            Cel = reader.GetNullableString("telefono"),
+            Direccion = reader.GetNullableString("direccion"),
+            CodU = reader.GetNullableInt16("cod_u"),
+            UnidadNombre = reader.GetNullableString("unidad_nombre"),
+            CodCargo = reader.GetNullableInt16("cod_cargo"),
+            CargoOficial = reader.GetNullableString("cargo_oficial"),
             RolesResumen = string.Empty,
             Roles = new List<UsuarioRolItemDto>()
         };
@@ -48,13 +54,13 @@ namespace GestionDocumental.Api.Controllers
                 "dbo.usp_Usuarios_ObtenerRoles",
                 reader => new UsuarioRolItemDto
                 {
-                    Id = reader.GetSafeInt32("rol_id"), // rol assignment
+                    Id = reader.GetSafeInt32("id"),
                     UsuarioId = usuarioId,
                     RolId = reader.GetSafeInt32("rol_id"),
                     RolCodigo = reader.GetSafeString("rol_codigo"),
                     RolNombre = reader.GetSafeString("rol_nombre"),
                     UbicacionOrgId = reader.GetSafeInt32("ubicacion_org_id"),
-                    UbicacionCodigo = string.Empty,
+                    UbicacionCodigo = reader.GetSafeString("ubicacion_codigo"),
                     UbicacionNombre = reader.GetSafeString("ubicacion_nombre"),
                     UbicacionSigla = reader.GetNullableString("ubicacion_sigla"),
                     NivelAcceso = reader.GetSafeString("nivel_acceso", "CONTROL_TOTAL"),
@@ -82,13 +88,11 @@ namespace GestionDocumental.Api.Controllers
             var usuarios = await _sp.QueryAsync(
                 "dbo.usp_Usuarios_Listar",
                 MapUsuario,
-                new SqlParameter("@Search", SqlDbType.VarChar, 100) { Value = (object?)search?.Trim() ?? DBNull.Value },
-                new SqlParameter("@Activo", SqlDbType.VarChar, 20) { Value = activoParam },
-                new SqlParameter("@Offset", SqlDbType.Int) { Value = 0 },
-                new SqlParameter("@Limit", SqlDbType.Int) { Value = 500 }
+                new SqlParameter("@Search", SqlDbType.NVarChar, 100) { Value = (object?)search?.Trim() ?? DBNull.Value },
+                new SqlParameter("@Activo", SqlDbType.VarChar, 20) { Value = activoParam }
             );
 
-            // Cargar roles asignados para cada usuario mediante SP
+            // Cargar roles asignados para cada funcionario mediante SP
             foreach (var u in usuarios)
             {
                 var roles = await LoadRolesForUsuario(u.Id);
@@ -108,7 +112,7 @@ namespace GestionDocumental.Api.Controllers
                 new SqlParameter("@Id", SqlDbType.Int) { Value = id }
             );
 
-            if (u == null) return NotFound(ApiResponse.ErrorResult("Usuario no encontrado."));
+            if (u == null) return NotFound(ApiResponse.ErrorResult("Personal municipal no encontrado."));
 
             var roles = await LoadRolesForUsuario(u.Id);
             u.Roles = roles;
@@ -125,50 +129,76 @@ namespace GestionDocumental.Api.Controllers
                 return BadRequest(ApiResponse.ErrorResult("Datos inválidos."));
             }
 
-            // Verificar si el usuario ya existe mediante SP
-            var existingUser = await _sp.QueryFirstOrDefaultAsync(
-                "dbo.usp_Usuarios_Autenticar",
-                reader => new { Id = reader.GetSafeInt32("id"), Activo = reader.GetSafeBoolean("activo") },
-                new SqlParameter("@Login", SqlDbType.NVarChar, 50) { Value = dto.Login.Trim().ToLower() }
-            );
+            string? login = string.IsNullOrWhiteSpace(dto.Login) ? null : dto.Login.Trim().ToLower();
 
-            if (existingUser != null)
+            if (!string.IsNullOrEmpty(login))
             {
-                if (!existingUser.Activo)
+                var existingUser = await _sp.QueryFirstOrDefaultAsync(
+                    "dbo.usp_Usuarios_Autenticar",
+                    reader => new { Id = reader.GetSafeInt32("id"), Activo = reader.GetSafeBoolean("activo") },
+                    new SqlParameter("@Login", SqlDbType.NVarChar, 50) { Value = login }
+                );
+
+                if (existingUser != null)
                 {
-                    return Conflict(ApiResponse.ErrorResult($"Existe una cuenta dada de baja con el usuario '{dto.Login}'. Puede reactivarla cambiando el filtro a 'Dados de Baja (Inactivos)'."));
+                    if (!existingUser.Activo)
+                    {
+                        return Conflict(ApiResponse.ErrorResult($"Existe una cuenta dada de baja con el usuario '{login}'. Puede reactivarla cambiando el filtro a 'Dados de Baja (Inactivos)'."));
+                    }
+                    return Conflict(ApiResponse.ErrorResult($"Ya existe una cuenta con el login '{login}'."));
                 }
-                return Conflict(ApiResponse.ErrorResult($"Ya existe una cuenta con el login '{dto.Login}'."));
             }
 
-            // Validar que la persona existe
-            var persona = await _sp.QueryFirstOrDefaultAsync(
-                "dbo.usp_Personas_ObtenerPorId",
-                reader => new { Id = reader.GetSafeInt32("id"), Activo = reader.GetSafeBoolean("activo") },
-                new SqlParameter("@Id", SqlDbType.Int) { Value = dto.PersonaId }
-            );
+            string? passwordHash = !string.IsNullOrWhiteSpace(dto.Password) 
+                ? BCrypt.Net.BCrypt.HashPassword(dto.Password) 
+                : null;
 
-            if (persona == null || !persona.Activo)
-            {
-                return NotFound(ApiResponse.ErrorResult("La persona seleccionada no existe o está inactiva."));
-            }
-
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             var outParam = new SqlParameter("@NuevoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
 
             try
             {
                 await _sp.ExecuteNonQueryAsync(
                     "dbo.usp_Usuarios_Insertar",
-                    new SqlParameter("@PersonaId", SqlDbType.Int) { Value = dto.PersonaId },
-                    new SqlParameter("@Login", SqlDbType.NVarChar, 50) { Value = dto.Login.Trim().ToLower() },
-                    new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 255) { Value = passwordHash },
+                    new SqlParameter("@PersonaId", SqlDbType.Int) { Value = DBNull.Value },
+                    new SqlParameter("@Login", SqlDbType.NVarChar, 50) { Value = (object?)login ?? DBNull.Value },
+                    new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 255) { Value = (object?)passwordHash ?? DBNull.Value },
                     new SqlParameter("@Cargo", SqlDbType.NVarChar, 100) { Value = (object?)dto.Cargo?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@CI", SqlDbType.Int) { Value = (object?)dto.Ci ?? DBNull.Value },
+                    new SqlParameter("@Nombres", SqlDbType.VarChar, 50) { Value = (object?)dto.Nombres?.Trim().ToUpper() ?? DBNull.Value },
+                    new SqlParameter("@Apellidos", SqlDbType.VarChar, 50) { Value = (object?)dto.Apellidos?.Trim().ToUpper() ?? DBNull.Value },
+                    new SqlParameter("@Direccion", SqlDbType.VarChar, 50) { Value = (object?)dto.Direccion?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@Cel", SqlDbType.Int) { Value = (object?)dto.Cel ?? DBNull.Value },
+                    new SqlParameter("@Email", SqlDbType.VarChar, 50) { Value = (object?)dto.Email?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@CodU", SqlDbType.SmallInt) { Value = (object?)dto.CodU ?? DBNull.Value },
+                    new SqlParameter("@CodCargo", SqlDbType.SmallInt) { Value = (object?)dto.CodCargo ?? DBNull.Value },
                     outParam
                 );
 
                 int nuevoId = (int)outParam.Value;
-                return Ok(ApiResponse<object>.Ok(new { id = nuevoId, login = dto.Login.Trim().ToLower() }, "Usuario creado exitosamente."));
+
+                // Asignar roles si se especificaron
+                if (dto.RolesIds != null && dto.RolesIds.Any())
+                {
+                    int ubiId = dto.CodU.HasValue ? (int)dto.CodU.Value : 1;
+                    foreach (var rolId in dto.RolesIds)
+                    {
+                        try
+                        {
+                            await _sp.ExecuteNonQueryAsync(
+                                "dbo.usp_UsuarioRoles_Asignar",
+                                new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = nuevoId },
+                                new SqlParameter("@RolId", SqlDbType.Int) { Value = rolId },
+                                new SqlParameter("@UbicacionOrgId", SqlDbType.Int) { Value = ubiId },
+                                new SqlParameter("@NivelAcceso", SqlDbType.VarChar, 50) { Value = "CONTROL_TOTAL" },
+                                new SqlParameter("@FechaExpiracion", SqlDbType.Date) { Value = DBNull.Value },
+                                new SqlParameter("@EsPrincipal", SqlDbType.Bit) { Value = true }
+                            );
+                        }
+                        catch { /* ignorar duplicados de rol */ }
+                    }
+                }
+
+                return Ok(ApiResponse<object>.Ok(new { id = nuevoId, login = login }, "Personal municipal registrado exitosamente."));
             }
             catch (SqlException ex)
             {
@@ -184,17 +214,20 @@ namespace GestionDocumental.Api.Controllers
                 reader => new
                 {
                     Id = reader.GetSafeInt32("id"),
-                    PersonaId = reader.GetSafeInt32("persona_id"),
-                    Login = reader.GetSafeString("login"),
+                    Login = reader.GetNullableString("login"),
                     Cargo = reader.GetNullableString("cargo"),
-                    Activo = reader.GetSafeBoolean("activo")
+                    Activo = reader.GetSafeBoolean("activo"),
+                    Nombres = reader.GetSafeString("nombres"),
+                    Apellidos = reader.GetSafeString("apellido_paterno")
                 },
                 new SqlParameter("@Id", SqlDbType.Int) { Value = id }
             );
 
-            if (usuario == null) return NotFound(ApiResponse.ErrorResult("Usuario no encontrado."));
+            if (usuario == null) return NotFound(ApiResponse.ErrorResult("Personal municipal no encontrado."));
 
-            int personaId = dto.PersonaId ?? usuario.PersonaId;
+            string? login = dto.Login != null 
+                ? (string.IsNullOrWhiteSpace(dto.Login) ? null : dto.Login.Trim().ToLower()) 
+                : usuario.Login;
             string cargo = dto.Cargo != null ? dto.Cargo.Trim() : (usuario.Cargo ?? string.Empty);
             bool activo = dto.Activo ?? usuario.Activo;
 
@@ -203,13 +236,30 @@ namespace GestionDocumental.Api.Controllers
                 await _sp.ExecuteNonQueryAsync(
                     "dbo.usp_Usuarios_Actualizar",
                     new SqlParameter("@Id", SqlDbType.Int) { Value = id },
-                    new SqlParameter("@PersonaId", SqlDbType.Int) { Value = personaId },
-                    new SqlParameter("@Login", SqlDbType.NVarChar, 50) { Value = usuario.Login },
-                    new SqlParameter("@Cargo", SqlDbType.NVarChar, 100) { Value = cargo },
-                    new SqlParameter("@Activo", SqlDbType.Bit) { Value = activo }
+                    new SqlParameter("@PersonaId", SqlDbType.Int) { Value = DBNull.Value },
+                    new SqlParameter("@Login", SqlDbType.NVarChar, 50) { Value = (object?)login ?? DBNull.Value },
+                    new SqlParameter("@Cargo", SqlDbType.NVarChar, 100) { Value = (object?)cargo ?? DBNull.Value },
+                    new SqlParameter("@Activo", SqlDbType.Bit) { Value = activo },
+                    new SqlParameter("@Nombres", SqlDbType.VarChar, 50) { Value = (object?)dto.Nombres?.Trim().ToUpper() ?? DBNull.Value },
+                    new SqlParameter("@Apellidos", SqlDbType.VarChar, 50) { Value = (object?)dto.Apellidos?.Trim().ToUpper() ?? DBNull.Value },
+                    new SqlParameter("@Direccion", SqlDbType.VarChar, 50) { Value = (object?)dto.Direccion?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@Cel", SqlDbType.Int) { Value = (object?)dto.Cel ?? DBNull.Value },
+                    new SqlParameter("@Email", SqlDbType.VarChar, 50) { Value = (object?)dto.Email?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@CodU", SqlDbType.SmallInt) { Value = (object?)dto.CodU ?? DBNull.Value },
+                    new SqlParameter("@CodCargo", SqlDbType.SmallInt) { Value = (object?)dto.CodCargo ?? DBNull.Value }
                 );
 
-                return Ok(ApiResponse.SuccessResult("Usuario actualizado exitosamente."));
+                if (!string.IsNullOrWhiteSpace(dto.Password))
+                {
+                    string newPasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password.Trim());
+                    await _sp.ExecuteNonQueryAsync(
+                        "dbo.usp_Usuarios_CambiarPassword",
+                        new SqlParameter("@Id", SqlDbType.Int) { Value = id },
+                        new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 255) { Value = newPasswordHash }
+                    );
+                }
+
+                return Ok(ApiResponse.SuccessResult("Datos de personal actualizados exitosamente."));
             }
             catch (SqlException ex)
             {
@@ -222,11 +272,11 @@ namespace GestionDocumental.Api.Controllers
         {
             var usuario = await _sp.QueryFirstOrDefaultAsync(
                 "dbo.usp_Usuarios_ObtenerPorId",
-                reader => new { Id = reader.GetSafeInt32("id"), Login = reader.GetSafeString("login"), Activo = reader.GetSafeBoolean("activo") },
+                reader => new { Id = reader.GetSafeInt32("id"), Login = reader.GetNullableString("login"), Activo = reader.GetSafeBoolean("activo") },
                 new SqlParameter("@Id", SqlDbType.Int) { Value = id }
             );
 
-            if (usuario == null) return NotFound(ApiResponse.ErrorResult("Usuario no encontrado."));
+            if (usuario == null) return NotFound(ApiResponse.ErrorResult("Personal municipal no encontrado."));
 
             if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 6)
             {
@@ -240,7 +290,7 @@ namespace GestionDocumental.Api.Controllers
                 new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 255) { Value = newHash }
             );
 
-            return Ok(ApiResponse.SuccessResult($"Contraseña restablecida exitosamente para '{usuario.Login}'."));
+            return Ok(ApiResponse.SuccessResult($"Contraseña restablecida exitosamente para '{usuario.Login ?? "funcionario"}'."));
         }
 
         [HttpDelete("{id}")]
@@ -248,18 +298,18 @@ namespace GestionDocumental.Api.Controllers
         {
             var usuario = await _sp.QueryFirstOrDefaultAsync(
                 "dbo.usp_Usuarios_ObtenerPorId",
-                reader => new { Id = reader.GetSafeInt32("id"), Login = reader.GetSafeString("login") },
+                reader => new { Id = reader.GetSafeInt32("id"), Login = reader.GetNullableString("login") },
                 new SqlParameter("@Id", SqlDbType.Int) { Value = id }
             );
 
-            if (usuario == null) return NotFound(ApiResponse.ErrorResult("Usuario no encontrado."));
+            if (usuario == null) return NotFound(ApiResponse.ErrorResult("Personal municipal no encontrado."));
 
             await _sp.ExecuteNonQueryAsync(
                 "dbo.usp_Usuarios_EliminarLogico",
                 new SqlParameter("@Id", SqlDbType.Int) { Value = id }
             );
 
-            return Ok(ApiResponse.SuccessResult($"Usuario '{usuario.Login}' dado de baja."));
+            return Ok(ApiResponse.SuccessResult($"Personal municipal dado de baja."));
         }
 
         [HttpPatch("{id}/reactivar")]
@@ -270,43 +320,31 @@ namespace GestionDocumental.Api.Controllers
                 reader => new
                 {
                     Id = reader.GetSafeInt32("id"),
-                    PersonaId = reader.GetSafeInt32("persona_id"),
-                    Login = reader.GetSafeString("login"),
+                    Login = reader.GetNullableString("login"),
                     Cargo = reader.GetNullableString("cargo")
                 },
                 new SqlParameter("@Id", SqlDbType.Int) { Value = id }
             );
 
-            if (usuario == null) return NotFound(ApiResponse.ErrorResult("Usuario no encontrado."));
-
-            // Validar que la persona esté activa
-            var persona = await _sp.QueryFirstOrDefaultAsync(
-                "dbo.usp_Personas_ObtenerPorId",
-                reader => new
-                {
-                    Id = reader.GetSafeInt32("id"),
-                    Activo = reader.GetSafeBoolean("activo"),
-                    Nombres = reader.GetSafeString("nombres"),
-                    ApellidoPaterno = reader.GetSafeString("apellido_paterno")
-                },
-                new SqlParameter("@Id", SqlDbType.Int) { Value = usuario.PersonaId }
-            );
-
-            if (persona != null && !persona.Activo)
-            {
-                return BadRequest(ApiResponse.ErrorResult($"No se puede reactivar el usuario: la persona asociada '{persona.Nombres} {persona.ApellidoPaterno}' se encuentra inactiva. Primero reactive la persona."));
-            }
+            if (usuario == null) return NotFound(ApiResponse.ErrorResult("Personal municipal no encontrado."));
 
             await _sp.ExecuteNonQueryAsync(
                 "dbo.usp_Usuarios_Actualizar",
                 new SqlParameter("@Id", SqlDbType.Int) { Value = id },
-                new SqlParameter("@PersonaId", SqlDbType.Int) { Value = usuario.PersonaId },
-                new SqlParameter("@Login", SqlDbType.NVarChar, 50) { Value = usuario.Login },
+                new SqlParameter("@PersonaId", SqlDbType.Int) { Value = DBNull.Value },
+                new SqlParameter("@Login", SqlDbType.NVarChar, 50) { Value = (object?)usuario.Login ?? DBNull.Value },
                 new SqlParameter("@Cargo", SqlDbType.NVarChar, 100) { Value = (object?)usuario.Cargo ?? DBNull.Value },
-                new SqlParameter("@Activo", SqlDbType.Bit) { Value = true }
+                new SqlParameter("@Activo", SqlDbType.Bit) { Value = true },
+                new SqlParameter("@Nombres", SqlDbType.VarChar, 50) { Value = DBNull.Value },
+                new SqlParameter("@Apellidos", SqlDbType.VarChar, 50) { Value = DBNull.Value },
+                new SqlParameter("@Direccion", SqlDbType.VarChar, 50) { Value = DBNull.Value },
+                new SqlParameter("@Cel", SqlDbType.Int) { Value = DBNull.Value },
+                new SqlParameter("@Email", SqlDbType.VarChar, 50) { Value = DBNull.Value },
+                new SqlParameter("@CodU", SqlDbType.SmallInt) { Value = DBNull.Value },
+                new SqlParameter("@CodCargo", SqlDbType.SmallInt) { Value = DBNull.Value }
             );
 
-            return Ok(ApiResponse.SuccessResult($"Usuario '{usuario.Login}' reactivado exitosamente."));
+            return Ok(ApiResponse.SuccessResult($"Personal municipal '{usuario.Login ?? "funcionario"}' reactivado exitosamente."));
         }
     }
 }

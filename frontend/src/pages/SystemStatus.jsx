@@ -216,7 +216,7 @@ export default function SystemStatus() {
         <div style={{ background: 'var(--color-primary-sucre-light)', padding: '12px 16px', borderRadius: '4px', border: '1px solid #f5c2c2', fontSize: '0.85rem' }}>
           <strong style={{ color: '#800000' }}>Nota Institucional:</strong>
           <span style={{ color: 'var(--color-text-main)', marginLeft: '6px' }}>
-            El sistema utiliza <strong>DB_TRAMITES_EXTERNOS</strong> en Microsoft SQL Server con los catálogos <code>TUnidad</code>, <code>TCargo</code> y el padrón de <code>TEmpleados</code>.
+            El sistema utiliza el directorio institucional unificado (Direcciones, Cargos y Personal Municipal) sincronizado con Microsoft SQL Server.
           </span>
         </div>
       </div>

@@ -231,7 +231,7 @@ export default function InstitucionalCatalogosManager({ onOpenNuevaUnidad, onEdi
             style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <Building2 size={15} />
-            <span>Unidades Institucionales (TUnidad)</span>
+            <span>Direcciones y Unidades</span>
             <span style={{ 
               marginLeft: '4px', 
               fontSize: '0.75rem', 
@@ -250,7 +250,7 @@ export default function InstitucionalCatalogosManager({ onOpenNuevaUnidad, onEdi
             style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <Briefcase size={15} />
-            <span>Cargos Dependientes (TCargo)</span>
+            <span>Cargos Institucionales</span>
             <span style={{ 
               marginLeft: '4px', 
               fontSize: '0.75rem', 
@@ -401,9 +401,9 @@ export default function InstitucionalCatalogosManager({ onOpenNuevaUnidad, onEdi
             <table className="table-sucre">
               <thead>
                 <tr>
-                  <th style={{ width: '90px' }}>CodCargo</th>
+                  <th style={{ width: '90px' }}>Código</th>
                   <th>Nombre del Cargo Oficial</th>
-                  <th>Unidad Dependiente (TUnidad)</th>
+                  <th>Dirección / Unidad</th>
                   <th style={{ width: '110px', textAlign: 'right' }}>Acciones</th>
                 </tr>
               </thead>
@@ -470,7 +470,7 @@ export default function InstitucionalCatalogosManager({ onOpenNuevaUnidad, onEdi
                   <Building2 size={16} />
                 </div>
                 <h2 className="modal-title">
-                  {editingUnidad ? 'Editar Unidad Institucional' : 'Nueva Unidad Institucional'}
+                  {editingUnidad ? 'Editar Dirección / Unidad' : 'Nueva Dirección / Unidad'}
                 </h2>
               </div>
               <button onClick={() => setShowUnidadModal(false)} className="modal-close-btn" title="Cerrar">
@@ -574,7 +574,7 @@ export default function InstitucionalCatalogosManager({ onOpenNuevaUnidad, onEdi
 
                 <div>
                   <label className="form-label">
-                    Unidad de Pertenencia (TUnidad) <span style={{ color: '#E53E3E' }}>*</span>
+                    Dirección / Unidad de Pertenencia <span style={{ color: '#E53E3E' }}>*</span>
                   </label>
                   <select
                     required

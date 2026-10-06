@@ -36,7 +36,6 @@ import {
 } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import InstitucionalSelectors from '../components/institucional/InstitucionalSelectors';
-import EmpleadoSearchAutocomplete from '../components/institucional/EmpleadoSearchAutocomplete';
 import InstitucionalCatalogosManager from '../components/institucional/InstitucionalCatalogosManager';
 import TiposProcesoExternoManager from '../components/admin/TiposProcesoExternoManager';
 // Componente de supervisión de trámites pre-construido para ser activado en Sprint 4:
@@ -126,13 +125,20 @@ export default function AdminHub() {
   });
 
   const [showUsuarioModal, setShowUsuarioModal] = useState(false);
+  const [usuarioEditing, setUsuarioEditing] = useState(null);
   const [userSelectedCodU, setUserSelectedCodU] = useState('');
   const [userSelectedCodCargo, setUserSelectedCodCargo] = useState('');
   const [usuarioForm, setUsuarioForm] = useState({
-    persona_id: '',
+    ci: '',
+    nombres: '',
+    apellidos: '',
+    cel: '',
+    email: '',
+    direccion: '',
+    cargo: '',
     login: '',
     password: '',
-    cargo: ''
+    tieneCuenta: true
   });
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -312,19 +318,45 @@ export default function AdminHub() {
   };
 
   // ----------------------------------------------------
-  // MANEJADORES: USUARIOS
+  // MANEJADORES: PERSONAL MUNICIPAL Y USUARIOS
   // ----------------------------------------------------
-  const handleOpenUsuarioModal = () => {
+  const handleOpenUsuarioModal = (usuario = null) => {
     setUsuarioModalError(null);
-    setUserSelectedCodU('');
-    setUserSelectedCodCargo('');
-    const activePersonas = personas.filter((p) => p.activo);
-    setUsuarioForm({
-      persona_id: activePersonas[0]?.id || '',
-      login: '',
-      password: '',
-      cargo: ''
-    });
+    if (usuario) {
+      setUsuarioEditing(usuario);
+      setUserSelectedCodU(usuario.cod_u ? String(usuario.cod_u) : '');
+      setUserSelectedCodCargo(usuario.cod_cargo ? String(usuario.cod_cargo) : '');
+      setUsuarioForm({
+        ci: usuario.ci ? String(usuario.ci) : '',
+        nombres: usuario.nombres || '',
+        apellidos: usuario.apellido_paterno
+          ? `${usuario.apellido_paterno} ${usuario.apellido_materno || ''}`.trim()
+          : '',
+        cel: usuario.cel || usuario.telefono || '',
+        email: usuario.email || '',
+        direccion: usuario.direccion || '',
+        cargo: usuario.cargo || usuario.cargo_oficial || '',
+        login: usuario.login || '',
+        password: '',
+        tieneCuenta: Boolean(usuario.login)
+      });
+    } else {
+      setUsuarioEditing(null);
+      setUserSelectedCodU('');
+      setUserSelectedCodCargo('');
+      setUsuarioForm({
+        ci: '',
+        nombres: '',
+        apellidos: '',
+        cel: '',
+        email: '',
+        direccion: '',
+        cargo: '',
+        login: '',
+        password: '',
+        tieneCuenta: true
+      });
+    }
     setShowUsuarioModal(true);
   };
 
@@ -332,16 +364,66 @@ export default function AdminHub() {
     e.preventDefault();
     setActionLoading(true);
     setUsuarioModalError(null);
+
+    if (!usuarioForm.nombres?.trim() || !usuarioForm.apellidos?.trim()) {
+      setUsuarioModalError('Nombres y apellidos son requeridos para el personal municipal.');
+      setActionLoading(false);
+      return;
+    }
+
+    if (!usuarioEditing && !usuarioForm.ci) {
+      setUsuarioModalError('La Cédula de Identidad (CI) es requerida.');
+      setActionLoading(false);
+      return;
+    }
+
+    if (usuarioForm.tieneCuenta) {
+      if (!usuarioForm.login?.trim()) {
+        setUsuarioModalError('Debe ingresar un nombre de usuario (login) si la cuenta de acceso está habilitada.');
+        setActionLoading(false);
+        return;
+      }
+      if (!usuarioEditing && (!usuarioForm.password || usuarioForm.password.length < 6)) {
+        setUsuarioModalError('La contraseña inicial debe tener al menos 6 caracteres.');
+        setActionLoading(false);
+        return;
+      }
+    }
+
     try {
-      const res = await usuariosService.create(usuarioForm);
-      if (res.success) {
-        showFeedbackMsg('success', `Usuario '${usuarioForm.login}' creado exitosamente.`);
-        setShowUsuarioModal(false);
-        const resUsr = await usuariosService.getAll({ search: '', activo: 'all' });
-        if (resUsr.success) setUsuarios(resUsr.data || []);
+      const payload = {
+        ci: usuarioForm.ci ? parseInt(usuarioForm.ci, 10) : null,
+        nombres: usuarioForm.nombres.trim().toUpperCase(),
+        apellidos: usuarioForm.apellidos.trim().toUpperCase(),
+        cel: usuarioForm.cel ? parseInt(usuarioForm.cel, 10) : null,
+        email: usuarioForm.email?.trim() || null,
+        direccion: usuarioForm.direccion?.trim() || null,
+        cod_u: userSelectedCodU ? parseInt(userSelectedCodU, 10) : null,
+        cod_cargo: userSelectedCodCargo ? parseInt(userSelectedCodCargo, 10) : null,
+        cargo: usuarioForm.cargo?.trim() || null,
+        login: usuarioForm.tieneCuenta && usuarioForm.login ? usuarioForm.login.trim().toLowerCase() : null,
+        password: usuarioForm.password?.trim() || null
+      };
+
+      if (usuarioEditing) {
+        const res = await usuariosService.update(usuarioEditing.id, payload);
+        if (res.success) {
+          showFeedbackMsg('success', 'Personal municipal actualizado exitosamente.');
+          setShowUsuarioModal(false);
+          const resUsr = await usuariosService.getAll({ search: '', activo: 'all' });
+          if (resUsr.success) setUsuarios(resUsr.data || []);
+        }
+      } else {
+        const res = await usuariosService.create(payload);
+        if (res.success) {
+          showFeedbackMsg('success', 'Personal municipal registrado exitosamente.');
+          setShowUsuarioModal(false);
+          const resUsr = await usuariosService.getAll({ search: '', activo: 'all' });
+          if (resUsr.success) setUsuarios(resUsr.data || []);
+        }
       }
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Error al registrar el usuario.';
+      const msg = err.response?.data?.message || err.message || 'Error al guardar personal municipal.';
       setUsuarioModalError(msg);
     } finally {
       setActionLoading(false);
@@ -748,7 +830,7 @@ export default function AdminHub() {
   const filteredUsuarios = usuarios.filter((u) => {
     if (usuarioFiltroActivo === 'activos' && !u.activo) return false;
     if (usuarioFiltroActivo === 'inactivos' && u.activo) return false;
-    const full = `${u.login} ${u.nombres || ''} ${u.apellido_paterno || ''} ${u.cargo || ''} ${u.ci || ''}`.toLowerCase();
+    const full = `${u.login || ''} ${u.nombres || ''} ${u.apellido_paterno || ''} ${u.apellido_materno || ''} ${u.cargo || ''} ${u.cargo_oficial || ''} ${u.unidad_nombre || ''} ${u.email || ''} ${u.ci || ''}`.toLowerCase();
     return full.includes(searchTerm.toLowerCase());
   });
 
@@ -852,7 +934,7 @@ export default function AdminHub() {
           }}
         >
           <Users size={18} />
-          <span>Personas</span>
+          <span>Ciudadanos y Solicitantes</span>
         </button>
 
         <button
@@ -876,7 +958,7 @@ export default function AdminHub() {
           }}
         >
           <UserPlus size={18} />
-          <span>Usuarios y Asignaciones</span>
+          <span>Personal y Cuentas de Acceso</span>
         </button>
 
         <button
@@ -976,9 +1058,9 @@ export default function AdminHub() {
                 className="form-control"
                 placeholder={
                   activeTab === 'personas'
-                    ? 'Buscar por nombre o CI...'
+                    ? 'Buscar ciudadano por nombre o CI...'
                     : activeTab === 'usuarios'
-                      ? 'Buscar por login, nombre, cargo...'
+                      ? 'Buscar personal por nombre, CI, cargo, unidad o usuario...'
                       : 'Buscar roles...'
                 }
                 value={searchTerm}
@@ -1017,14 +1099,14 @@ export default function AdminHub() {
           {activeTab === 'personas' && (
             <button onClick={() => handleOpenPersonaModal()} className="btn btn-primary btn-sm">
               <Plus size={16} />
-              <span>Nueva Persona</span>
+              <span>Nuevo Ciudadano</span>
             </button>
           )}
 
           {activeTab === 'usuarios' && (
-            <button onClick={handleOpenUsuarioModal} className="btn btn-primary btn-sm">
+            <button onClick={() => handleOpenUsuarioModal()} className="btn btn-primary btn-sm">
               <Plus size={16} />
-              <span>Nuevo Usuario</span>
+              <span>Nuevo Funcionario / Personal</span>
             </button>
           )}
         </div>
@@ -1146,7 +1228,7 @@ export default function AdminHub() {
       )}
 
       {/* ==================================================== */}
-      {/* PESTAÑA 2: TABLA DE USUARIOS Y ROLES */}
+      {/* PESTAÑA 2: TABLA DE PERSONAL MUNICIPAL Y USUARIOS */}
       {/* ==================================================== */}
       {activeTab === 'usuarios' && (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
@@ -1154,10 +1236,10 @@ export default function AdminHub() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Usuario / Login</th>
-                  <th>Persona Asociada</th>
-                  <th>Cargo Institucional</th>
-                  <th>Roles & Oficinas Asignadas</th>
+                  <th>Funcionario Municipal</th>
+                  <th>Cédula & Contacto</th>
+                  <th>Dirección / Unidad & Cargo</th>
+                  <th>Acceso & Roles</th>
                   <th style={{ textAlign: 'center' }}>Estado</th>
                   <th style={{ textAlign: 'right' }}>Acciones</th>
                 </tr>
@@ -1166,13 +1248,13 @@ export default function AdminHub() {
                 {loading ? (
                   <tr>
                     <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
-                      Cargando usuarios...
+                      Cargando personal municipal...
                     </td>
                   </tr>
                 ) : filteredUsuarios.length === 0 ? (
                   <tr>
                     <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#6C757D' }}>
-                      No se encontraron usuarios registrados.
+                      No se encontraron registros de personal municipal.
                     </td>
                   </tr>
                 ) : (
@@ -1182,8 +1264,8 @@ export default function AdminHub() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div
                             style={{
-                              width: '32px',
-                              height: '32px',
+                              width: '34px',
+                              height: '34px',
                               borderRadius: '4px',
                               background: '#1B365D',
                               color: 'white',
@@ -1191,32 +1273,58 @@ export default function AdminHub() {
                               alignItems: 'center',
                               justifyContent: 'center',
                               fontWeight: 'bold',
-                              fontSize: '0.85rem'
+                              fontSize: '0.85rem',
+                              flexShrink: 0
                             }}
                           >
-                            {u.login.substring(0, 2).toUpperCase()}
+                            {((u.nombres?.[0] || '') + (u.apellido_paterno?.[0] || 'F')).toUpperCase()}
                           </div>
                           <div>
-                            <strong style={{ color: '#1B365D' }}>{u.login}</strong>
-                            <div style={{ fontSize: '0.78rem', color: '#6C757D' }}>ID: #{u.id}</div>
+                            <strong style={{ color: '#1B365D', display: 'block' }}>
+                              {u.nombres} {u.apellido_paterno} {u.apellido_materno || ''}
+                            </strong>
+                            <div style={{ fontSize: '0.76rem', color: '#6C757D' }}>ID: #{u.id}</div>
                           </div>
                         </div>
                       </td>
                       <td>
-                        <div style={{ fontWeight: 600 }}>
-                          {u.apellido_paterno} {u.apellido_materno || ''}, {u.nombres}
-                        </div>
-                        <div style={{ fontSize: '0.8rem', color: '#6C757D' }}>CI: {u.ci}</div>
+                        <div style={{ fontWeight: 600 }}>CI: {u.ci}</div>
+                        {(u.cel || u.telefono) && (
+                          <div style={{ fontSize: '0.78rem', color: '#4B5563' }}>📱 {u.cel || u.telefono}</div>
+                        )}
+                        {u.email && (
+                          <div style={{ fontSize: '0.76rem', color: '#6C757D' }}>✉️ {u.email}</div>
+                        )}
                       </td>
-                      <td style={{ fontSize: '0.88rem' }}>{u.cargo || 'Funcionario'}</td>
                       <td>
+                        <div style={{ fontWeight: 600, color: '#1B365D', fontSize: '0.88rem' }}>
+                          {u.unidad_nombre || (u.cod_u ? `Unidad #${u.cod_u}` : 'Sin unidad asignada')}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#6C757D' }}>
+                          {u.cargo || u.cargo_oficial || 'Funcionario'}
+                        </div>
+                      </td>
+                      <td>
+                        {u.login ? (
+                          <div style={{ marginBottom: '4px' }}>
+                            <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#1B365D', background: '#F1F3F5', padding: '2px 6px', borderRadius: '4px', border: '1px solid #CED4DA', fontSize: '0.78rem' }}>
+                              👤 {u.login}
+                            </span>
+                          </div>
+                        ) : (
+                          <div style={{ marginBottom: '4px' }}>
+                            <span className="badge" style={{ backgroundColor: '#F8F9FA', color: '#6C757D', border: '1px dashed #CED4DA', fontSize: '0.72rem' }}>
+                              Sin login web
+                            </span>
+                          </div>
+                        )}
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                           {u.roles && u.roles.length > 0 ? (
                             u.roles.map((r) => (
                               <span
                                 key={r.usuario_rol_id}
                                 className={`badge ${r.es_principal ? 'badge-sucre' : 'badge-gold'}`}
-                                style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                style={{ fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                                 title={`Oficina: ${r.ubicacion_nombre} • Nivel: ${r.nivel_acceso}`}
                               >
                                 {Boolean(r.es_principal) ? (
@@ -1228,8 +1336,8 @@ export default function AdminHub() {
                               </span>
                             ))
                           ) : (
-                            <span style={{ fontSize: '0.8rem', color: '#DC3545', fontStyle: 'italic' }}>
-                              Sin roles asignados
+                            <span style={{ fontSize: '0.75rem', color: '#DC3545', fontStyle: 'italic' }}>
+                              Sin roles
                             </span>
                           )}
                         </div>
@@ -1242,6 +1350,14 @@ export default function AdminHub() {
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: '6px' }}>
                           <button
+                            onClick={() => handleOpenUsuarioModal(u)}
+                            className="btn btn-secondary btn-sm"
+                            title="Editar datos de personal y asignación"
+                            style={{ padding: '4px 8px' }}
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
                             onClick={() => handleOpenRolesModal(u)}
                             className="btn btn-secondary btn-sm"
                             title="Gestionar roles y oficinas"
@@ -1250,14 +1366,16 @@ export default function AdminHub() {
                             <Shield size={14} />
                             <span>Roles</span>
                           </button>
-                          <button
-                            onClick={() => handleOpenPasswordModal(u)}
-                            className="btn btn-secondary btn-sm"
-                            title="Restablecer contraseña"
-                            style={{ padding: '4px 8px' }}
-                          >
-                            <KeyRound size={14} />
-                          </button>
+                          {u.login && (
+                            <button
+                              onClick={() => handleOpenPasswordModal(u)}
+                              className="btn btn-secondary btn-sm"
+                              title="Restablecer contraseña"
+                              style={{ padding: '4px 8px' }}
+                            >
+                              <KeyRound size={14} />
+                            </button>
+                          )}
                           {u.activo ? (
                             u.id !== currentUser?.userId ? (
                               <button
@@ -1266,7 +1384,7 @@ export default function AdminHub() {
                                   setDeleteModalError(null);
                                 }}
                                 className="btn btn-outline-danger btn-sm"
-                                title="Dar de baja usuario"
+                                title="Dar de baja funcionario"
                                 style={{ padding: '4px 8px' }}
                               >
                                 <Trash2 size={14} />
@@ -1276,7 +1394,7 @@ export default function AdminHub() {
                             <button
                               onClick={() => handleReactivarUsuario(u)}
                               className="btn btn-sm"
-                              title="Reactivar usuario"
+                              title="Reactivar funcionario"
                               style={{
                                 padding: '4px 8px',
                                 backgroundColor: '#E6F4EA',
@@ -1388,7 +1506,7 @@ export default function AdminHub() {
                 }}
               >
                 <Building2 size={16} />
-                <span>Catálogos Oficiales (TUnidad / TCargo)</span>
+                <span>Directorio Institucional (Unidades y Cargos)</span>
               </button>
 
               <button
@@ -1578,7 +1696,7 @@ export default function AdminHub() {
                             <td>
                               {u.cod_u || u.codU ? (
                                 <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '0.8rem', background: '#E8F0FE', color: '#1A73E8', padding: '2px 6px', borderRadius: '4px', border: '1px solid #D2E3FC' }}>
-                                  TUnidad #{u.cod_u || u.codU}
+                                  Oficial #{u.cod_u || u.codU}
                                 </span>
                               ) : (
                                 <span style={{ color: '#ADB5BD', fontSize: '0.8rem' }}>—</span>
@@ -1710,7 +1828,7 @@ export default function AdminHub() {
                 }}>
                   <Building2 size={18} style={{ flexShrink: 0 }} />
                   <span>
-                    <strong>Sincronización Automática:</strong> Esta unidad se guardará simultáneamente en el <strong>Árbol Jerárquico</strong> y en el <strong>Catálogo Municipal Oficial (TUnidad)</strong> para correspondencia externa.
+                    <strong>Sincronización Automática:</strong> Esta unidad se guardará simultáneamente en la estructura jerárquica y en el <strong>Directorio Institucional Oficial</strong> para correspondencia.
                   </span>
                 </div>
 
@@ -1823,7 +1941,7 @@ export default function AdminHub() {
                   <Users size={16} />
                 </div>
                 <h2 className="modal-title">
-                  {personaEditing ? 'Editar Datos de Persona' : 'Registrar Nueva Persona'}
+                  {personaEditing ? 'Editar Datos de Ciudadano / Solicitante' : 'Registrar Nuevo Ciudadano / Solicitante'}
                 </h2>
               </div>
               <button onClick={() => setShowPersonaModal(false)} className="modal-close-btn" title="Cerrar">
@@ -1838,19 +1956,6 @@ export default function AdminHub() {
                     <AlertCircle size={16} style={{ flexShrink: 0 }} />
                     <span>{personaModalError}</span>
                   </div>
-                )}
-
-                {/* Paso Introductorio Sprint 2: Buscador en Padrón Institucional TEmpleados */}
-                {!personaEditing && (
-                  <EmpleadoSearchAutocomplete
-                    onSelectEmpleado={(empData) => {
-                      setPersonaForm((prev) => ({
-                        ...prev,
-                        ...empData
-                      }));
-                    }}
-                    currentCi={personaForm.ci}
-                  />
                 )}
 
                 <div style={{ gridColumn: 'span 2' }}>
@@ -2007,17 +2112,24 @@ export default function AdminHub() {
       )}
 
       {/* ==================================================== */}
-      {/* MODAL: CREAR USUARIO VINCULADO */}
+      {/* MODAL: REGISTRAR / EDITAR PERSONAL MUNICIPAL Y CUENTA */}
       {/* ==================================================== */}
       {showUsuarioModal && (
         <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowUsuarioModal(false); }}>
-          <div className="modal-dialog" style={{ maxWidth: '520px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-dialog" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ width: '32px', height: '32px', borderRadius: '4px', background: '#1B365D', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
                   <UserPlus size={16} />
                 </div>
-                <h2 className="modal-title">Crear Cuenta de Usuario</h2>
+                <div>
+                  <h2 className="modal-title" style={{ margin: 0, fontSize: '1.1rem' }}>
+                    {usuarioEditing ? 'Editar Personal Municipal' : 'Registrar Personal Municipal'}
+                  </h2>
+                  <div style={{ fontSize: '0.75rem', color: '#6C757D' }}>
+                    Gestión integral de funcionarios y cuentas de acceso institucional
+                  </div>
+                </div>
               </div>
               <button onClick={() => setShowUsuarioModal(false)} className="modal-close-btn" title="Cerrar">
                 <X size={18} />
@@ -2025,98 +2137,180 @@ export default function AdminHub() {
             </div>
 
             <form onSubmit={handleSaveUsuario}>
-              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="modal-body" style={{ maxHeight: '72vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {usuarioModalError && (
                   <div style={{ padding: '10px 14px', borderRadius: '4px', backgroundColor: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <AlertCircle size={16} style={{ flexShrink: 0 }} />
                     <span>{usuarioModalError}</span>
                   </div>
                 )}
-                <div>
-                  <label className="form-label required">Seleccionar Persona Vinculada</label>
-                  <select
-                    className="form-control"
-                    required
-                    value={usuarioForm.persona_id}
-                    onChange={(e) => setUsuarioForm({ ...usuarioForm, persona_id: e.target.value })}
-                  >
-                    <option value="">-- Seleccione una persona --</option>
-                    {personas
-                      .filter((p) => p.activo)
-                      .map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.apellido_paterno} {p.apellido_materno || ''}, {p.nombres} (CI: {p.ci})
-                        </option>
-                      ))}
-                  </select>
-                  <span style={{ fontSize: '0.78rem', color: '#6C757D' }}>
-                    Cada cuenta institucional debe estar ligada a una persona registrada (RF-02.2).
-                  </span>
-                </div>
 
-                <div>
-                  <label className="form-label required">Nombre de Usuario (Login)</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    required
-                    placeholder="ej: mfernandez"
-                    value={usuarioForm.login}
-                    onChange={(e) => setUsuarioForm({ ...usuarioForm, login: e.target.value.toLowerCase().trim() })}
-                  />
-                </div>
-
-                <div>
-                  <label className="form-label required">Contraseña Inicial</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    required
-                    placeholder="Mínimo 6 caracteres"
-                    value={usuarioForm.password}
-                    onChange={(e) => setUsuarioForm({ ...usuarioForm, password: e.target.value })}
-                  />
-                </div>
-
-                {/* Paso Introductorio Sprint 2: Selección en cascada TUnidad -> TCargo */}
-                <div style={{
-                  padding: '12px',
-                  backgroundColor: '#F8F9FA',
-                  borderRadius: '6px',
-                  border: '1px solid #E9ECEF',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px'
-                }}>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1B365D' }}>
-                    Asignación Institucional
+                {/* BLOQUE 1: DATOS PERSONALES */}
+                <div style={{ borderBottom: '1px solid #E9ECEF', paddingBottom: '12px' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1B365D', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Users size={15} style={{ color: '#800000' }} />
+                    <span>1. Datos del Funcionario</span>
                   </div>
-                  <InstitucionalSelectors
-                    selectedCodU={userSelectedCodU}
-                    onUnidadChange={(codU) => setUserSelectedCodU(codU)}
-                    selectedCodCargo={userSelectedCodCargo}
-                    onCargoChange={(codCargo, cargoObj) => {
-                      setUserSelectedCodCargo(codCargo);
-                      if (cargoObj && cargoObj.nombreC) {
-                        setUsuarioForm((prev) => ({ ...prev, cargo: cargoObj.nombreC }));
-                      }
-                    }}
-                    layout="stack"
-                  />
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div style={{ gridColumn: 'span 2' }}>
+                      <label className="form-label required">Cédula de Identidad (CI)</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        required
+                        disabled={Boolean(usuarioEditing)}
+                        placeholder="Ej: 1000001"
+                        value={usuarioForm.ci}
+                        onChange={(e) => setUsuarioForm({ ...usuarioForm, ci: e.target.value })}
+                      />
+                      {usuarioEditing && (
+                        <span style={{ fontSize: '0.72rem', color: '#6C757D' }}>El CI institucional no es editable.</span>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="form-label required">Nombres</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        required
+                        placeholder="Ej: CARLOS"
+                        value={usuarioForm.nombres}
+                        onChange={(e) => setUsuarioForm({ ...usuarioForm, nombres: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="form-label required">Apellidos (Paterno y Materno)</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        required
+                        placeholder="Ej: MAMANI CONDORI"
+                        value={usuarioForm.apellidos}
+                        onChange={(e) => setUsuarioForm({ ...usuarioForm, apellidos: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="form-label">Teléfono / Celular</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        placeholder="Ej: 72881234"
+                        value={usuarioForm.cel}
+                        onChange={(e) => setUsuarioForm({ ...usuarioForm, cel: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="form-label">Correo Institucional</label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        placeholder="funcionario@sucre.bo"
+                        value={usuarioForm.email}
+                        onChange={(e) => setUsuarioForm({ ...usuarioForm, email: e.target.value })}
+                      />
+                    </div>
+
+                    <div style={{ gridColumn: 'span 2' }}>
+                      <label className="form-label">Dirección Domiciliaria</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Ej: Av. Hernando Siles #450"
+                        value={usuarioForm.direccion}
+                        onChange={(e) => setUsuarioForm({ ...usuarioForm, direccion: e.target.value })}
+                      />
+                    </div>
+                  </div>
                 </div>
 
+                {/* BLOQUE 2: ASIGNACIÓN INSTITUCIONAL */}
+                <div style={{ borderBottom: '1px solid #E9ECEF', paddingBottom: '12px' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1B365D', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Building2 size={15} style={{ color: '#800000' }} />
+                    <span>2. Asignación Institucional (Dirección y Cargo)</span>
+                  </div>
+
+                  <div style={{ backgroundColor: '#F8F9FA', padding: '12px', borderRadius: '6px', border: '1px solid #E9ECEF', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <InstitucionalSelectors
+                      selectedCodU={userSelectedCodU}
+                      onUnidadChange={(codU) => setUserSelectedCodU(codU)}
+                      selectedCodCargo={userSelectedCodCargo}
+                      onCargoChange={(codCargo, cargoObj) => {
+                        setUserSelectedCodCargo(codCargo);
+                        if (cargoObj && cargoObj.nombreC) {
+                          setUsuarioForm((prev) => ({ ...prev, cargo: cargoObj.nombreC }));
+                        }
+                      }}
+                      layout="stack"
+                    />
+
+                    <div>
+                      <label className="form-label">Denominación Específica del Cargo</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Ej: Encargado de Ventanilla Única"
+                        value={usuarioForm.cargo}
+                        onChange={(e) => setUsuarioForm({ ...usuarioForm, cargo: e.target.value })}
+                      />
+                      <span style={{ fontSize: '0.74rem', color: '#6C757D' }}>
+                        Se autocompleta con el catálogo oficial o puede ajustarse según designación.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* BLOQUE 3: CUENTA DE ACCESO AL SISTEMA */}
                 <div>
-                  <label className="form-label">Denominación del Cargo</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Ej: Encargado de Ventanilla Única"
-                    value={usuarioForm.cargo}
-                    onChange={(e) => setUsuarioForm({ ...usuarioForm, cargo: e.target.value })}
-                  />
-                  <span style={{ fontSize: '0.74rem', color: '#6C757D' }}>
-                    Se autocompleta con el catálogo oficial o puede ajustarse manualmente.
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1B365D', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <KeyRound size={15} style={{ color: '#800000' }} />
+                      <span>3. Cuenta de Acceso al Sistema</span>
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', cursor: 'pointer', fontWeight: 600 }}>
+                      <input
+                        type="checkbox"
+                        checked={usuarioForm.tieneCuenta}
+                        onChange={(e) => setUsuarioForm({ ...usuarioForm, tieneCuenta: e.target.checked })}
+                      />
+                      <span>Habilitar cuenta con login</span>
+                    </label>
+                  </div>
+
+                  {usuarioForm.tieneCuenta && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', backgroundColor: '#F0FDF4', padding: '12px', borderRadius: '6px', border: '1px solid #BBF7D0' }}>
+                      <div>
+                        <label className="form-label required">Usuario de Acceso (Login)</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          required={usuarioForm.tieneCuenta}
+                          placeholder="ej: mfernandez"
+                          value={usuarioForm.login}
+                          onChange={(e) => setUsuarioForm({ ...usuarioForm, login: e.target.value.toLowerCase().trim() })}
+                        />
+                      </div>
+
+                      <div>
+                        <label className={`form-label ${!usuarioEditing ? 'required' : ''}`}>
+                          {usuarioEditing ? 'Nueva Contraseña (opcional)' : 'Contraseña Inicial'}
+                        </label>
+                        <input
+                          type="password"
+                          className="form-control"
+                          required={!usuarioEditing && usuarioForm.tieneCuenta}
+                          placeholder={usuarioEditing ? 'Dejar en blanco para mantener' : 'Mínimo 6 caracteres'}
+                          value={usuarioForm.password}
+                          onChange={(e) => setUsuarioForm({ ...usuarioForm, password: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -2130,7 +2324,7 @@ export default function AdminHub() {
                   Cancelar
                 </button>
                 <button type="submit" className="btn btn-primary btn-sm" disabled={actionLoading}>
-                  {actionLoading ? 'Creando...' : 'Crear Cuenta'}
+                  {actionLoading ? 'Guardando...' : usuarioEditing ? 'Actualizar Personal' : 'Registrar Personal'}
                 </button>
               </div>
             </form>

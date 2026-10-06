@@ -14,7 +14,7 @@ namespace GestionDocumental.Api.DTOs.Usuarios
         public int PersonaId { get; set; }
 
         [JsonPropertyName("login")]
-        public string Login { get; set; } = string.Empty;
+        public string? Login { get; set; }
 
         [JsonPropertyName("cargo")]
         public string? Cargo { get; set; }
@@ -40,6 +40,24 @@ namespace GestionDocumental.Api.DTOs.Usuarios
         [JsonPropertyName("email")]
         public string? Email { get; set; }
 
+        [JsonPropertyName("cel")]
+        public string? Cel { get; set; }
+
+        [JsonPropertyName("direccion")]
+        public string? Direccion { get; set; }
+
+        [JsonPropertyName("cod_u")]
+        public short? CodU { get; set; }
+
+        [JsonPropertyName("unidad_nombre")]
+        public string? UnidadNombre { get; set; }
+
+        [JsonPropertyName("cod_cargo")]
+        public short? CodCargo { get; set; }
+
+        [JsonPropertyName("cargo_oficial")]
+        public string? CargoOficial { get; set; }
+
         [JsonPropertyName("roles_resumen")]
         public string RolesResumen { get; set; } = string.Empty;
 
@@ -49,22 +67,46 @@ namespace GestionDocumental.Api.DTOs.Usuarios
 
     public class CreateUsuarioDto
     {
-        [Required(ErrorMessage = "La persona_id es obligatoria")]
         [JsonPropertyName("persona_id")]
-        public int PersonaId { get; set; }
+        public int? PersonaId { get; set; }
 
-        [Required(ErrorMessage = "El login es obligatorio")]
+        [JsonPropertyName("ci")]
+        public int? Ci { get; set; }
+
+        [JsonPropertyName("nombres")]
+        public string? Nombres { get; set; }
+
+        [JsonPropertyName("apellidos")]
+        public string? Apellidos { get; set; }
+
+        [JsonPropertyName("cel")]
+        public int? Cel { get; set; }
+
+        [JsonPropertyName("email")]
+        public string? Email { get; set; }
+
+        [JsonPropertyName("direccion")]
+        public string? Direccion { get; set; }
+
+        [JsonPropertyName("cod_u")]
+        public short? CodU { get; set; }
+
+        [JsonPropertyName("cod_cargo")]
+        public short? CodCargo { get; set; }
+
         [MaxLength(50)]
         [JsonPropertyName("login")]
-        public string Login { get; set; } = string.Empty;
+        public string? Login { get; set; }
 
-        [Required(ErrorMessage = "La contraseña es obligatoria")]
         [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
         [JsonPropertyName("password")]
-        public string Password { get; set; } = string.Empty;
+        public string? Password { get; set; }
 
         [JsonPropertyName("cargo")]
         public string? Cargo { get; set; }
+
+        [JsonPropertyName("roles_ids")]
+        public List<int>? RolesIds { get; set; }
     }
 
     public class UpdateUsuarioDto
@@ -72,11 +114,46 @@ namespace GestionDocumental.Api.DTOs.Usuarios
         [JsonPropertyName("persona_id")]
         public int? PersonaId { get; set; }
 
+        [JsonPropertyName("ci")]
+        public int? Ci { get; set; }
+
+        [JsonPropertyName("nombres")]
+        public string? Nombres { get; set; }
+
+        [JsonPropertyName("apellidos")]
+        public string? Apellidos { get; set; }
+
+        [JsonPropertyName("cel")]
+        public int? Cel { get; set; }
+
+        [JsonPropertyName("email")]
+        public string? Email { get; set; }
+
+        [JsonPropertyName("direccion")]
+        public string? Direccion { get; set; }
+
+        [JsonPropertyName("cod_u")]
+        public short? CodU { get; set; }
+
+        [JsonPropertyName("cod_cargo")]
+        public short? CodCargo { get; set; }
+
+        [MaxLength(50)]
+        [JsonPropertyName("login")]
+        public string? Login { get; set; }
+
         [JsonPropertyName("cargo")]
         public string? Cargo { get; set; }
 
+        [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
+        [JsonPropertyName("password")]
+        public string? Password { get; set; }
+
         [JsonPropertyName("activo")]
         public bool? Activo { get; set; }
+
+        [JsonPropertyName("roles_ids")]
+        public List<int>? RolesIds { get; set; }
     }
 
     public class ResetPasswordDto

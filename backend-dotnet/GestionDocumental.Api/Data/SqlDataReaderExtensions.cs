@@ -9,13 +9,15 @@ namespace GestionDocumental.Api.Data
         public static string? GetNullableString(this SqlDataReader reader, string columnName)
         {
             int ordinal = reader.GetOrdinal(columnName);
-            return reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal);
+            if (reader.IsDBNull(ordinal)) return null;
+            return Convert.ToString(reader.GetValue(ordinal));
         }
 
         public static string GetSafeString(this SqlDataReader reader, string columnName, string defaultValue = "")
         {
             int ordinal = reader.GetOrdinal(columnName);
-            return reader.IsDBNull(ordinal) ? defaultValue : reader.GetString(ordinal);
+            if (reader.IsDBNull(ordinal)) return defaultValue;
+            return Convert.ToString(reader.GetValue(ordinal)) ?? defaultValue;
         }
 
         public static int? GetNullableInt32(this SqlDataReader reader, string columnName)

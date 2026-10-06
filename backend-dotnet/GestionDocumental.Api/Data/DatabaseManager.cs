@@ -346,8 +346,10 @@ namespace GestionDocumental.Api.Data
                 SET IDENTITY_INSERT dbo.roles OFF;";
             using (var cmd = new SqlCommand(rolesSql, conn)) await cmd.ExecuteNonQueryAsync();
 
+            var hash = BCrypt.Net.BCrypt.HashPassword("admin123", workFactor: 10);
+
             // 2. Tablas Institucionales (Sprint 2 - DB_TRAMITES_EXTERNOS)
-            Console.WriteLine("🔹 Sembrando Unidades, Cargos y Empleados Institucionales (DB_TRAMITES_EXTERNOS)...");
+            Console.WriteLine("🔹 Sembrando Unidades, Cargos y Personal Municipal (DB_TRAMITES_EXTERNOS)...");
             var instSql = @"
                 -- TUnidad (Catálogo Institucional de Unidades)
                 IF NOT EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 1)
@@ -401,29 +403,43 @@ namespace GestionDocumental.Api.Data
                 IF NOT EXISTS (SELECT 1 FROM dbo.TCargo WHERE CodCargo = 14)
                     INSERT INTO dbo.TCargo (CodCargo, NombreC, CodU) VALUES (14, 'RESPONSABLE DE CONTRATOS Y CONVENIOS', 4);
 
-                -- TEmpleados (Padrón Oficial - Casos Reales Hoja de Ruta Sucre)
+                -- TEmpleados (Personal Municipal y Cuentas de Acceso al Sistema)
                 IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 1000001)
-                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo) VALUES (1000001, 'SISTEMA GENERAL', 'ADMINISTRADOR', 'Oficina Central Sucre', 70012345, 'admin@gob.bo', 1);
+                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo) 
+                    VALUES (1000001, 'SISTEMA GENERAL', 'ADMINISTRADOR', 'Oficina Central Sucre', 70012345, 'admin@gob.bo', 1, 'admin', @hash, 'Administrador General', 1, 1);
                 IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 2000002)
-                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo) VALUES (2000002, 'FERNANDEZ ROJAS', 'MARIA', 'Av. Hernando Siles #123', 70054321, 'mfernandez@gob.bo', 1);
+                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo) 
+                    VALUES (2000002, 'FERNANDEZ ROJAS', 'MARIA', 'Av. Hernando Siles #123', 70054321, 'mfernandez@gob.bo', 1, 'mfernandez', @hash, 'Responsable de Ventanilla Única', 3, 3);
                 IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 3000003)
-                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo) VALUES (3000003, 'MAMANI QUISPE', 'CARLOS', 'Calle Calvo #456', 70098765, 'cmamani@gob.bo', 1);
+                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo) 
+                    VALUES (3000003, 'MAMANI QUISPE', 'CARLOS', 'Calle Calvo #456', 70098765, 'cmamani@gob.bo', 1, 'cmamani', @hash, 'Analista de Sistemas', 6, 6);
                 IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 4000004)
-                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo) VALUES (4000004, 'LEAÑO PALENQUE', 'ENRIQUE', 'Plaza 25 de Mayo #1', 71122334, 'eleano@sucre.bo', 1);
+                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo) 
+                    VALUES (4000004, 'LEAÑO PALENQUE', 'ENRIQUE', 'Plaza 25 de Mayo #1', 71122334, 'eleano@sucre.bo', 1, 'eleano', @hash, 'Director General Ejecutivo', 1, 1);
                 IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 5000005)
-                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo) VALUES (5000005, 'CACERES FLORES', 'ANGELA MARIA', 'Calle España #88', 72889900, 'acaceres@sucre.bo', 1);
+                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo) 
+                    VALUES (5000005, 'CACERES FLORES', 'ANGELA MARIA', 'Calle España #88', 72889900, 'acaceres@sucre.bo', 1, 'acaceres', @hash, 'Técnico de Ventanilla Única', 3, 13);
                 IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 6000006)
-                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo) VALUES (6000006, 'SANCHEZ MENDOZA', 'JUAN CARLOS', 'Av. del Maestro #200', 73456789, 'jsanchez@sucre.bo', 1);
+                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo) 
+                    VALUES (6000006, 'SANCHEZ MENDOZA', 'JUAN CARLOS', 'Av. del Maestro #200', 73456789, 'jsanchez@sucre.bo', 1, 'jsanchez', @hash, 'Asesor Jurídico', 4, 4);
                 IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 7000007)
-                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo) VALUES (7000007, 'SAGAS GUZMAN', 'MARIA ELENA', 'Calle Junín #310', 74567890, 'msagas@sucre.bo', 1);
+                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo) 
+                    VALUES (7000007, 'SAGAS GUZMAN', 'MARIA ELENA', 'Calle Junín #310', 74567890, 'msagas@sucre.bo', 1, NULL, NULL, 'Jefe de Planificación Estratégica', 7, 7);
                 IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 8000008)
-                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo) VALUES (8000008, 'MARTINEZ VACA', 'LITZY', 'Calle Ayacucho #150', 75678901, 'lmartinez@sucre.bo', 1);
+                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo) 
+                    VALUES (8000008, 'MARTINEZ VACA', 'LITZY', 'Calle Ayacucho #150', 75678901, 'lmartinez@sucre.bo', 1, NULL, NULL, 'Director de Salud Municipal', 8, 9);
                 IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 9000009)
-                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo) VALUES (9000009, 'TORREZ RIVERA', 'JAVIER', 'Calle Estudiantes #45', 76789012, 'jtorrez@sucre.bo', 1);
+                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo) 
+                    VALUES (9000009, 'TORREZ RIVERA', 'JAVIER', 'Calle Estudiantes #45', 76789012, 'jtorrez@sucre.bo', 1, NULL, NULL, 'Director de Obras Públicas', 9, 10);
                 IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 10000010)
-                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo) VALUES (10000010, 'CONDORI ALVAREZ', 'PATRICIA', 'Av. Jaime Mendoza #500', 77890123, 'pcondori@sucre.bo', 1);
+                    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo) 
+                    VALUES (10000010, 'CONDORI ALVAREZ', 'PATRICIA', 'Av. Jaime Mendoza #500', 77890123, 'pcondori@sucre.bo', 1, NULL, NULL, 'Jefe de Recaudaciones y Tributos', 10, 12);
             ";
-            using (var cmd = new SqlCommand(instSql, conn)) await cmd.ExecuteNonQueryAsync();
+            using (var cmd = new SqlCommand(instSql, conn))
+            {
+                cmd.Parameters.AddWithValue("@hash", hash);
+                await cmd.ExecuteNonQueryAsync();
+            }
 
             // 3. Organigrama (Ubicaciones Orgánicas sincronizado con TUnidad)
             Console.WriteLine("🔹 Sembrando Organigrama Institucional (Sincronizado con TUnidad)...");
@@ -452,39 +468,24 @@ namespace GestionDocumental.Api.Data
                 SET IDENTITY_INSERT dbo.ubicaciones_org OFF;";
             using (var cmd = new SqlCommand(ubiSql, conn)) await cmd.ExecuteNonQueryAsync();
 
-            // 4. Personas Iniciales
-            Console.WriteLine("🔹 Sembrando Personas...");
+            // 4. Ciudadanos y Solicitantes Externos
+            Console.WriteLine("🔹 Sembrando Ciudadanos y Solicitantes Externos (Padrón de Trámites)...");
             var perSql = @"
                 SET IDENTITY_INSERT dbo.personas ON;
                 IF NOT EXISTS (SELECT 1 FROM dbo.personas WHERE id = 1)
-                    INSERT INTO dbo.personas (id, nombres, apellido_paterno, apellido_materno, ci, ci_expedido, sexo, estado_civil, telefono, email, empresa_telefonica, direccion, activo) VALUES (1, 'Administrador', 'Sistema', 'General', '1000001', 'CH', 'M', 'SOLTERO', '70012345', 'admin@gob.bo', 'ENTEL', 'Oficina Central Sucre', 1);
+                    INSERT INTO dbo.personas (id, nombres, apellido_paterno, apellido_materno, ci, ci_expedido, sexo, estado_civil, telefono, email, empresa_telefonica, direccion, activo) 
+                    VALUES (1, 'Roberto', 'Flores', 'Gómez', '5001122', 'CH', 'M', 'SOLTERO', '70088990', 'rflores@gmail.com', 'ENTEL', 'Calle Estudiantes #120', 1);
                 IF NOT EXISTS (SELECT 1 FROM dbo.personas WHERE id = 2)
-                    INSERT INTO dbo.personas (id, nombres, apellido_paterno, apellido_materno, ci, ci_expedido, sexo, estado_civil, telefono, email, empresa_telefonica, direccion, activo) VALUES (2, 'María', 'Fernández', 'Rojas', '2000002', 'CH', 'F', 'SOLTERA', '70054321', 'mfernandez@gob.bo', 'TIGO', 'Av. Hernando Siles #123', 1);
+                    INSERT INTO dbo.personas (id, nombres, apellido_paterno, apellido_materno, ci, ci_expedido, sexo, estado_civil, telefono, email, empresa_telefonica, direccion, activo) 
+                    VALUES (2, 'Juana', 'Mamani', 'Condori', '6003344', 'CH', 'F', 'CASADA', '71199887', 'jmamani@gmail.com', 'TIGO', 'Av. de las Américas #450', 1);
                 IF NOT EXISTS (SELECT 1 FROM dbo.personas WHERE id = 3)
-                    INSERT INTO dbo.personas (id, nombres, apellido_paterno, apellido_materno, ci, ci_expedido, sexo, estado_civil, telefono, email, empresa_telefonica, direccion, activo) VALUES (3, 'Carlos', 'Mamani', 'Quispe', '3000003', 'CH', 'M', 'CASADO', '70098765', 'cmamani@gob.bo', 'ENTEL', 'Calle Calvo #456', 1);
+                    INSERT INTO dbo.personas (id, nombres, apellido_paterno, apellido_materno, ci, ci_expedido, sexo, estado_civil, telefono, email, empresa_telefonica, direccion, activo) 
+                    VALUES (3, 'Pedro', 'Alarcón', 'Vargas', '7005566', 'CH', 'M', 'CASADO', '72244556', 'palarcon@constructora.bo', 'VIVA', 'Calle Bolívar #200', 1);
                 SET IDENTITY_INSERT dbo.personas OFF;";
             using (var cmd = new SqlCommand(perSql, conn)) await cmd.ExecuteNonQueryAsync();
 
-            // 5. Usuarios Iniciales (Password: admin123)
-            Console.WriteLine("🔹 Sembrando Usuarios con Hashes BCrypt...");
-            var hash = BCrypt.Net.BCrypt.HashPassword("admin123", workFactor: 10);
-            var usrSql = @"
-                SET IDENTITY_INSERT dbo.usuarios ON;
-                IF NOT EXISTS (SELECT 1 FROM dbo.usuarios WHERE id = 1)
-                    INSERT INTO dbo.usuarios (id, persona_id, login, password_hash, cargo, activo) VALUES (1, 1, 'admin', @hash, 'Administrador General', 1);
-                IF NOT EXISTS (SELECT 1 FROM dbo.usuarios WHERE id = 2)
-                    INSERT INTO dbo.usuarios (id, persona_id, login, password_hash, cargo, activo) VALUES (2, 2, 'mfernandez', @hash, 'Responsable de Ventanilla Única', 1);
-                IF NOT EXISTS (SELECT 1 FROM dbo.usuarios WHERE id = 3)
-                    INSERT INTO dbo.usuarios (id, persona_id, login, password_hash, cargo, activo) VALUES (3, 3, 'cmamani', @hash, 'Analista de Sistemas', 1);
-                SET IDENTITY_INSERT dbo.usuarios OFF;";
-            using (var cmd = new SqlCommand(usrSql, conn))
-            {
-                cmd.Parameters.AddWithValue("@hash", hash);
-                await cmd.ExecuteNonQueryAsync();
-            }
-
-            // 6. Asignación de Roles
-            Console.WriteLine("🔹 Sembrando Asignación de Roles (Multi-Rol)...");
+            // 5. Asignación de Roles al Personal Municipal
+            Console.WriteLine("🔹 Sembrando Asignación de Roles al Personal Municipal...");
             var rolAsignSql = @"
                 SET IDENTITY_INSERT dbo.usuario_roles ON;
                 IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE id = 1)
@@ -495,10 +496,16 @@ namespace GestionDocumental.Api.Data
                     INSERT INTO dbo.usuario_roles (id, usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo) VALUES (3, 2, 3, 3, 'CONTROL_TOTAL', '2030-12-31', 1, 1);
                 IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE id = 4)
                     INSERT INTO dbo.usuario_roles (id, usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo) VALUES (4, 3, 4, 6, 'CONTROL_TOTAL', '2030-12-31', 1, 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE id = 5)
+                    INSERT INTO dbo.usuario_roles (id, usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo) VALUES (5, 4, 2, 1, 'CONTROL_TOTAL', '2030-12-31', 1, 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE id = 6)
+                    INSERT INTO dbo.usuario_roles (id, usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo) VALUES (6, 5, 3, 3, 'CONTROL_TOTAL', '2030-12-31', 1, 1);
+                IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE id = 7)
+                    INSERT INTO dbo.usuario_roles (id, usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo) VALUES (7, 6, 4, 4, 'CONTROL_TOTAL', '2030-12-31', 1, 1);
                 SET IDENTITY_INSERT dbo.usuario_roles OFF;";
             using (var cmd = new SqlCommand(rolAsignSql, conn)) await cmd.ExecuteNonQueryAsync();
 
-            // 7. Tipos de Proceso
+            // 6. Tipos de Proceso
             Console.WriteLine("🔹 Sembrando Tipos de Proceso Externo (Hojas de Ruta DB_TRAMITES_EXTERNOS)...");
             var procSql = @"
                 -- Trámites Externos Oficiales (Hojas de Ruta Institucionales)
@@ -540,50 +547,7 @@ namespace GestionDocumental.Api.Data
                     INSERT INTO dbo.parametros (clave, valor, tipo_dato, descripcion, editable) VALUES ('CORRELATIVO_AUTO_RESET', 'TRUE', 'BOOLEAN', 'Reinicio automático de correlativo anual', 1);";
             using (var cmd = new SqlCommand(paramSql, conn)) await cmd.ExecuteNonQueryAsync();
 
-            // 9. Personas y Cuentas de Usuario Adicionales para Pruebas Completas
-            Console.WriteLine("🔹 Sembrando Personas y Cuentas de Usuario Adicionales...");
-            var extraPersUsrSql = @"
-                SET IDENTITY_INSERT dbo.personas ON;
-                IF NOT EXISTS (SELECT 1 FROM dbo.personas WHERE id = 4)
-                    INSERT INTO dbo.personas (id, nombres, apellido_paterno, apellido_materno, ci, ci_expedido, sexo, estado_civil, telefono, email, empresa_telefonica, direccion, activo) 
-                    VALUES (4, 'Enrique', 'Leaño', 'Palenque', '4000004', 'CH', 'M', 'CASADO', '71122334', 'eleano@sucre.bo', 'ENTEL', 'Plaza 25 de Mayo #1', 1);
-                IF NOT EXISTS (SELECT 1 FROM dbo.personas WHERE id = 5)
-                    INSERT INTO dbo.personas (id, nombres, apellido_paterno, apellido_materno, ci, ci_expedido, sexo, estado_civil, telefono, email, empresa_telefonica, direccion, activo) 
-                    VALUES (5, 'Angela María', 'Cáceres', 'Flores', '5000005', 'CH', 'F', 'SOLTERA', '72889900', 'acaceres@sucre.bo', 'TIGO', 'Calle España #88', 1);
-                IF NOT EXISTS (SELECT 1 FROM dbo.personas WHERE id = 6)
-                    INSERT INTO dbo.personas (id, nombres, apellido_paterno, apellido_materno, ci, ci_expedido, sexo, estado_civil, telefono, email, empresa_telefonica, direccion, activo) 
-                    VALUES (6, 'Juan Carlos', 'Sánchez', 'Mendoza', '6000006', 'CH', 'M', 'CASADO', '73456789', 'jsanchez@sucre.bo', 'ENTEL', 'Av. del Maestro #200', 1);
-                SET IDENTITY_INSERT dbo.personas OFF;
 
-                SET IDENTITY_INSERT dbo.usuarios ON;
-                IF NOT EXISTS (SELECT 1 FROM dbo.usuarios WHERE id = 4)
-                    INSERT INTO dbo.usuarios (id, persona_id, login, password_hash, cargo, activo) 
-                    VALUES (4, 4, 'eleano', @hash, 'Director General Ejecutivo', 1);
-                IF NOT EXISTS (SELECT 1 FROM dbo.usuarios WHERE id = 5)
-                    INSERT INTO dbo.usuarios (id, persona_id, login, password_hash, cargo, activo) 
-                    VALUES (5, 5, 'acaceres', @hash, 'Técnico de Ventanilla Única', 1);
-                IF NOT EXISTS (SELECT 1 FROM dbo.usuarios WHERE id = 6)
-                    INSERT INTO dbo.usuarios (id, persona_id, login, password_hash, cargo, activo) 
-                    VALUES (6, 6, 'jsanchez', @hash, 'Asesor Jurídico', 1);
-                SET IDENTITY_INSERT dbo.usuarios OFF;
-
-                SET IDENTITY_INSERT dbo.usuario_roles ON;
-                IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE id = 5)
-                    INSERT INTO dbo.usuario_roles (id, usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo) 
-                    VALUES (5, 4, 2, 1, 'CONTROL_TOTAL', '2030-12-31', 1, 1);
-                IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE id = 6)
-                    INSERT INTO dbo.usuario_roles (id, usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo) 
-                    VALUES (6, 5, 3, 3, 'CONTROL_TOTAL', '2030-12-31', 1, 1);
-                IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE id = 7)
-                    INSERT INTO dbo.usuario_roles (id, usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo) 
-                    VALUES (7, 6, 4, 4, 'CONTROL_TOTAL', '2030-12-31', 1, 1);
-                SET IDENTITY_INSERT dbo.usuario_roles OFF;
-            ";
-            using (var cmd = new SqlCommand(extraPersUsrSql, conn))
-            {
-                cmd.Parameters.AddWithValue("@hash", hash);
-                await cmd.ExecuteNonQueryAsync();
-            }
 
             Console.WriteLine("\n🎉 ¡Datos iniciales y de prueba sembrados exitosamente en SQL Server!");
             Console.WriteLine("Credenciales disponibles (Contraseña para todos: admin123):");
