@@ -1075,8 +1075,15 @@ export default function EscritorioVirtual() {
           6. MODAL DE RECEPCIÓN DE TRÁMITE
           ───────────────────────────────────────────────────────────── */}
       {recepcionarModalOpen && tramiteARecepcionar && (
-        <div className="modal-overlay">
-          <div className="modal-container" style={{ maxWidth: '580px' }}>
+        <div
+          className="modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !recepcionando) {
+              setRecepcionarModalOpen(false);
+            }
+          }}
+        >
+          <div className="modal-dialog" style={{ maxWidth: '580px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                 <UserCheck size={22} color="#800000" />
@@ -1193,8 +1200,19 @@ export default function EscritorioVirtual() {
           7. MODAL DE DETALLE COMPLETO / FORMULARIO (RF-04.5)
           ───────────────────────────────────────────────────────────── */}
       {detalleModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-container" style={{ maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div
+          className="modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setDetalleModalOpen(false);
+            }
+          }}
+        >
+          <div
+            className="modal-dialog"
+            style={{ maxWidth: '850px', maxHeight: '90vh' }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <FileText size={22} color="#800000" />

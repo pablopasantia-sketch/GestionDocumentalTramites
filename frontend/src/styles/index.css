@@ -760,7 +760,8 @@ a:hover {
 /* ==============================================================================
    SISTEMA DE MODALES INSTITUCIONALES (GACETA MUNICIPAL DE SUCRE)
    ============================================================================== */
-.modal-backdrop {
+.modal-backdrop,
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -778,7 +779,8 @@ a:hover {
   animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.modal-dialog {
+.modal-dialog,
+.modal-container {
   background: #FFFFFF;
   border-radius: 6px;
   width: 100%;
