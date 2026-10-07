@@ -585,7 +585,7 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 
 ### Sprint 3 (29 Sep - 12 Oct): Flujo directo de trabajo
 - [x] Escritorio Virtual con bandejas (pendientes, recibidos, despachados)
-- [ ] Derivación libre (Avanzar) con selección de destinatarios
+- [x] Derivación libre (Avanzar) con selección de destinatarios
 - [ ] Retroceder proceso (con justificación)
 - [x] Recepcionar proceso
 - [ ] Detalle histórico del proceso (trazabilidad y auditoría)

@@ -255,6 +255,14 @@ export const tramitesService = {
   recepcionar: async (id, data = {}) => {
     const response = await api.post(`/tramites/${id}/recepcionar`, data);
     return response.data;
+  },
+  derivar: async (id, data) => {
+    const response = await api.post(`/tramites/${id}/derivar`, data);
+    return response.data;
+  },
+  avanzar: async (id, data) => {
+    const response = await api.post(`/tramites/${id}/avanzar`, data);
+    return response.data;
   }
 };
 

@@ -472,4 +472,68 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("proveido")]
         public string? Proveido { get; set; }
     }
+
+    public class OtroDestinatarioDto
+    {
+        [JsonPropertyName("nombre")]
+        public string? Nombre { get; set; }
+
+        [JsonPropertyName("cargo")]
+        public string? Cargo { get; set; }
+
+        [JsonPropertyName("unidad")]
+        public string? Unidad { get; set; }
+
+        [JsonPropertyName("cod_u")]
+        public short? CodU { get; set; }
+
+        [JsonPropertyName("ci")]
+        public int? Ci { get; set; }
+
+        [JsonPropertyName("tipo")]
+        public string Tipo { get; set; } = "COPIA";
+    }
+
+    public class DerivarTramiteDto
+    {
+        [JsonPropertyName("cod_u_destino")]
+        public short? CodUDestino { get; set; }
+
+        [JsonPropertyName("cod_cargo_destino")]
+        public short? CodCargoDestino { get; set; }
+
+        [JsonPropertyName("ci_empleado_destino")]
+        public int? CiEmpleadoDestino { get; set; }
+
+        [JsonPropertyName("destinatario_nombre")]
+        public string? DestinatarioNombre { get; set; }
+
+        [JsonPropertyName("destinatario_cargo")]
+        public string? DestinatarioCargo { get; set; }
+
+        [JsonPropertyName("destinatario_unidad")]
+        public string? DestinatarioUnidad { get; set; }
+
+        [JsonPropertyName("actividad_nombre")]
+        public string? ActividadNombre { get; set; }
+
+        [Required(ErrorMessage = "El proveído o instrucción de derivación es obligatorio.")]
+        [JsonPropertyName("proveido")]
+        public string Proveido { get; set; } = string.Empty;
+
+        [JsonPropertyName("instruccion")]
+        public string? Instruccion { get; set; }
+
+        [JsonPropertyName("prioridad")]
+        public string? Prioridad { get; set; }
+
+        [JsonPropertyName("dias_plazo")]
+        public int? DiasPlazo { get; set; }
+
+        [JsonPropertyName("es_conclusion")]
+        public bool EsConclusion { get; set; } = false;
+
+        [JsonPropertyName("otros_destinatarios")]
+        public List<OtroDestinatarioDto>? OtrosDestinatarios { get; set; }
+    }
 }

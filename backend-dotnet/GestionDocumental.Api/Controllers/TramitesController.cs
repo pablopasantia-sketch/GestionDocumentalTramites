@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -296,6 +297,73 @@ namespace GestionDocumental.Api.Controllers
                 );
 
                 return Ok(ApiResponse.SuccessResult("Recepción confirmada exitosamente. El trámite se encuentra en su bandeja En Atención."));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Derivación libre (Avanzar) con selección de destinatarios institucionales (Sprint 3, RF-05.1, RF-03.9)
+        /// Permite derivar a otra unidad, cargo y funcionario, o concluir/archivar el trámite.
+        /// </summary>
+        [Authorize]
+        [HttpPost("{id}/derivar")]
+        [HttpPost("{id}/avanzar")]
+        public async Task<IActionResult> Derivar(int id, [FromBody] DerivarTramiteDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse.ErrorResult("Datos de derivación inválidos. El proveído o instrucción es obligatorio."));
+            }
+
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+            if (ubicacionId <= 0) ubicacionId = 1;
+
+            string? otrosDestJson = null;
+            if (dto.OtrosDestinatarios != null && dto.OtrosDestinatarios.Count > 0)
+            {
+                otrosDestJson = JsonSerializer.Serialize(dto.OtrosDestinatarios);
+            }
+
+            var outNuevoMovimientoId = new SqlParameter("@NuevoMovimientoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_Derivar",
+                    new SqlParameter("@TramiteId", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@UsuarioOrigenId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@UbicacionOrigenId", SqlDbType.Int) { Value = ubicacionId },
+                    new SqlParameter("@CodUDestino", SqlDbType.SmallInt) { Value = (object?)dto.CodUDestino ?? DBNull.Value },
+                    new SqlParameter("@CodCargoDestino", SqlDbType.SmallInt) { Value = (object?)dto.CodCargoDestino ?? DBNull.Value },
+                    new SqlParameter("@CiEmpleadoDestino", SqlDbType.Int) { Value = (object?)dto.CiEmpleadoDestino ?? DBNull.Value },
+                    new SqlParameter("@DestinatarioNombre", SqlDbType.NVarChar, 150) { Value = (object?)dto.DestinatarioNombre?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@DestinatarioCargo", SqlDbType.NVarChar, 150) { Value = (object?)dto.DestinatarioCargo?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@DestinatarioUnidad", SqlDbType.NVarChar, 150) { Value = (object?)dto.DestinatarioUnidad?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@ActividadNombre", SqlDbType.VarChar, 150) { Value = (object?)dto.ActividadNombre?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@Proveido", SqlDbType.NVarChar, -1) { Value = dto.Proveido.Trim() },
+                    new SqlParameter("@Instruccion", SqlDbType.VarChar, 255) { Value = (object?)dto.Instruccion?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@Prioridad", SqlDbType.VarChar, 20) { Value = (object?)dto.Prioridad?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@DiasPlazo", SqlDbType.Int) { Value = (object?)dto.DiasPlazo ?? DBNull.Value },
+                    new SqlParameter("@EsConclusion", SqlDbType.Bit) { Value = dto.EsConclusion ? 1 : 0 },
+                    new SqlParameter("@OtrosDestinatariosJson", SqlDbType.NVarChar, -1) { Value = (object?)otrosDestJson ?? DBNull.Value },
+                    outNuevoMovimientoId
+                );
+
+                int movId = outNuevoMovimientoId.Value != DBNull.Value ? (int)outNuevoMovimientoId.Value : 0;
+
+                string mensajeExito = dto.EsConclusion
+                    ? "Trámite concluido y archivado exitosamente."
+                    : $"Trámite derivado exitosamente a {dto.DestinatarioUnidad ?? "la unidad de destino"}. Se encuentra ahora en su bandeja de Despachados.";
+
+                return Ok(ApiResponse<object>.Ok(new { tramiteId = id, movimientoId = movId }, mensajeExito));
             }
             catch (SqlException ex)
             {
