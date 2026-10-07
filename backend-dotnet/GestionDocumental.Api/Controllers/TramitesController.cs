@@ -84,14 +84,28 @@ namespace GestionDocumental.Api.Controllers
                         {
                             historial.Add(new MovimientoTimelineDto
                             {
+                                Id = reader.GetSafeInt32("id"),
                                 Orden = reader.GetSafeInt32("orden"),
                                 Actividad = reader.GetSafeString("actividad"),
                                 TipoMovimiento = reader.GetSafeString("tipo_movimiento"),
+                                UsuarioOrigenId = reader.GetNullableInt32("usuario_origen_id"),
+                                UsuarioOrigenNombre = reader.GetNullableString("usuario_origen_nombre"),
+                                UsuarioOrigenCargo = reader.GetNullableString("usuario_origen_cargo"),
                                 UnidadOrigen = reader.GetSafeString("unidad_origen"),
+                                UsuarioDestinoId = reader.GetNullableInt32("usuario_destino_id"),
+                                UsuarioDestinoNombre = reader.GetNullableString("usuario_destino_nombre"),
+                                UsuarioDestinoCargo = reader.GetNullableString("usuario_destino_cargo"),
                                 UnidadDestino = reader.GetNullableString("unidad_destino"),
                                 Estado = reader.GetSafeString("estado"),
                                 Proveido = reader.GetNullableString("proveido"),
-                                Fecha = reader.GetSafeDateTime("fecha")
+                                Instruccion = reader.GetNullableString("instruccion"),
+                                JustificacionRetroceso = reader.GetNullableString("justificacion_retroceso"),
+                                FechaEnvio = reader.GetNullableDateTime("fecha_envio"),
+                                FechaRecepcion = reader.GetNullableDateTime("fecha_recepcion"),
+                                Fecha = reader.GetSafeDateTime("fecha"),
+                                TiempoEstimadoMinutos = reader.GetSafeInt32("tiempo_estimado_minutos", 0),
+                                TiempoTranscurridoMinutos = reader.GetSafeInt32("tiempo_transcurrido_minutos", 0),
+                                EsHastaHoy = reader.GetSafeInt32("es_hasta_hoy", 0) == 1
                             });
                         }
                     }
@@ -569,7 +583,9 @@ namespace GestionDocumental.Api.Controllers
                             CodCargoDestino = reader.GetNullableInt16("cod_cargo_destino"),
                             CiEmpleadoDestino = reader.GetNullableInt32("ci_empleado_destino"),
                             FechaCreacion = reader.GetSafeDateTime("fecha_creacion"),
+                            FechaConclusion = reader.GetNullableDateTime("fecha_conclusion"),
                             FechaLimiteRespuesta = reader.GetNullableDateTime("fecha_limite_respuesta"),
+                            TiempoEstimadoHoras = reader.GetSafeInt32("tiempo_estimado_horas", 24),
                             CreadoPorUsuario = reader.GetSafeString("creado_por_usuario"),
                             UnidadOrigen = reader.GetSafeString("unidad_origen"),
                             Historial = historial,
@@ -584,15 +600,28 @@ namespace GestionDocumental.Api.Controllers
                         {
                             historial.Add(new MovimientoTimelineDto
                             {
+                                Id = reader.GetSafeInt32("id"),
                                 Orden = reader.GetSafeInt32("orden"),
                                 Actividad = reader.GetSafeString("actividad"),
                                 TipoMovimiento = reader.GetSafeString("tipo_movimiento"),
+                                UsuarioOrigenId = reader.GetNullableInt32("usuario_origen_id"),
+                                UsuarioOrigenNombre = reader.GetNullableString("usuario_origen_nombre"),
+                                UsuarioOrigenCargo = reader.GetNullableString("usuario_origen_cargo"),
                                 UnidadOrigen = reader.GetSafeString("unidad_origen"),
+                                UsuarioDestinoId = reader.GetNullableInt32("usuario_destino_id"),
+                                UsuarioDestinoNombre = reader.GetNullableString("usuario_destino_nombre"),
+                                UsuarioDestinoCargo = reader.GetNullableString("usuario_destino_cargo"),
                                 UnidadDestino = reader.GetNullableString("unidad_destino"),
                                 Estado = reader.GetSafeString("estado"),
                                 Proveido = reader.GetNullableString("proveido"),
+                                Instruccion = reader.GetNullableString("instruccion"),
                                 JustificacionRetroceso = reader.GetNullableString("justificacion_retroceso"),
-                                Fecha = reader.GetSafeDateTime("fecha")
+                                FechaEnvio = reader.GetNullableDateTime("fecha_envio"),
+                                FechaRecepcion = reader.GetNullableDateTime("fecha_recepcion"),
+                                Fecha = reader.GetSafeDateTime("fecha"),
+                                TiempoEstimadoMinutos = reader.GetSafeInt32("tiempo_estimado_minutos", 0),
+                                TiempoTranscurridoMinutos = reader.GetSafeInt32("tiempo_transcurrido_minutos", 0),
+                                EsHastaHoy = reader.GetSafeInt32("es_hasta_hoy", 0) == 1
                             });
                         }
                     }

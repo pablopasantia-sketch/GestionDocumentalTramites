@@ -588,7 +588,7 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 - [x] Derivación libre (Avanzar) con selección de destinatarios
 - [x] Retroceder proceso (con justificación)
 - [x] Recepcionar proceso
-- [ ] Detalle histórico del proceso (trazabilidad y auditoría)
+- [x] Detalle histórico del proceso (trazabilidad y auditoría)
 
 ### Sprint 4 (13 Oct - 26 Oct): Administración y Hoja de Ruta
 - [ ] Bloquear / Desbloquear procesos

@@ -288,14 +288,26 @@ export default function Home() {
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '4px' }}>
-                            <strong style={{ color: '#1B365D' }}>{mov.actividad}</strong>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <strong style={{ color: '#1B365D' }}>{mov.actividad}</strong>
+                              {(mov.tipo_movimiento === 'RETROCESO' || Boolean(mov.justificacion_retroceso)) && (
+                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', padding: '1px 6px', borderRadius: '10px', border: '1px solid #FCD34D' }}>
+                                  DEVOLUCIÓN
+                                </span>
+                              )}
+                            </div>
                             <span style={{ fontSize: '0.75rem', color: '#6C757D' }}>
                               {new Date(mov.fecha).toLocaleString('es-BO')}
                             </span>
                           </div>
                           <div style={{ fontSize: '0.8rem', color: '#4A5568', marginTop: '2px' }}>
-                            De: <em>{mov.unidad_origen}</em> {mov.unidad_destino ? `➔ Hacia: ${mov.unidad_destino}` : ''}
+                            De: <em>{mov.unidad_origen}</em> {mov.usuario_origen_nombre ? `(${mov.usuario_origen_nombre})` : ''} {mov.unidad_destino ? `➔ Hacia: ${mov.unidad_destino}` : ''}
                           </div>
+                          {mov.justificacion_retroceso && (
+                            <div style={{ fontSize: '0.8rem', color: '#92400E', marginTop: '4px', background: '#FFFBEB', padding: '4px 8px', borderRadius: '4px', borderLeft: '3px solid #D97706' }}>
+                              <strong>Motivo Devolución:</strong> {mov.justificacion_retroceso}
+                            </div>
+                          )}
                           {mov.proveido && (
                             <div style={{ fontSize: '0.8rem', color: '#800000', marginTop: '4px', background: 'var(--color-primary-sucre-light)', padding: '4px 8px', borderRadius: '4px' }}>
                               Proveído: {mov.proveido}

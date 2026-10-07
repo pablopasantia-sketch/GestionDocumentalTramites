@@ -55,6 +55,9 @@ namespace GestionDocumental.Api.DTOs.Tramites
 
     public class MovimientoTimelineDto
     {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
         [JsonPropertyName("orden")]
         public int Orden { get; set; }
 
@@ -64,8 +67,26 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("tipo_movimiento")]
         public string TipoMovimiento { get; set; } = string.Empty;
 
+        [JsonPropertyName("usuario_origen_id")]
+        public int? UsuarioOrigenId { get; set; }
+
+        [JsonPropertyName("usuario_origen_nombre")]
+        public string? UsuarioOrigenNombre { get; set; }
+
+        [JsonPropertyName("usuario_origen_cargo")]
+        public string? UsuarioOrigenCargo { get; set; }
+
         [JsonPropertyName("unidad_origen")]
         public string UnidadOrigen { get; set; } = string.Empty;
+
+        [JsonPropertyName("usuario_destino_id")]
+        public int? UsuarioDestinoId { get; set; }
+
+        [JsonPropertyName("usuario_destino_nombre")]
+        public string? UsuarioDestinoNombre { get; set; }
+
+        [JsonPropertyName("usuario_destino_cargo")]
+        public string? UsuarioDestinoCargo { get; set; }
 
         [JsonPropertyName("unidad_destino")]
         public string? UnidadDestino { get; set; }
@@ -76,11 +97,29 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("proveido")]
         public string? Proveido { get; set; }
 
+        [JsonPropertyName("instruccion")]
+        public string? Instruccion { get; set; }
+
         [JsonPropertyName("justificacion_retroceso")]
         public string? JustificacionRetroceso { get; set; }
 
+        [JsonPropertyName("fecha_envio")]
+        public DateTime? FechaEnvio { get; set; }
+
+        [JsonPropertyName("fecha_recepcion")]
+        public DateTime? FechaRecepcion { get; set; }
+
         [JsonPropertyName("fecha")]
         public DateTime Fecha { get; set; }
+
+        [JsonPropertyName("tiempo_estimado_minutos")]
+        public int TiempoEstimadoMinutos { get; set; }
+
+        [JsonPropertyName("tiempo_transcurrido_minutos")]
+        public int TiempoTranscurridoMinutos { get; set; }
+
+        [JsonPropertyName("es_hasta_hoy")]
+        public bool EsHastaHoy { get; set; }
     }
 
     public class TramiteListItemDto
@@ -322,8 +361,14 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("fecha_creacion")]
         public DateTime FechaCreacion { get; set; }
 
+        [JsonPropertyName("fecha_conclusion")]
+        public DateTime? FechaConclusion { get; set; }
+
         [JsonPropertyName("fecha_limite_respuesta")]
         public DateTime? FechaLimiteRespuesta { get; set; }
+
+        [JsonPropertyName("tiempo_estimado_horas")]
+        public int TiempoEstimadoHoras { get; set; }
 
         [JsonPropertyName("creado_por_usuario")]
         public string CreadoPorUsuario { get; set; } = string.Empty;

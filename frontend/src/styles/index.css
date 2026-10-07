@@ -591,26 +591,96 @@ a:hover {
   margin-bottom: var(--space-xs);
 }
 
-.form-control {
+/* Estilos base para todos los controles de formulario */
+.form-control,
+.input-sucre,
+.select-sucre,
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+select,
+textarea {
   width: 100%;
-  padding: 10px 14px;
-  background-color: var(--color-surface-white);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-button);
+  padding: 9px 14px;
+  background-color: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
   color: var(--color-text-main);
   font-family: var(--font-family-sans);
-  font-size: var(--font-size-body);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+  appearance: none;
+  -webkit-appearance: none;
 }
 
-.form-control:focus {
+/* Flecha desplegable personalizada y estilizada para los <select> */
+select,
+.select-sucre,
+select.form-control {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 38px !important;
+  cursor: pointer;
+}
+
+/* Hover de campos */
+.form-control:hover,
+.input-sucre:hover,
+.select-sucre:hover,
+input[type="text"]:hover,
+input[type="number"]:hover,
+input[type="date"]:hover,
+select:hover,
+textarea:hover {
+  border-color: #94A3B8;
+}
+
+/* Estados de foco interactivo */
+.form-control:focus,
+.input-sucre:focus,
+.select-sucre:focus,
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+select:focus,
+textarea:focus {
   outline: none;
-  border-color: var(--color-secondary-azul);
-  box-shadow: 0 0 0 3px rgba(27, 54, 93, 0.15);
+  border-color: var(--color-primary-sucre);
+  box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.12);
+  background-color: #FFFFFF;
 }
 
-.form-control::placeholder {
-  color: var(--color-text-secondary);
+/* Campos deshabilitados */
+.form-control:disabled,
+.input-sucre:disabled,
+.select-sucre:disabled,
+select:disabled,
+input:disabled,
+textarea:disabled {
+  background-color: #F1F5F9 !important;
+  color: #94A3B8 !important;
+  border-color: #E2E8F0 !important;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Placeholders */
+.form-control::placeholder,
+.input-sucre::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: #94A3B8;
+  font-size: 0.88rem;
 }
 
 /* ==============================================================================

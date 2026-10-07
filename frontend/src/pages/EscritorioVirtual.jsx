@@ -33,7 +33,10 @@ import {
   Users,
   Check,
   ArrowRightCircle,
-  RotateCcw
+  RotateCcw,
+  Activity,
+  History,
+  Timer
 } from 'lucide-react';
 import { tramitesService, adjuntosService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -600,6 +603,19 @@ export default function EscritorioVirtual() {
     } catch {
       return str;
     }
+  };
+
+  // Helper para formato amigable de duración (RF-08.8)
+  const formatMinutos = (mins) => {
+    if (mins === undefined || mins === null || mins <= 0) return 'Menos de 1 min';
+    const dias = Math.floor(mins / (60 * 24));
+    const horas = Math.floor((mins % (60 * 24)) / 60);
+    const m = mins % 60;
+    const parts = [];
+    if (dias > 0) parts.push(`${dias}d`);
+    if (horas > 0) parts.push(`${horas}h`);
+    if (m > 0 || parts.length === 0) parts.push(`${m}m`);
+    return parts.join(' ');
   };
 
   return (
@@ -1861,105 +1877,331 @@ export default function EscritorioVirtual() {
                     )}
                   </div>
 
-                  {/* Historial de Movimientos / Timeline (RF-08.5) */}
+                  {/* Historial de Movimientos, Trazabilidad y Auditoría (RF-08.5, RF-08.6, RF-08.7, RF-08.8, RF-08.9) */}
                   <div>
-                    <h4 style={{ fontSize: '0.95rem', color: '#1B365D', borderBottom: '2px solid #E2E8F0', paddingBottom: '6px', marginBottom: '0.75rem' }}>
-                      Historial y Trazabilidad del Flujo
-                    </h4>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #E2E8F0', paddingBottom: '6px', marginBottom: '0.9rem' }}>
+                      <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#1B365D', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <History size={17} color="#1B365D" />
+                        <span>Historial y Auditoría del Proceso ({tramiteDetalle.historial?.length || 0} actuaciones)</span>
+                      </h4>
+                      {tramiteDetalle.tiempo_estimado_horas > 0 && (
+                        <span style={{ fontSize: '0.75rem', color: '#64748B', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Timer size={13} />
+                          <span>SLA estimado: <strong>{tramiteDetalle.tiempo_estimado_horas} hrs</strong></span>
+                        </span>
+                      )}
+                    </div>
+
                     {(!tramiteDetalle.historial || tramiteDetalle.historial.length === 0) ? (
                       <p style={{ color: '#6C757D', fontSize: '0.85rem' }}>No hay movimientos registrados.</p>
                     ) : (
-                      <div style={{ borderLeft: '3px solid #1B365D', marginLeft: '8px', paddingLeft: '16px' }}>
-                        {tramiteDetalle.historial.map((mov, idx) => {
-                          const esRetroceso = mov.tipo_movimiento === 'RETROCESO' || Boolean(mov.justificacion_retroceso);
-                          return (
-                            <div key={idx} style={{ marginBottom: '1.25rem', position: 'relative' }}>
+                      <>
+                        {/* ─── Gráfica de Flujo del Proceso (RF-08.6) ─── */}
+                        <div
+                          style={{
+                            backgroundColor: '#F8FAFC',
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '8px',
+                            padding: '12px 14px',
+                            marginBottom: '1.25rem'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                              Línea de Secuencia del Proceso
+                            </span>
+                            <div style={{ display: 'flex', gap: '10px', fontSize: '0.72rem' }}>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#1E40AF' }}>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#2563EB', display: 'inline-block' }} />
+                                Concluido / Atendido (Azul)
+                              </span>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#C2410C' }}>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#EA580C', display: 'inline-block' }} />
+                                Pendiente / Tránsito (Naranja)
+                              </span>
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              overflowX: 'auto',
+                              paddingBottom: '6px',
+                              gap: '6px'
+                            }}
+                          >
+                            {tramiteDetalle.historial.map((step, sIdx) => {
+                              const esPasoActivo = sIdx === tramiteDetalle.historial.length - 1;
+                              const esConcluido = !esPasoActivo || step.estado === 'CONCLUIDO' || step.estado === 'ATENDIDO';
+                              const colorPaso = step.tipo_movimiento === 'RETROCESO' || Boolean(step.justificacion_retroceso)
+                                ? '#D97706'
+                                : esConcluido ? '#2563EB' : '#EA580C';
+                              const bgPaso = step.tipo_movimiento === 'RETROCESO' || Boolean(step.justificacion_retroceso)
+                                ? '#FEF3C7'
+                                : esConcluido ? '#EFF6FF' : '#FFF7ED';
+
+                              return (
+                                <React.Fragment key={sIdx}>
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      minWidth: '130px',
+                                      maxWidth: '170px',
+                                      flexShrink: 0,
+                                      padding: '8px 10px',
+                                      borderRadius: '6px',
+                                      backgroundColor: bgPaso,
+                                      border: `1.5px solid ${colorPaso}`,
+                                      transition: 'transform 0.15s ease'
+                                    }}
+                                  >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                                      <span style={{ fontSize: '0.68rem', fontWeight: 800, color: colorPaso }}>
+                                        #{step.orden}
+                                      </span>
+                                      <span
+                                        style={{
+                                          fontSize: '0.65rem',
+                                          fontWeight: 700,
+                                          padding: '1px 5px',
+                                          borderRadius: '8px',
+                                          backgroundColor: '#FFFFFF',
+                                          color: colorPaso,
+                                          border: `1px solid ${colorPaso}`
+                                        }}
+                                      >
+                                        {esConcluido ? 'CONCLUIDO' : 'EN CURSO'}
+                                      </span>
+                                    </div>
+                                    <div
+                                      style={{
+                                        fontSize: '0.74rem',
+                                        fontWeight: 600,
+                                        color: '#1E293B',
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                      }}
+                                      title={step.actividad}
+                                    >
+                                      {step.actividad}
+                                    </div>
+                                    <div
+                                      style={{
+                                        fontSize: '0.68rem',
+                                        color: '#64748B',
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                      }}
+                                      title={step.unidad_destino || step.unidad_origen}
+                                    >
+                                      {step.unidad_destino || step.unidad_origen}
+                                    </div>
+                                  </div>
+
+                                  {sIdx < tramiteDetalle.historial.length - 1 && (
+                                    <ArrowRight size={14} color="#94A3B8" style={{ flexShrink: 0 }} />
+                                  )}
+                                </React.Fragment>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* ─── Timeline Detallado de Auditoría (RF-08.5, RF-08.7, RF-08.8, RF-08.9) ─── */}
+                        <div style={{ borderLeft: '3px solid #1B365D', marginLeft: '10px', paddingLeft: '18px' }}>
+                          {tramiteDetalle.historial.map((mov, idx) => {
+                            const esRetroceso = mov.tipo_movimiento === 'RETROCESO' || Boolean(mov.justificacion_retroceso);
+                            const esUltimo = idx === tramiteDetalle.historial.length - 1;
+
+                            return (
                               <div
+                                key={idx}
                                 style={{
-                                  position: 'absolute',
-                                  left: '-22px',
-                                  top: '2px',
-                                  width: '10px',
-                                  height: '10px',
-                                  borderRadius: '50%',
-                                  backgroundColor: esRetroceso ? '#D97706' : '#800000',
-                                  border: '2px solid #FFFFFF'
+                                  marginBottom: '1.4rem',
+                                  position: 'relative',
+                                  backgroundColor: '#FFFFFF',
+                                  border: '1px solid #E2E8F0',
+                                  borderRadius: '6px',
+                                  padding: '12px 14px',
+                                  boxShadow: esUltimo ? '0 2px 6px rgba(0,0,0,0.06)' : 'none'
                                 }}
-                              />
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <span style={{ fontWeight: 600, color: esRetroceso ? '#B45309' : '#1B365D', fontSize: '0.875rem' }}>
-                                    Paso #{mov.orden}: {mov.actividad}
-                                  </span>
-                                  {esRetroceso && (
+                              >
+                                {/* Punto conector del timeline */}
+                                <div
+                                  style={{
+                                    position: 'absolute',
+                                    left: '-26px',
+                                    top: '16px',
+                                    width: '13px',
+                                    height: '13px',
+                                    borderRadius: '50%',
+                                    backgroundColor: esRetroceso ? '#D97706' : esUltimo ? '#2563EB' : '#1B365D',
+                                    border: '2px solid #FFFFFF',
+                                    boxShadow: '0 0 0 2px #E2E8F0'
+                                  }}
+                                />
+
+                                {/* Encabezado de la Actuación */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                    <span style={{ fontWeight: 700, color: esRetroceso ? '#B45309' : '#1B365D', fontSize: '0.9rem' }}>
+                                      Paso #{mov.orden}: {mov.actividad}
+                                    </span>
+                                    {esRetroceso && (
+                                      <span
+                                        style={{
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '3px',
+                                          backgroundColor: '#FEF3C7',
+                                          color: '#92400E',
+                                          border: '1px solid #FCD34D',
+                                          fontSize: '0.7rem',
+                                          fontWeight: 700,
+                                          padding: '2px 7px',
+                                          borderRadius: '12px'
+                                        }}
+                                      >
+                                        <RotateCcw size={10} />
+                                        RETROCESO / DEVOLUCIÓN
+                                      </span>
+                                    )}
+                                    {renderBadgeEstado(mov.estado)}
+                                  </div>
+
+                                  {/* Tiempo transcurrido / Hasta hoy (RF-08.8, RF-08.9) */}
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                     <span
                                       style={{
+                                        fontSize: '0.74rem',
+                                        fontWeight: 600,
+                                        padding: '2px 8px',
+                                        borderRadius: '12px',
+                                        backgroundColor: mov.es_hasta_hoy ? '#FEF3C7' : '#F1F5F9',
+                                        color: mov.es_hasta_hoy ? '#92400E' : '#475569',
+                                        border: `1px solid ${mov.es_hasta_hoy ? '#FDE68A' : '#E2E8F0'}`,
                                         display: 'inline-flex',
                                         alignItems: 'center',
-                                        gap: '3px',
-                                        backgroundColor: '#FEF3C7',
-                                        color: '#92400E',
-                                        border: '1px solid #FCD34D',
-                                        fontSize: '0.7rem',
-                                        fontWeight: 700,
-                                        padding: '1px 6px',
-                                        borderRadius: '12px'
+                                        gap: '4px'
                                       }}
+                                      title={mov.es_hasta_hoy ? 'El trámite continúa en curso sin despachar aún' : 'Tiempo total de atención en este paso'}
                                     >
-                                      <RotateCcw size={10} />
-                                      RETROCESO / DEVOLUCIÓN
+                                      <Clock size={11} />
+                                      <span>
+                                        {formatMinutos(mov.tiempo_transcurrido_minutos)}
+                                        {mov.es_hasta_hoy ? ' (Hasta hoy)' : ''}
+                                      </span>
                                     </span>
-                                  )}
-                                </div>
-                                <span style={{ fontSize: '0.75rem', color: '#6C757D' }}>
-                                  {formatFecha(mov.fecha)}
-                                </span>
-                              </div>
-                              <div style={{ fontSize: '0.8rem', color: '#495057', marginTop: '2px' }}>
-                                <strong>Origen:</strong> {mov.unidad_origen} &nbsp;→&nbsp; <strong>Destino:</strong> {mov.unidad_destino || 'Ventanilla'}
-                              </div>
-
-                              {/* Justificación obligatoria de retroceso (RF-04.5, RF-05.4) */}
-                              {mov.justificacion_retroceso && (
-                                <div
-                                  style={{
-                                    backgroundColor: '#FFFBEB',
-                                    border: '1px solid #FDE68A',
-                                    borderLeft: '3px solid #D97706',
-                                    borderRadius: '4px',
-                                    padding: '6px 10px',
-                                    marginTop: '4px',
-                                    fontSize: '0.8rem',
-                                    color: '#92400E'
-                                  }}
-                                >
-                                  <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
-                                    <RotateCcw size={12} />
-                                    <span>Justificación de la Devolución:</span>
                                   </div>
-                                  <div>{mov.justificacion_retroceso}</div>
                                 </div>
-                              )}
 
-                              {mov.proveido && (
+                                {/* Cuadrícula de Auditoría: Responsables (RF-08.5) y Fechas (RF-08.7) */}
                                 <div
                                   style={{
-                                    backgroundColor: '#F8F9FA',
-                                    padding: '6px 10px',
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                                    gap: '8px',
+                                    backgroundColor: '#F8FAFC',
+                                    padding: '8px 10px',
                                     borderRadius: '4px',
-                                    marginTop: '4px',
                                     fontSize: '0.8rem',
-                                    color: '#212529',
-                                    borderLeft: '2px solid #800000'
+                                    marginBottom: '8px'
                                   }}
                                 >
-                                  {mov.proveido}
+                                  {/* Responsable de Origen */}
+                                  <div>
+                                    <span style={{ color: '#64748B', display: 'block', fontSize: '0.72rem', fontWeight: 600 }}>REMITENTE / ORIGEN</span>
+                                    <strong style={{ color: '#1E293B' }}>{mov.usuario_origen_nombre || 'Funcionario de Área'}</strong>
+                                    {mov.usuario_origen_cargo && (
+                                      <span style={{ color: '#64748B', display: 'block', fontSize: '0.75rem' }}>
+                                        {mov.usuario_origen_cargo}
+                                      </span>
+                                    )}
+                                    <span style={{ color: '#0F766E', display: 'block', fontSize: '0.75rem', fontWeight: 500 }}>
+                                      {mov.unidad_origen}
+                                    </span>
+                                    {mov.fecha_envio && (
+                                      <span style={{ color: '#64748B', display: 'block', fontSize: '0.7rem', marginTop: '2px' }}>
+                                        Enviado: {formatFecha(mov.fecha_envio)}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Responsable de Destino */}
+                                  <div>
+                                    <span style={{ color: '#64748B', display: 'block', fontSize: '0.72rem', fontWeight: 600 }}>DESTINATARIO / ATENCIÓN</span>
+                                    <strong style={{ color: '#1E293B' }}>{mov.usuario_destino_nombre || 'En espera de recepción'}</strong>
+                                    {mov.usuario_destino_cargo && (
+                                      <span style={{ color: '#64748B', display: 'block', fontSize: '0.75rem' }}>
+                                        {mov.usuario_destino_cargo}
+                                      </span>
+                                    )}
+                                    <span style={{ color: '#0F766E', display: 'block', fontSize: '0.75rem', fontWeight: 500 }}>
+                                      {mov.unidad_destino || 'Ventanilla Central'}
+                                    </span>
+                                    {mov.fecha_recepcion ? (
+                                      <span style={{ color: '#15803D', display: 'block', fontSize: '0.7rem', marginTop: '2px', fontWeight: 600 }}>
+                                        Recepcionado: {formatFecha(mov.fecha_recepcion)}
+                                      </span>
+                                    ) : (
+                                      <span style={{ color: '#D97706', display: 'block', fontSize: '0.7rem', marginTop: '2px', fontStyle: 'italic' }}>
+                                        Pendiente de recepción física/digital
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+
+                                {/* Justificación obligatoria de retroceso (RF-04.5, RF-05.4) */}
+                                {mov.justificacion_retroceso && (
+                                  <div
+                                    style={{
+                                      backgroundColor: '#FFFBEB',
+                                      border: '1px solid #FDE68A',
+                                      borderLeft: '4px solid #D97706',
+                                      borderRadius: '4px',
+                                      padding: '8px 12px',
+                                      marginTop: '6px',
+                                      fontSize: '0.8rem',
+                                      color: '#92400E'
+                                    }}
+                                  >
+                                    <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                                      <RotateCcw size={12} />
+                                      <span>Motivo y Justificación de Devolución:</span>
+                                    </div>
+                                    <div>{mov.justificacion_retroceso}</div>
+                                  </div>
+                                )}
+
+                                {/* Proveído Oficial (RF-08.5) */}
+                                {mov.proveido && (
+                                  <div
+                                    style={{
+                                      backgroundColor: '#F8F9FA',
+                                      padding: '8px 12px',
+                                      borderRadius: '4px',
+                                      marginTop: '6px',
+                                      fontSize: '0.82rem',
+                                      color: '#1E293B',
+                                      borderLeft: '3px solid #800000',
+                                      whiteSpace: 'pre-line'
+                                    }}
+                                  >
+                                    <strong style={{ color: '#800000', fontSize: '0.75rem', display: 'block', marginBottom: '2px' }}>
+                                      Proveído / Dictamen:
+                                    </strong>
+                                    {mov.proveido}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
