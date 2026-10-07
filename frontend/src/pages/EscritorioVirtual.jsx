@@ -58,6 +58,14 @@ const JUSTIFICACIONES_SUGERIDAS_RETROCESO = [
   'Devolución por no corresponder a las competencias de esta unidad'
 ];
 
+const PROVEIDOS_SUGERIDOS_ATENCION = [
+  'Informe técnico elaborado con visto bueno favorable y conclusiones.',
+  'Dictamen legal emitido y visado para consideración de la autoridad.',
+  'Revisión documental conforme a normativa completada a satisfacción.',
+  'Evaluación técnica finalizada. Listo para remitir al siguiente despacho.',
+  'Atención técnica concluida satisfactoriamente sin observaciones.'
+];
+
 export default function EscritorioVirtual() {
   const { user, activeRole } = useAuth();
 
@@ -123,6 +131,14 @@ export default function EscritorioVirtual() {
   const [retrocederError, setRetrocederError] = useState(null);
   const [infoPasoPrevio, setInfoPasoPrevio] = useState(null);
   const [loadingPasoPrevio, setLoadingPasoPrevio] = useState(false);
+
+  // Modal de Concluir Atención / Marcar Atendido (Sprint 3)
+  const [atenderModalOpen, setAtenderModalOpen] = useState(false);
+  const [tramiteAAtender, setTramiteAAtender] = useState(null);
+  const [proveidoAtencion, setProveidoAtencion] = useState('');
+  const [actividadNombreAtencion, setActividadNombreAtencion] = useState('Informe y atención técnica concluida');
+  const [atendiendo, setAtendiendo] = useState(false);
+  const [atenderError, setAtenderError] = useState(null);
 
   // Alertas temporales de acción
   const [alertSuccess, setAlertSuccess] = useState(null);
@@ -423,13 +439,17 @@ export default function EscritorioVirtual() {
       const data = res?.data || res;
       if (data && data.historial && data.historial.length > 1) {
         const movimientos = data.historial;
-        const pasoActual = movimientos[movimientos.length - 1];
-        const pasoAnterior = movimientos[movimientos.length - 2];
+        const miUnidad = tramite.destinatario_unidad || tramite.unidad_actual_nombre;
+        // Buscar hacia atrás el último movimiento cuyo origen provenga de una unidad distinta
+        const pasoPrevio = [...movimientos].reverse().find(m => 
+          m.unidad_origen && (!miUnidad || m.unidad_origen.trim().toLowerCase() !== miUnidad.trim().toLowerCase())
+        ) || movimientos[0];
+
         setInfoPasoPrevio({
           sinPasoPrevio: false,
-          unidadDestinoRetorno: pasoActual?.unidad_origen || pasoAnterior?.unidad_destino || 'Unidad Remitente Anterior',
-          empleadoDestinoRetorno: pasoActual?.usuario_origen_nombre || pasoAnterior?.usuario_destino_nombre || 'Remitente Anterior',
-          actividadAnterior: pasoAnterior?.actividad || 'Actividad previa',
+          unidadDestinoRetorno: pasoPrevio?.unidad_origen || 'Unidad Remitente Anterior',
+          empleadoDestinoRetorno: pasoPrevio?.usuario_origen_nombre || 'Remitente Anterior',
+          actividadAnterior: pasoPrevio?.actividad || 'Actividad previa',
           totalMovimientos: movimientos.length
         });
       } else {
@@ -480,6 +500,53 @@ export default function EscritorioVirtual() {
       setRetrocederError(msg);
     } finally {
       setRetrocediendo(false);
+    }
+  };
+
+  // Abrir modal de Concluir Atención / Marcar Atendido (Sprint 3)
+  const handleAbrirAtender = (tramite) => {
+    setTramiteAAtender(tramite);
+    setProveidoAtencion(PROVEIDOS_SUGERIDOS_ATENCION[0]);
+    setActividadNombreAtencion('Informe y evaluación técnica concluida');
+    setAtenderError(null);
+    setAtenderModalOpen(true);
+  };
+
+  // Confirmar conclusión de atención técnica (cambio a ATENDIDO)
+  const handleConfirmarAtender = async () => {
+    if (!tramiteAAtender) return;
+
+    if (!proveidoAtencion || proveidoAtencion.trim().length < 3) {
+      setAtenderError('Debe ingresar un informe técnico, dictamen o proveído de atención (mínimo 3 caracteres).');
+      return;
+    }
+
+    setAtendiendo(true);
+    setAtenderError(null);
+
+    try {
+      const payload = {
+        proveido: proveidoAtencion.trim(),
+        actividad_nombre: actividadNombreAtencion.trim() || 'Informe y atención técnica concluida'
+      };
+
+      await tramitesService.marcarAtendido(tramiteAAtender.id, payload);
+
+      setAlertSuccess(`¡Trámite ${tramiteAAtender.numero_correlativo} marcado como ATENDIDO exitosamente! Listo para ser despachado a la siguiente instancia.`);
+      setAtenderModalOpen(false);
+      setTramiteAAtender(null);
+      if (detalleModalOpen) {
+        setDetalleModalOpen(false);
+      }
+      cargarDatos();
+      cargarResumen();
+
+      setTimeout(() => setAlertSuccess(null), 6000);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Error al marcar el trámite como atendido.';
+      setAtenderError(msg);
+    } finally {
+      setAtendiendo(false);
     }
   };
 
@@ -1301,7 +1368,7 @@ export default function EscritorioVirtual() {
                     {/* Columna 8: Acciones */}
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
-                        {/* Acción Rápida: Recepcionar (si está por recibir) */}
+                        {/* 1. Acción: Recepcionar (si está por recibir) */}
                         {bandejaActiva === 'RECIBIDOS' && esPorRecibir && (
                           <button
                             onClick={() => handleAbrirRecepcionar(item)}
@@ -1318,14 +1385,62 @@ export default function EscritorioVirtual() {
                               border: 'none',
                               cursor: 'pointer'
                             }}
-                            title="Confirmar recepción digital del documento"
+                            title="Confirmar recepción digital del documento y tomar custodia"
                           >
                             <UserCheck size={13} />
                             <span>Recepcionar</span>
                           </button>
                         )}
 
-                        {/* Acción: Retroceder Proceso (RF-04.5, RF-05.4) */}
+                        {/* 2. Acción: Atender (solo si está EN_ATENCION, tras haber recepcionado) */}
+                        {bandejaActiva === 'RECIBIDOS' && item.estado === 'EN_ATENCION' && (
+                          <button
+                            onClick={() => handleAbrirAtender(item)}
+                            className="btn btn-sm"
+                            style={{
+                              backgroundColor: '#0D9488',
+                              color: '#FFFFFF',
+                              padding: '5px 9px',
+                              fontSize: '0.78rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              borderRadius: '4px',
+                              border: 'none',
+                              cursor: 'pointer'
+                            }}
+                            title="Registrar informe técnico/dictamen y marcar como ATENDIDO listo para despachar"
+                          >
+                            <CheckCircle2 size={13} />
+                            <span>Atender</span>
+                          </button>
+                        )}
+
+                        {/* 3. Acción: Avanzar / Derivar Libre (solo cuando ya ha sido ATENDIDO) */}
+                        {bandejaActiva === 'RECIBIDOS' && item.estado === 'ATENDIDO' && (
+                          <button
+                            onClick={() => handleAbrirDerivar(item)}
+                            className="btn btn-sm"
+                            style={{
+                              backgroundColor: '#800000',
+                              color: '#FFFFFF',
+                              padding: '5px 9px',
+                              fontSize: '0.78rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              borderRadius: '4px',
+                              border: 'none',
+                              cursor: 'pointer'
+                            }}
+                            title="Derivación libre institucional (Avanzar trámite a otro destinatario)"
+                          >
+                            <Send size={13} />
+                            <span>Avanzar</span>
+                          </button>
+                        )}
+
+                        {/* 4. Acción: Retroceder Proceso (siempre disponible mientras el trámite no esté concluido) */}
                         {bandejaActiva === 'RECIBIDOS' && item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && item.estado !== 'BLOQUEADO' && (
                           <button
                             onClick={() => handleAbrirRetroceder(item)}
@@ -1346,30 +1461,6 @@ export default function EscritorioVirtual() {
                           >
                             <RotateCcw size={13} />
                             <span>Retroceder</span>
-                          </button>
-                        )}
-
-                        {/* Acción: Avanzar / Derivar Libre (RF-05.1) */}
-                        {bandejaActiva === 'RECIBIDOS' && !esPorRecibir && item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && item.estado !== 'BLOQUEADO' && (
-                          <button
-                            onClick={() => handleAbrirDerivar(item)}
-                            className="btn btn-sm"
-                            style={{
-                              backgroundColor: '#800000',
-                              color: '#FFFFFF',
-                              padding: '5px 9px',
-                              fontSize: '0.78rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              borderRadius: '4px',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                            title="Derivación libre institucional (Avanzar trámite a otro destinatario)"
-                          >
-                            <Send size={13} />
-                            <span>Avanzar</span>
                           </button>
                         )}
 
@@ -1888,6 +1979,25 @@ export default function EscritorioVirtual() {
                 </button>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                {tramiteDetalle && tramiteDetalle.estado === 'EN_ATENCION' && (
+                  <button
+                    type="button"
+                    onClick={() => handleAbrirAtender(tramiteDetalle)}
+                    className="btn btn-sm"
+                    style={{
+                      backgroundColor: '#0D9488',
+                      borderColor: '#0D9488',
+                      color: '#FFFFFF',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem'
+                    }}
+                    title="Registrar informe técnico / dictamen y marcar trámite como Atendido"
+                  >
+                    <CheckCircle2 size={14} />
+                    <span>Concluir Atención</span>
+                  </button>
+                )}
                 {tramiteDetalle && tramiteDetalle.historial && tramiteDetalle.historial.length > 1 &&
                  tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && tramiteDetalle.estado !== 'BLOQUEADO' && (
                   <button
@@ -1908,7 +2018,7 @@ export default function EscritorioVirtual() {
                     <span>Retroceder Proceso</span>
                   </button>
                 )}
-                {tramiteDetalle && tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && tramiteDetalle.estado !== 'BLOQUEADO' && (
+                {tramiteDetalle && tramiteDetalle.estado === 'ATENDIDO' && (
                   <button
                     type="button"
                     onClick={() => {
@@ -1923,6 +2033,7 @@ export default function EscritorioVirtual() {
                       alignItems: 'center',
                       gap: '0.4rem'
                     }}
+                    title="Derivación libre institucional (Avanzar trámite a otro destinatario)"
                   >
                     <Send size={14} />
                     <span>Derivar / Avanzar</span>
@@ -2815,6 +2926,301 @@ export default function EscritorioVirtual() {
                   <>
                     <RotateCcw size={15} />
                     <span>Confirmar Devolución / Retroceder</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          10. MODAL DE ATENCIÓN / CONCLUIR ATENCIÓN (OPCIÓN 2)
+          ───────────────────────────────────────────────────────────── */}
+      {atenderModalOpen && tramiteAAtender && (
+        <div
+          className="modal-backdrop"
+          style={{
+            zIndex: 11000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(3px)'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !atendiendo) {
+              setAtenderModalOpen(false);
+            }
+          }}
+        >
+          <div
+            className="modal-dialog"
+            style={{
+              maxWidth: '650px',
+              width: '94%',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              border: '1px solid #CBD5E1',
+              backgroundColor: '#FFFFFF',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header del Modal */}
+            <div
+              className="modal-header"
+              style={{
+                backgroundColor: '#0F766E',
+                color: '#FFFFFF',
+                padding: '1rem 1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderBottom: '2px solid #0D9488'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <CheckCircle2 size={20} style={{ color: '#5EEAD4' }} />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#FFFFFF' }}>
+                    Concluir Atención Técnica / Marcar Atendido
+                  </h3>
+                  <span style={{ fontSize: '0.78rem', opacity: 0.9, color: '#CCFBF1' }}>
+                    Trámite: <strong>{tramiteAAtender.codigo}</strong> • {tramiteAAtender.tipoTramiteNombre || 'Trámite'}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAtenderModalOpen(false)}
+                disabled={atendiendo}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#FFFFFF',
+                  cursor: atendiendo ? 'not-allowed' : 'pointer',
+                  opacity: 0.8
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Cuerpo del Modal */}
+            <div
+              className="modal-body"
+              style={{
+                padding: '1.5rem',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.1rem'
+              }}
+            >
+              {/* Resumen del trámite */}
+              <div
+                style={{
+                  backgroundColor: '#F0FDFA',
+                  border: '1px solid #99F6E4',
+                  borderRadius: '6px',
+                  padding: '12px 14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 700, color: '#0F766E', fontSize: '0.9rem' }}>
+                    {tramiteAAtender.codigo}
+                  </span>
+                  <span
+                    style={{
+                      padding: '2px 8px',
+                      borderRadius: '12px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      backgroundColor: '#FEF3C7',
+                      color: '#92400E'
+                    }}
+                  >
+                    Estado actual: EN ATENCIÓN
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.82rem', color: '#334155' }}>
+                  <strong>Asunto:</strong> {tramiteAAtender.asunto}
+                </div>
+                {tramiteAAtender.remitenteNombre && (
+                  <div style={{ fontSize: '0.8rem', color: '#64748B' }}>
+                    <strong>Remitente:</strong> {tramiteAAtender.remitenteNombre} ({tramiteAAtender.remitenteInstitucion || 'Particular'})
+                  </div>
+                )}
+              </div>
+
+              {/* Explicación del estado */}
+              <div
+                style={{
+                  backgroundColor: '#F8FAFC',
+                  borderLeft: '4px solid #0D9488',
+                  padding: '10px 14px',
+                  fontSize: '0.8rem',
+                  color: '#475569',
+                  borderRadius: '0 4px 4px 0'
+                }}
+              >
+                <strong>¿Qué sucede al marcar como Atendido?</strong>
+                <p style={{ margin: '4px 0 0 0' }}>
+                  El trámite pasará al estado <span style={{ color: '#0F766E', fontWeight: 700 }}>🟢 ATENDIDO</span> en su bandeja de Recibidos. Esto certifica que el informe, revisión técnica o respuesta interna en esta unidad ha sido finalizada y está lista para ser despachada formalmente (<span style={{ fontWeight: 600 }}>Avanzar</span>) a su siguiente destino.
+                </p>
+              </div>
+
+              {/* Nombre de la actividad o informe opcional */}
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    color: '#334155',
+                    marginBottom: '4px'
+                  }}
+                >
+                  Actividad Realizada / Tipo de Dictamen:
+                </label>
+                <input
+                  type="text"
+                  value={actividadNombreAtencion}
+                  onChange={(e) => setActividadNombreAtencion(e.target.value)}
+                  placeholder="Ej: Evaluación técnica completada, Informe INF-042/2026, Revisión de requisitos..."
+                  className="form-control"
+                  style={{ fontSize: '0.85rem' }}
+                />
+              </div>
+
+              {/* Textarea de Proveído / Conclusión Técnica */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <label
+                    style={{
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      color: '#1E293B'
+                    }}
+                  >
+                    Proveído / Dictamen Técnico Conclusivo: <span style={{ color: '#DC2626' }}>*</span>
+                  </label>
+                  <span style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                    Mínimo 3 caracteres
+                  </span>
+                </div>
+                <textarea
+                  value={proveidoAtencion}
+                  onChange={(e) => setProveidoAtencion(e.target.value)}
+                  placeholder="Escriba la conclusión de la atención técnica o el resultado del análisis efectuado..."
+                  className="form-control"
+                  rows={4}
+                  style={{
+                    fontSize: '0.85rem',
+                    resize: 'vertical',
+                    borderColor: proveidoAtencion.trim().length > 0 && proveidoAtencion.trim().length < 3 ? '#DC2626' : undefined
+                  }}
+                />
+
+                {/* Chips de sugerencias */}
+                <div style={{ marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  <span style={{ fontSize: '0.72rem', color: '#64748B', alignSelf: 'center', marginRight: '4px' }}>
+                    Sugerencias:
+                  </span>
+                  {PROVEIDOS_SUGERIDOS_ATENCION.map((sug, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setProveidoAtencion(sug)}
+                      className="btn btn-sm btn-outline-secondary"
+                      style={{
+                        fontSize: '0.72rem',
+                        padding: '2px 7px',
+                        borderRadius: '12px',
+                        border: '1px solid #CBD5E1',
+                        backgroundColor: '#F8FAFC',
+                        color: '#334155'
+                      }}
+                    >
+                      {sug}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Error si existe */}
+              {atenderError && (
+                <div
+                  style={{
+                    backgroundColor: '#FEF2F2',
+                    border: '1px solid #F87171',
+                    color: '#991B1B',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <AlertCircle size={16} />
+                  <span>{atenderError}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Footer del Modal */}
+            <div
+              className="modal-footer"
+              style={{
+                padding: '1rem 1.5rem',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '0.75rem',
+                borderTop: '1px solid #E2E8F0',
+                backgroundColor: '#F8F9FA'
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setAtenderModalOpen(false)}
+                disabled={atendiendo}
+                className="btn btn-secondary"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmarAtender}
+                disabled={atendiendo || proveidoAtencion.trim().length < 3}
+                className="btn btn-primary"
+                style={{
+                  backgroundColor: '#0D9488',
+                  borderColor: '#0D9488',
+                  color: '#FFFFFF',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  opacity: (atendiendo || proveidoAtencion.trim().length < 3) ? 0.6 : 1,
+                  cursor: (atendiendo || proveidoAtencion.trim().length < 3) ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {atendiendo ? (
+                  <>
+                    <RefreshCw size={14} className="spin-animation" />
+                    <span>Guardando Dictamen...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={15} />
+                    <span>Concluir Atención (Marcar Atendido)</span>
                   </>
                 )}
               </button>

@@ -419,6 +419,54 @@ namespace GestionDocumental.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Concluir informe/atención técnica y marcar el trámite como ATENDIDO listo para despachar (Sprint 3)
+        /// </summary>
+        [Authorize]
+        [HttpPost("{id}/atender")]
+        [HttpPost("{id}/marcar-atendido")]
+        public async Task<IActionResult> MarcarAtendido(int id, [FromBody] MarcarAtendidoDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse.ErrorResult("Debe ingresar una nota de informe, dictamen técnico o proveído de conclusión (mínimo 3 caracteres)."));
+            }
+
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+            if (ubicacionId <= 0) ubicacionId = 1;
+
+            var outNuevoMovimientoId = new SqlParameter("@NuevoMovimientoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_MarcarAtendido",
+                    new SqlParameter("@TramiteId", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@UbicacionOrgId", SqlDbType.Int) { Value = ubicacionId },
+                    new SqlParameter("@Proveido", SqlDbType.NVarChar, -1) { Value = dto.Proveido.Trim() },
+                    new SqlParameter("@ActividadNombre", SqlDbType.VarChar, 150) { Value = (object?)dto.ActividadNombre?.Trim() ?? DBNull.Value },
+                    outNuevoMovimientoId
+                );
+
+                int movId = outNuevoMovimientoId.Value != DBNull.Value ? (int)outNuevoMovimientoId.Value : 0;
+
+                return Ok(ApiResponse<object>.Ok(
+                    new { tramiteId = id, movimientoId = movId },
+                    "Trámite marcado como ATENDIDO exitosamente. Se encuentra listo en su bandeja para ser derivado o despachado."
+                ));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+        }
+
         [Authorize]
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats([FromQuery] int? gestion)

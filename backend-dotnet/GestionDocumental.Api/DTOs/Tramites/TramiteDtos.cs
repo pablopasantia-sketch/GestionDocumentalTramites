@@ -550,4 +550,15 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("proveido")]
         public string? Proveido { get; set; }
     }
+
+    public class MarcarAtendidoDto
+    {
+        [Required(ErrorMessage = "Debe ingresar una nota de informe, dictamen técnico o proveído de conclusión.")]
+        [MinLength(3, ErrorMessage = "El proveído o informe debe tener al menos 3 caracteres.")]
+        [JsonPropertyName("proveido")]
+        public string Proveido { get; set; } = string.Empty;
+
+        [JsonPropertyName("actividad_nombre")]
+        public string? ActividadNombre { get; set; }
+    }
 }

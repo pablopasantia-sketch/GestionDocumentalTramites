@@ -128,43 +128,54 @@ BEGIN
             THROW 50043, 'El trámite se encuentra en su actividad inicial de Ventanilla y no cuenta con una instancia anterior a la cual retroceder.', 1;
         END
 
-        -- 4. Obtener el último movimiento para identificar quién nos envió el trámite
-        DECLARE @UltimoMovId INT, @UltimoOrden INT, @UltimoUsuarioOrigenId INT, @UltimaUbicacionOrigenId INT;
-        SELECT TOP 1 
-            @UltimoMovId = id, 
-            @UltimoOrden = orden,
-            @UltimoUsuarioOrigenId = usuario_origen_id,
-            @UltimaUbicacionOrigenId = ubicacion_origen_id
-        FROM dbo.movimientos
-        WHERE tramite_id = @TramiteId
-        ORDER BY orden DESC, id DESC;
+        -- 4. Obtener la ubicación y usuario actual del trámite
+        DECLARE @UbicacionActualId INT, @UsuarioActualId INT;
+        SELECT 
+            @UbicacionActualId = ISNULL(ubicacion_actual_id, @UbicacionOrgId),
+            @UsuarioActualId = ISNULL(usuario_actual_id, @UsuarioId)
+        FROM dbo.tramites
+        WHERE id = @TramiteId;
 
-        -- El destinatario de la devolución es quien nos despachó el trámite
-        DECLARE @DestinoUsuarioId INT = @UltimoUsuarioOrigenId;
-        DECLARE @DestinoUbicacionId INT = @UltimaUbicacionOrigenId;
+        -- 5. Buscar el movimiento previo que despachó el trámite hacia la unidad/usuario actual
+        -- Buscamos hacia atrás el último movimiento donde el origen sea DISTINTO al custodio actual
+        DECLARE @DestinoUsuarioId INT = NULL;
+        DECLARE @DestinoUbicacionId INT = NULL;
 
-        -- Fallback de seguridad si el origen fuera el mismo usuario: buscar en el movimiento inmediatamente anterior
-        IF (@DestinoUsuarioId = @UsuarioId AND @DestinoUbicacionId = @UbicacionOrgId)
-        BEGIN
-            SELECT TOP 1
-                @DestinoUsuarioId = usuario_origen_id,
-                @DestinoUbicacionId = ubicacion_origen_id
-            FROM dbo.movimientos
-            WHERE tramite_id = @TramiteId AND id <> @UltimoMovId
-            ORDER BY orden DESC;
-        END
+        SELECT TOP 1
+            @DestinoUsuarioId = m.usuario_origen_id,
+            @DestinoUbicacionId = m.ubicacion_origen_id
+        FROM dbo.movimientos m
+        WHERE m.tramite_id = @TramiteId
+          AND (
+              m.ubicacion_origen_id <> @UbicacionActualId
+              OR (m.ubicacion_origen_id = @UbicacionActualId AND m.usuario_origen_id IS NOT NULL AND m.usuario_origen_id <> @UsuarioActualId)
+          )
+        ORDER BY m.orden DESC, m.id DESC;
 
-        -- Si aún fuera nulo, recurrir a la unidad de origen creadora del trámite
+        -- Si no hubo movimiento previo con origen distinto, verificar el creador original
         IF @DestinoUbicacionId IS NULL
         BEGIN
+            DECLARE @CreadorUbicacionId INT, @CreadorUsuarioId INT;
             SELECT 
-                @DestinoUsuarioId = creado_por,
-                @DestinoUbicacionId = ubicacion_org_id
+                @CreadorUbicacionId = ubicacion_org_id,
+                @CreadorUsuarioId = creado_por
             FROM dbo.tramites
             WHERE id = @TramiteId;
+
+            IF @CreadorUbicacionId <> @UbicacionActualId OR (@CreadorUsuarioId IS NOT NULL AND @CreadorUsuarioId <> @UsuarioActualId)
+            BEGIN
+                SET @DestinoUbicacionId = @CreadorUbicacionId;
+                SET @DestinoUsuarioId = @CreadorUsuarioId;
+            END
         END
 
-        -- 5. Resolver datos del destinatario de retorno para el trámite
+        -- Si aún no se localiza destino previo distinto, el trámite no puede retroceder
+        IF @DestinoUbicacionId IS NULL OR (@DestinoUbicacionId = @UbicacionActualId AND (@DestinoUsuarioId IS NULL OR @DestinoUsuarioId = @UsuarioActualId))
+        BEGIN
+            THROW 50043, 'El trámite se encuentra en su actividad inicial y no cuenta con una instancia o unidad remitente previa a la cual retroceder.', 1;
+        END
+
+        -- 6. Resolver datos del destinatario de retorno para el trámite
         DECLARE @NomUnidadRetorno NVARCHAR(150), @CodURetorno SMALLINT;
         SELECT 
             @NomUnidadRetorno = nombre,
@@ -182,6 +193,12 @@ BEGIN
             WHERE id = @DestinoUsuarioId;
         END
 
+        -- Obtener el orden correlativo más alto existente
+        DECLARE @UltimoOrden INT;
+        SELECT @UltimoOrden = ISNULL(MAX(orden), 0)
+        FROM dbo.movimientos
+        WHERE tramite_id = @TramiteId;
+
         DECLARE @Ahora DATETIME2 = GETDATE();
         DECLARE @ActividadRetorno VARCHAR(150) = 'Devolución / Retroceso a ' + ISNULL(@NomUnidadRetorno, 'Instancia Anterior');
         DECLARE @ProvFinal NVARCHAR(MAX) = CASE 
@@ -190,7 +207,7 @@ BEGIN
             ELSE 'Trámite devuelto para subsanación o corrección. Motivo: ' + @Justificacion
         END;
 
-        -- 6. Insertar Movimiento de Retroceso
+        -- 7. Insertar Movimiento de Retroceso
         INSERT INTO dbo.movimientos (
             tramite_id,
             orden,
