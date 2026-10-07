@@ -371,6 +371,54 @@ namespace GestionDocumental.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Retroceder proceso / devolver a la instancia o actividad anterior con justificación obligatoria (Sprint 3, RF-05.4, RF-05.5)
+        /// </summary>
+        [Authorize]
+        [HttpPost("{id}/retroceder")]
+        [HttpPost("{id}/devolver")]
+        public async Task<IActionResult> Retroceder(int id, [FromBody] RetrocederTramiteDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse.ErrorResult("La justificación del retroceso es estrictamente obligatoria (mínimo 5 caracteres)."));
+            }
+
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+            if (ubicacionId <= 0) ubicacionId = 1;
+
+            var outNuevoMovimientoId = new SqlParameter("@NuevoMovimientoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_Retroceder",
+                    new SqlParameter("@TramiteId", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@UbicacionOrgId", SqlDbType.Int) { Value = ubicacionId },
+                    new SqlParameter("@Justificacion", SqlDbType.NVarChar, -1) { Value = dto.Justificacion.Trim() },
+                    new SqlParameter("@Proveido", SqlDbType.NVarChar, -1) { Value = (object?)dto.Proveido?.Trim() ?? DBNull.Value },
+                    outNuevoMovimientoId
+                );
+
+                int movId = outNuevoMovimientoId.Value != DBNull.Value ? (int)outNuevoMovimientoId.Value : 0;
+
+                return Ok(ApiResponse<object>.Ok(
+                    new { tramiteId = id, movimientoId = movId },
+                    "Trámite devuelto exitosamente a la instancia anterior con constancia de justificación."
+                ));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+        }
+
         [Authorize]
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats([FromQuery] int? gestion)
@@ -495,6 +543,7 @@ namespace GestionDocumental.Api.Controllers
                                 UnidadDestino = reader.GetNullableString("unidad_destino"),
                                 Estado = reader.GetSafeString("estado"),
                                 Proveido = reader.GetNullableString("proveido"),
+                                JustificacionRetroceso = reader.GetNullableString("justificacion_retroceso"),
                                 Fecha = reader.GetSafeDateTime("fecha")
                             });
                         }

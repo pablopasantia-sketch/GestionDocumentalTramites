@@ -76,6 +76,9 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("proveido")]
         public string? Proveido { get; set; }
 
+        [JsonPropertyName("justificacion_retroceso")]
+        public string? JustificacionRetroceso { get; set; }
+
         [JsonPropertyName("fecha")]
         public DateTime Fecha { get; set; }
     }
@@ -535,5 +538,16 @@ namespace GestionDocumental.Api.DTOs.Tramites
 
         [JsonPropertyName("otros_destinatarios")]
         public List<OtroDestinatarioDto>? OtrosDestinatarios { get; set; }
+    }
+
+    public class RetrocederTramiteDto
+    {
+        [Required(ErrorMessage = "La justificación del retroceso es estrictamente obligatoria.")]
+        [MinLength(5, ErrorMessage = "La justificación debe tener al menos 5 caracteres explicativos.")]
+        [JsonPropertyName("justificacion")]
+        public string Justificacion { get; set; } = string.Empty;
+
+        [JsonPropertyName("proveido")]
+        public string? Proveido { get; set; }
     }
 }

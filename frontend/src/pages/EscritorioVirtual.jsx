@@ -32,7 +32,8 @@ import {
   Trash2,
   Users,
   Check,
-  ArrowRightCircle
+  ArrowRightCircle,
+  RotateCcw
 } from 'lucide-react';
 import { tramitesService, adjuntosService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -46,6 +47,15 @@ const INSTRUCCIONES_SUGERIDAS_DERIVACION = [
   'Para conocimiento y fines consiguientes',
   'Para elaboración de nota de respuesta oficial',
   'Para archivo y custodia definitiva'
+];
+
+const JUSTIFICACIONES_SUGERIDAS_RETROCESO = [
+  'Documentación incompleta o faltan requisitos obligatorios',
+  'Observaciones técnicas en el contenido o formato presentado',
+  'Error en la asignación de la unidad receptora / destinatario',
+  'Falta firma, sello o visto bueno de la autoridad correspondiente',
+  'Se requiere subsanación o complementación previa por la unidad remitente',
+  'Devolución por no corresponder a las competencias de esta unidad'
 ];
 
 export default function EscritorioVirtual() {
@@ -103,6 +113,16 @@ export default function EscritorioVirtual() {
   });
   const [nuevaCopia, setNuevaCopia] = useState({ nombre: '', cargo: '', unidad: '' });
   const [mostrarAgregarCopia, setMostrarAgregarCopia] = useState(false);
+
+  // Modal de Retroceso de Proceso (RF-04.5, RF-05.4, RF-05.5)
+  const [retrocederModalOpen, setRetrocederModalOpen] = useState(false);
+  const [tramiteARetroceder, setTramiteARetroceder] = useState(null);
+  const [justificacionRetroceso, setJustificacionRetroceso] = useState('');
+  const [proveidoRetroceso, setProveidoRetroceso] = useState('');
+  const [retrocediendo, setRetrocediendo] = useState(false);
+  const [retrocederError, setRetrocederError] = useState(null);
+  const [infoPasoPrevio, setInfoPasoPrevio] = useState(null);
+  const [loadingPasoPrevio, setLoadingPasoPrevio] = useState(false);
 
   // Alertas temporales de acción
   const [alertSuccess, setAlertSuccess] = useState(null);
@@ -386,6 +406,81 @@ export default function EscritorioVirtual() {
       ...prev,
       otrosDestinatarios: prev.otrosDestinatarios.filter((_, i) => i !== index)
     }));
+  };
+
+  // Abrir modal de Retroceso de Proceso (RF-04.5, RF-05.4, RF-05.5)
+  const handleAbrirRetroceder = async (tramite) => {
+    setTramiteARetroceder(tramite);
+    setJustificacionRetroceso('');
+    setProveidoRetroceso('');
+    setRetrocederError(null);
+    setInfoPasoPrevio(null);
+    setRetrocederModalOpen(true);
+    setLoadingPasoPrevio(true);
+
+    try {
+      const res = await tramitesService.getById(tramite.id);
+      const data = res?.data || res;
+      if (data && data.historial && data.historial.length > 1) {
+        const movimientos = data.historial;
+        const pasoActual = movimientos[movimientos.length - 1];
+        const pasoAnterior = movimientos[movimientos.length - 2];
+        setInfoPasoPrevio({
+          sinPasoPrevio: false,
+          unidadDestinoRetorno: pasoActual?.unidad_origen || pasoAnterior?.unidad_destino || 'Unidad Remitente Anterior',
+          empleadoDestinoRetorno: pasoActual?.usuario_origen_nombre || pasoAnterior?.usuario_destino_nombre || 'Remitente Anterior',
+          actividadAnterior: pasoAnterior?.actividad || 'Actividad previa',
+          totalMovimientos: movimientos.length
+        });
+      } else {
+        setInfoPasoPrevio({
+          sinPasoPrevio: true,
+          totalMovimientos: data?.historial?.length || 1
+        });
+      }
+    } catch (err) {
+      console.warn('No se pudo cargar información del paso previo:', err);
+    } finally {
+      setLoadingPasoPrevio(false);
+    }
+  };
+
+  // Confirmar retroceso de proceso con justificación obligatoria
+  const handleConfirmarRetroceso = async () => {
+    if (!tramiteARetroceder) return;
+
+    if (!justificacionRetroceso || justificacionRetroceso.trim().length < 5) {
+      setRetrocederError('Debe ingresar una justificación obligatoria detallada (mínimo 5 caracteres).');
+      return;
+    }
+
+    setRetrocediendo(true);
+    setRetrocederError(null);
+
+    try {
+      const payload = {
+        justificacion: justificacionRetroceso.trim(),
+        proveido: proveidoRetroceso.trim() || null
+      };
+
+      await tramitesService.retroceder(tramiteARetroceder.id, payload);
+
+      setAlertSuccess(`¡Trámite ${tramiteARetroceder.numero_correlativo} devuelto/retrocedido con éxito! Custodia restituida a la unidad remitente.`);
+      setRetrocederModalOpen(false);
+      setTramiteARetroceder(null);
+      if (detalleModalOpen) {
+        setDetalleModalOpen(false);
+      }
+      cargarDatos();
+      cargarResumen();
+
+      setTimeout(() => setAlertSuccess(null), 6000);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Error al retroceder el trámite.';
+      setRetrocederError(msg);
+    } finally {
+      setRetrocediendo(false);
+    }
   };
 
   const limpiarFiltros = () => {
@@ -1230,6 +1325,30 @@ export default function EscritorioVirtual() {
                           </button>
                         )}
 
+                        {/* Acción: Retroceder Proceso (RF-04.5, RF-05.4) */}
+                        {bandejaActiva === 'RECIBIDOS' && item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && item.estado !== 'BLOQUEADO' && (
+                          <button
+                            onClick={() => handleAbrirRetroceder(item)}
+                            className="btn btn-sm"
+                            style={{
+                              backgroundColor: '#D97706',
+                              color: '#FFFFFF',
+                              padding: '5px 9px',
+                              fontSize: '0.78rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              borderRadius: '4px',
+                              border: 'none',
+                              cursor: 'pointer'
+                            }}
+                            title="Retroceder proceso con justificación a la unidad anterior"
+                          >
+                            <RotateCcw size={13} />
+                            <span>Retroceder</span>
+                          </button>
+                        )}
+
                         {/* Acción: Avanzar / Derivar Libre (RF-05.1) */}
                         {bandejaActiva === 'RECIBIDOS' && !esPorRecibir && item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && item.estado !== 'BLOQUEADO' && (
                           <button
@@ -1251,6 +1370,30 @@ export default function EscritorioVirtual() {
                           >
                             <Send size={13} />
                             <span>Avanzar</span>
+                          </button>
+                        )}
+
+                        {/* Supervisión: Retroceder administrativamente */}
+                        {bandejaActiva === 'SUPERVISION' && item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && item.estado !== 'BLOQUEADO' && (
+                          <button
+                            onClick={() => handleAbrirRetroceder(item)}
+                            className="btn btn-sm"
+                            style={{
+                              backgroundColor: '#D97706',
+                              color: '#FFFFFF',
+                              padding: '5px 9px',
+                              fontSize: '0.78rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              borderRadius: '4px',
+                              border: 'none',
+                              cursor: 'pointer'
+                            }}
+                            title="Supervisión: Retroceder trámite a la unidad anterior"
+                          >
+                            <RotateCcw size={13} />
+                            <span>Retroceder</span>
                           </button>
                         )}
 
@@ -1310,6 +1453,7 @@ export default function EscritorioVirtual() {
       {recepcionarModalOpen && tramiteARecepcionar && (
         <div
           className="modal-backdrop"
+          style={{ zIndex: 11000 }}
           onClick={(e) => {
             if (e.target === e.currentTarget && !recepcionando) {
               setRecepcionarModalOpen(false);
@@ -1635,48 +1779,95 @@ export default function EscritorioVirtual() {
                       <p style={{ color: '#6C757D', fontSize: '0.85rem' }}>No hay movimientos registrados.</p>
                     ) : (
                       <div style={{ borderLeft: '3px solid #1B365D', marginLeft: '8px', paddingLeft: '16px' }}>
-                        {tramiteDetalle.historial.map((mov, idx) => (
-                          <div key={idx} style={{ marginBottom: '1.25rem', position: 'relative' }}>
-                            <div
-                              style={{
-                                position: 'absolute',
-                                left: '-22px',
-                                top: '2px',
-                                width: '10px',
-                                height: '10px',
-                                borderRadius: '50%',
-                                backgroundColor: '#800000',
-                                border: '2px solid #FFFFFF'
-                              }}
-                            />
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontWeight: 600, color: '#1B365D', fontSize: '0.875rem' }}>
-                                Paso #{mov.orden}: {mov.actividad}
-                              </span>
-                              <span style={{ fontSize: '0.75rem', color: '#6C757D' }}>
-                                {formatFecha(mov.fecha)}
-                              </span>
-                            </div>
-                            <div style={{ fontSize: '0.8rem', color: '#495057', marginTop: '2px' }}>
-                              <strong>Origen:</strong> {mov.unidad_origen} &nbsp;→&nbsp; <strong>Destino:</strong> {mov.unidad_destino || 'Ventanilla'}
-                            </div>
-                            {mov.proveido && (
+                        {tramiteDetalle.historial.map((mov, idx) => {
+                          const esRetroceso = mov.tipo_movimiento === 'RETROCESO' || Boolean(mov.justificacion_retroceso);
+                          return (
+                            <div key={idx} style={{ marginBottom: '1.25rem', position: 'relative' }}>
                               <div
                                 style={{
-                                  backgroundColor: '#F8F9FA',
-                                  padding: '6px 10px',
-                                  borderRadius: '4px',
-                                  marginTop: '4px',
-                                  fontSize: '0.8rem',
-                                  color: '#212529',
-                                  borderLeft: '2px solid #800000'
+                                  position: 'absolute',
+                                  left: '-22px',
+                                  top: '2px',
+                                  width: '10px',
+                                  height: '10px',
+                                  borderRadius: '50%',
+                                  backgroundColor: esRetroceso ? '#D97706' : '#800000',
+                                  border: '2px solid #FFFFFF'
                                 }}
-                              >
-                                {mov.proveido}
+                              />
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontWeight: 600, color: esRetroceso ? '#B45309' : '#1B365D', fontSize: '0.875rem' }}>
+                                    Paso #{mov.orden}: {mov.actividad}
+                                  </span>
+                                  {esRetroceso && (
+                                    <span
+                                      style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '3px',
+                                        backgroundColor: '#FEF3C7',
+                                        color: '#92400E',
+                                        border: '1px solid #FCD34D',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 700,
+                                        padding: '1px 6px',
+                                        borderRadius: '12px'
+                                      }}
+                                    >
+                                      <RotateCcw size={10} />
+                                      RETROCESO / DEVOLUCIÓN
+                                    </span>
+                                  )}
+                                </div>
+                                <span style={{ fontSize: '0.75rem', color: '#6C757D' }}>
+                                  {formatFecha(mov.fecha)}
+                                </span>
                               </div>
-                            )}
-                          </div>
-                        ))}
+                              <div style={{ fontSize: '0.8rem', color: '#495057', marginTop: '2px' }}>
+                                <strong>Origen:</strong> {mov.unidad_origen} &nbsp;→&nbsp; <strong>Destino:</strong> {mov.unidad_destino || 'Ventanilla'}
+                              </div>
+
+                              {/* Justificación obligatoria de retroceso (RF-04.5, RF-05.4) */}
+                              {mov.justificacion_retroceso && (
+                                <div
+                                  style={{
+                                    backgroundColor: '#FFFBEB',
+                                    border: '1px solid #FDE68A',
+                                    borderLeft: '3px solid #D97706',
+                                    borderRadius: '4px',
+                                    padding: '6px 10px',
+                                    marginTop: '4px',
+                                    fontSize: '0.8rem',
+                                    color: '#92400E'
+                                  }}
+                                >
+                                  <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                                    <RotateCcw size={12} />
+                                    <span>Justificación de la Devolución:</span>
+                                  </div>
+                                  <div>{mov.justificacion_retroceso}</div>
+                                </div>
+                              )}
+
+                              {mov.proveido && (
+                                <div
+                                  style={{
+                                    backgroundColor: '#F8F9FA',
+                                    padding: '6px 10px',
+                                    borderRadius: '4px',
+                                    marginTop: '4px',
+                                    fontSize: '0.8rem',
+                                    color: '#212529',
+                                    borderLeft: '2px solid #800000'
+                                  }}
+                                >
+                                  {mov.proveido}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -1697,6 +1888,26 @@ export default function EscritorioVirtual() {
                 </button>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                {tramiteDetalle && tramiteDetalle.historial && tramiteDetalle.historial.length > 1 &&
+                 tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && tramiteDetalle.estado !== 'BLOQUEADO' && (
+                  <button
+                    type="button"
+                    onClick={() => handleAbrirRetroceder(tramiteDetalle)}
+                    className="btn btn-sm"
+                    style={{
+                      backgroundColor: '#D97706',
+                      borderColor: '#D97706',
+                      color: '#FFFFFF',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem'
+                    }}
+                    title="Retroceder trámite a la unidad remitente anterior con justificación obligatoria"
+                  >
+                    <RotateCcw size={14} />
+                    <span>Retroceder Proceso</span>
+                  </button>
+                )}
                 {tramiteDetalle && tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && tramiteDetalle.estado !== 'BLOQUEADO' && (
                   <button
                     type="button"
@@ -1736,6 +1947,7 @@ export default function EscritorioVirtual() {
       {derivarModalOpen && tramiteADerivar && (
         <div
           className="modal-backdrop"
+          style={{ zIndex: 11000 }}
           onClick={(e) => {
             if (e.target === e.currentTarget && !derivando) {
               setDerivarModalOpen(false);
@@ -2251,6 +2463,358 @@ export default function EscritorioVirtual() {
                   <>
                     <Send size={15} />
                     <span>Confirmar y Despachar Trámite</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          9. MODAL DE RETROCESO DE PROCESO (RF-04.5, RF-05.4, RF-05.5)
+          ───────────────────────────────────────────────────────────── */}
+      {retrocederModalOpen && tramiteARetroceder && (
+        <div
+          className="modal-backdrop"
+          style={{ zIndex: 11000 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !retrocediendo) {
+              setRetrocederModalOpen(false);
+            }
+          }}
+        >
+          <div
+            className="modal-dialog"
+            style={{ maxWidth: '680px', maxHeight: '92vh' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header del Modal */}
+            <div
+              className="modal-header"
+              style={{
+                backgroundColor: '#FFFBEB',
+                borderBottom: '1px solid #FDE68A',
+                padding: '1rem 1.5rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div
+                  style={{
+                    backgroundColor: '#FEF3C7',
+                    color: '#D97706',
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <RotateCcw size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#92400E', fontWeight: 700 }}>
+                    Retroceder Proceso (Devolución)
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#B45309' }}>
+                    Devolución a la unidad o funcionario remitente previo con justificación obligatoria
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRetrocederModalOpen(false)}
+                disabled={retrocediendo}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#92400E',
+                  padding: '4px'
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Contenido del Modal */}
+            <div
+              className="modal-body"
+              style={{
+                padding: '1.5rem',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.25rem'
+              }}
+            >
+              {/* Tarjeta de Identificación del Trámite */}
+              <div
+                style={{
+                  backgroundColor: '#F8F9FA',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '6px',
+                  padding: '12px 16px'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#6C757D', textTransform: 'uppercase' }}>
+                    Trámite en Devolución
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: 'monospace',
+                      fontWeight: 700,
+                      backgroundColor: '#1B365D',
+                      color: '#FFFFFF',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '0.8rem'
+                    }}
+                  >
+                    {tramiteARetroceder.numero_correlativo}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#1B365D', marginBottom: '4px' }}>
+                  {tramiteARetroceder.asunto}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#495057', display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                  <span><strong>Tipo:</strong> {tramiteARetroceder.tipo_tramite_nombre || 'General'}</span>
+                  <span><strong>Custodio actual:</strong> {tramiteARetroceder.unidad_actual_nombre || tramiteARetroceder.unidad_nombre || 'Mi Unidad'}</span>
+                </div>
+              </div>
+
+              {/* Información del Destino de Retorno */}
+              {loadingPasoPrevio ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6C757D', fontSize: '0.85rem', padding: '8px 0' }}>
+                  <RefreshCw size={14} className="spin-animation" />
+                  <span>Verificando historial y unidad remitente previa...</span>
+                </div>
+              ) : infoPasoPrevio?.sinPasoPrevio ? (
+                <div
+                  style={{
+                    backgroundColor: '#FEE2E2',
+                    border: '1px solid #FCA5A5',
+                    borderRadius: '6px',
+                    padding: '12px 14px',
+                    color: '#991B1B',
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '10px'
+                  }}
+                >
+                  <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <strong>No es posible retroceder este trámite:</strong>
+                    <div style={{ marginTop: '2px' }}>
+                      Este trámite se encuentra en el primer paso de su flujo institucional (creación o ventanilla inicial). No cuenta con una unidad remitente previa a la cual devolverse.
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    backgroundColor: '#FEF3C7',
+                    border: '1px solid #FDE68A',
+                    borderRadius: '6px',
+                    padding: '12px 14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: 700, color: '#92400E' }}>
+                    <ArrowRight size={14} />
+                    <span>DESTINO DE LA DEVOLUCIÓN:</span>
+                  </div>
+                  <div style={{ fontSize: '0.9rem', color: '#78350F', fontWeight: 600 }}>
+                    🏛️ {infoPasoPrevio?.unidadDestinoRetorno || 'Unidad Remitente Anterior'}
+                  </div>
+                  {infoPasoPrevio?.empleadoDestinoRetorno && (
+                    <div style={{ fontSize: '0.8rem', color: '#92400E' }}>
+                      👤 Funcionario remitente: <strong>{infoPasoPrevio.empleadoDestinoRetorno}</strong>
+                    </div>
+                  )}
+                  <div style={{ fontSize: '0.75rem', color: '#B45309', fontStyle: 'italic', marginTop: '2px' }}>
+                    * El trámite cambiará a estado "POR RECIBIR" en la bandeja de entrada de dicha unidad.
+                  </div>
+                </div>
+              )}
+
+              {/* Justificaciones sugeridas rápidas */}
+              {!infoPasoPrevio?.sinPasoPrevio && (
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#495057', marginBottom: '6px' }}>
+                    Motivos sugeridos para devolución rápida:
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {JUSTIFICACIONES_SUGERIDAS_RETROCESO.map((sug, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setJustificacionRetroceso(sug);
+                          setRetrocederError(null);
+                        }}
+                        style={{
+                          backgroundColor: justificacionRetroceso === sug ? '#FEF3C7' : '#FFFFFF',
+                          borderColor: justificacionRetroceso === sug ? '#D97706' : '#E2E8F0',
+                          borderWidth: '1px',
+                          borderStyle: 'solid',
+                          borderRadius: '16px',
+                          padding: '4px 10px',
+                          fontSize: '0.75rem',
+                          color: justificacionRetroceso === sug ? '#92400E' : '#495057',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {justificacionRetroceso === sug && <Check size={11} />}
+                        <span>{sug}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Campo Justificación Obligatoria */}
+              {!infoPasoPrevio?.sinPasoPrevio && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1B365D' }}>
+                      Justificación Obligatoria del Retroceso <span style={{ color: '#DC3545' }}>*</span>
+                    </label>
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        color: justificacionRetroceso.trim().length >= 5 ? '#28A745' : '#DC3545',
+                        fontWeight: 600
+                      }}
+                    >
+                      {justificacionRetroceso.trim().length} / mín. 5 caracteres
+                    </span>
+                  </div>
+                  <textarea
+                    rows={3}
+                    className="form-control"
+                    placeholder="Detalle de forma obligatoria las observaciones, falta de requisitos o motivos técnicos por los cuales se retrocede el trámite..."
+                    value={justificacionRetroceso}
+                    onChange={(e) => {
+                      setJustificacionRetroceso(e.target.value);
+                      if (retrocederError) setRetrocederError(null);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      fontSize: '0.85rem',
+                      borderRadius: '4px',
+                      borderColor: justificacionRetroceso.trim().length >= 5 ? '#28A745' : '#CED4DA',
+                      resize: 'vertical'
+                    }}
+                  />
+                  <div style={{ fontSize: '0.75rem', color: '#6C757D', marginTop: '4px' }}>
+                    Esta justificación quedará registrada de forma inalterable en el historial del expediente (RF-05.4).
+                  </div>
+                </div>
+              )}
+
+              {/* Proveído opcional */}
+              {!infoPasoPrevio?.sinPasoPrevio && (
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1B365D', marginBottom: '4px' }}>
+                    Proveído / Instrucción Adicional de Devolución (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Ej: Devolver para subsanación inmediata del punto 3..."
+                    value={proveidoRetroceso}
+                    onChange={(e) => setProveidoRetroceso(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      fontSize: '0.85rem',
+                      borderRadius: '4px',
+                      borderColor: '#CED4DA'
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Alerta de Error */}
+              {retrocederError && (
+                <div
+                  style={{
+                    backgroundColor: '#F8D7DA',
+                    color: '#721C24',
+                    border: '1px solid #F5C6CB',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <AlertCircle size={16} />
+                  <span>{retrocederError}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Footer del Modal */}
+            <div
+              className="modal-footer"
+              style={{
+                padding: '1rem 1.5rem',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '0.75rem',
+                borderTop: '1px solid #E2E8F0',
+                backgroundColor: '#F8F9FA'
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setRetrocederModalOpen(false)}
+                disabled={retrocediendo}
+                className="btn btn-secondary"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmarRetroceso}
+                disabled={retrocediendo || loadingPasoPrevio || infoPasoPrevio?.sinPasoPrevio || justificacionRetroceso.trim().length < 5}
+                className="btn btn-primary"
+                style={{
+                  backgroundColor: '#D97706',
+                  borderColor: '#D97706',
+                  color: '#FFFFFF',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  opacity: (retrocediendo || loadingPasoPrevio || infoPasoPrevio?.sinPasoPrevio || justificacionRetroceso.trim().length < 5) ? 0.6 : 1,
+                  cursor: (retrocediendo || loadingPasoPrevio || infoPasoPrevio?.sinPasoPrevio || justificacionRetroceso.trim().length < 5) ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {retrocediendo ? (
+                  <>
+                    <RefreshCw size={14} className="spin-animation" />
+                    <span>Registrando Devolución...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw size={15} />
+                    <span>Confirmar Devolución / Retroceder</span>
                   </>
                 )}
               </button>

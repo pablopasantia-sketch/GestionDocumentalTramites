@@ -263,6 +263,14 @@ export const tramitesService = {
   avanzar: async (id, data) => {
     const response = await api.post(`/tramites/${id}/avanzar`, data);
     return response.data;
+  },
+  retroceder: async (id, data) => {
+    const response = await api.post(`/tramites/${id}/retroceder`, data);
+    return response.data;
+  },
+  devolver: async (id, data) => {
+    const response = await api.post(`/tramites/${id}/devolver`, data);
+    return response.data;
   }
 };
 
