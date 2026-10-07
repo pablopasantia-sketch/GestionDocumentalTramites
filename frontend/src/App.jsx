@@ -10,6 +10,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 
 import AdminHub from './pages/AdminHub';
 import VentanillaUnica from './pages/VentanillaUnica';
+import EscritorioVirtual from './pages/EscritorioVirtual';
 
 // Componente para vistas en desarrollo con estilo Gaceta Sucre
 function PlaceholderView({ title, description, badge }) {
@@ -76,11 +77,7 @@ export default function App() {
               path="/escritorio" 
               element={
                 <ProtectedRoute allowedRoles={['FUNCIONARIO', 'VENTANILLA_UNICA', 'ADMIN_SISTEMA', 'ADMIN_TRAMITES']}>
-                  <PlaceholderView 
-                    title="Escritorio Virtual y Bandejas" 
-                    description="Bandejas de pendientes, recibidos y despachados. Atención con proveídos y derivación libre a destinatarios."
-                    badge="Sprint 3: Flujo de Trabajo"
-                  />
+                  <EscritorioVirtual />
                 </ProtectedRoute>
               } 
             />

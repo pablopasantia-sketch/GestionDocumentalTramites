@@ -242,6 +242,19 @@ export const tramitesService = {
   anular: async (id, motivo) => {
     const response = await api.post(`/tramites/${id}/anular`, { motivo });
     return response.data;
+  },
+  // Métodos del Escritorio Virtual (Sprint 3 - RF-04)
+  getBandeja: async (params = {}) => {
+    const response = await api.get('/tramites/bandeja', { params });
+    return response.data;
+  },
+  getBandejaResumen: async (params = {}) => {
+    const response = await api.get('/tramites/bandeja/resumen', { params });
+    return response.data;
+  },
+  recepcionar: async (id, data = {}) => {
+    const response = await api.post(`/tramites/${id}/recepcionar`, data);
+    return response.data;
   }
 };
 

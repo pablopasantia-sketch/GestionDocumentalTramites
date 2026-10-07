@@ -547,7 +547,252 @@ namespace GestionDocumental.Api.Data
                     INSERT INTO dbo.parametros (clave, valor, tipo_dato, descripcion, editable) VALUES ('CORRELATIVO_AUTO_RESET', 'TRUE', 'BOOLEAN', 'Reinicio automático de correlativo anual', 1);";
             using (var cmd = new SqlCommand(paramSql, conn)) await cmd.ExecuteNonQueryAsync();
 
+            // 9. Trámites de Prueba y Flujo de Trabajo (Escritorio Virtual - Sprint 3)
+            Console.WriteLine("🔹 Sembrando Trámites de Prueba para Escritorio Virtual (Sprint 3)...");
+            var tramitesSeedSql = @"
+                IF NOT EXISTS (SELECT 1 FROM dbo.tramites)
+                BEGIN
+                    DECLARE @Year INT = YEAR(GETDATE());
+                    DECLARE @Ahora DATETIME2 = GETDATE();
+                    DECLARE @Ayer DATETIME2 = DATEADD(DAY, -1, @Ahora);
+                    DECLARE @Hace2Dias DATETIME2 = DATEADD(DAY, -2, @Ahora);
+                    DECLARE @Hace3Dias DATETIME2 = DATEADD(DAY, -3, @Ahora);
+                    DECLARE @Hace5Dias DATETIME2 = DATEADD(DAY, -5, @Ahora);
+                    DECLARE @Hace10Dias DATETIME2 = DATEADD(DAY, -10, @Ahora);
+                    
+                    DECLARE @FechaVencida DATE = CAST(DATEADD(DAY, -2, @Ahora) AS DATE);
+                    DECLARE @FechaVigente DATE = CAST(DATEADD(DAY, 4, @Ahora) AS DATE);
 
+                    -- 1. Trámite CM-1: Correspondencia Externa (EN ATENCIÓN - UNI-SIS)
+                    INSERT INTO dbo.tramites (
+                        numero_correlativo, gestion, tipo_proceso_id, estado,
+                        remitente, institucion_remitente, cite_externo, referencia,
+                        tipo_corres, nro_hojas, nro_anexos, instruccion, prioridad,
+                        destinatario_nombre, destinatario_cargo, destinatario_unidad,
+                        primer_destinatario_id, fecha_creacion, fecha_limite_respuesta,
+                        creado_por, ubicacion_org_id, usuario_actual_id, ubicacion_actual_id,
+                        activo, created_at, updated_at
+                    ) VALUES (
+                        'CM-1/' + CAST(@Year AS VARCHAR), @Year, 1, 'EN_ATENCION',
+                        'Ing. Roberto Zeballos Morales', 'Ministerio de Obras Públicas y Telecomunicaciones', 'MOPSV-DGT-102/2026',
+                        'Solicitud de viabilidad técnica y compatibilidad de fibra óptica para el proyecto de modernización digital del Municipio de Sucre.',
+                        'CORRESPONDENCIA', 12, 2, 'Para su atención, análisis técnico de infraestructura y respuesta formal.', 'ALTA',
+                        'ADMINISTRADOR SISTEMA GENERAL', 'RESPONSABLE DE SISTEMAS', 'Unidad de Tecnologías de Información y Sistemas',
+                        1, @Hace3Dias, @FechaVigente,
+                        2, 3, 1, 6,
+                        1, @Hace3Dias, @Ahora
+                    );
+                    DECLARE @T1_ID INT = SCOPE_IDENTITY();
+
+                    INSERT INTO dbo.movimientos (
+                        tramite_id, orden, tipo_movimiento, actividad_nombre,
+                        usuario_origen_id, ubicacion_origen_id, usuario_destino_id, ubicacion_destino_id,
+                        estado_movimiento, proveido, instruccion, tiempo_estimado_minutos,
+                        fecha_recepcion, fecha_envio, created_at
+                    ) VALUES 
+                    (@T1_ID, 1, 'INICIO', 'Recepción en Ventanilla Única', 2, 3, 1, 6, 'DESPACHADO', 'Ingreso oficial por ventanilla. Derivado a Unidad de Sistemas.', 'Para informe técnico', 1440, @Hace3Dias, @Hace3Dias, @Hace3Dias),
+                    (@T1_ID, 2, 'RECEPCION', 'Atención en Unidad de Sistemas', 1, 6, 1, 6, 'EN_ATENCION', 'Documentación recibida. En revisión de planos técnicos de conectividad municipal.', 'En curso', 1440, @Hace2Dias, NULL, @Ayer);
+
+                    -- 2. Trámite CM-2: Solicitud URGENTE y VENCIDA (RF-04.8 - Alerta Roja)
+                    INSERT INTO dbo.tramites (
+                        numero_correlativo, gestion, tipo_proceso_id, estado,
+                        remitente, institucion_remitente, cite_externo, referencia,
+                        tipo_corres, nro_hojas, nro_anexos, instruccion, prioridad,
+                        destinatario_nombre, destinatario_cargo, destinatario_unidad,
+                        primer_destinatario_id, fecha_creacion, fecha_limite_respuesta,
+                        creado_por, ubicacion_org_id, usuario_actual_id, ubicacion_actual_id,
+                        activo, created_at, updated_at
+                    ) VALUES (
+                        'CM-2/' + CAST(@Year AS VARCHAR), @Year, 1, 'EN_ATENCION',
+                        'Lic. Carmen Arispe Benitez', 'Banco Unión S.A.', 'BU-SUC-892/2026',
+                        'Requerimiento urgente de renovación de certificados de seguridad y enlace API para pasarela de pagos tributarios RUAT.',
+                        'CORRESPONDENCIA', 6, 1, 'Atención prioritaria inmediata para evitar suspensión de recaudación bancaria.', 'URGENTE',
+                        'ADMINISTRADOR SISTEMA GENERAL', 'RESPONSABLE DE SISTEMAS', 'Unidad de Tecnologías de Información y Sistemas',
+                        1, @Hace10Dias, @FechaVencida,
+                        2, 3, 1, 6,
+                        1, @Hace10Dias, @Ayer
+                    );
+                    DECLARE @T2_ID INT = SCOPE_IDENTITY();
+
+                    INSERT INTO dbo.movimientos (
+                        tramite_id, orden, tipo_movimiento, actividad_nombre,
+                        usuario_origen_id, ubicacion_origen_id, usuario_destino_id, ubicacion_destino_id,
+                        estado_movimiento, proveido, instruccion, tiempo_estimado_minutos,
+                        fecha_recepcion, fecha_envio, created_at
+                    ) VALUES 
+                    (@T2_ID, 1, 'INICIO', 'Recepción en Ventanilla Única', 2, 3, 1, 6, 'DESPACHADO', 'Urgente por ventanilla. Pase a Sistemas.', 'Urgente', 720, @Hace10Dias, @Hace10Dias, @Hace10Dias),
+                    (@T2_ID, 2, 'RECEPCION', 'Revisión técnica de pasarela', 1, 6, 1, 6, 'EN_ATENCION', 'Recepción confirmada. Coordinando con soporte de pasarela.', 'Urgente', 720, @Hace5Dias, NULL, @Hace5Dias);
+
+                    -- 3. Trámite CDE1-1: Contrato Institucional POR RECIBIR (Pendiente de Recepción)
+                    INSERT INTO dbo.tramites (
+                        numero_correlativo, gestion, tipo_proceso_id, estado,
+                        remitente, institucion_remitente, cite_externo, referencia,
+                        tipo_corres, nro_hojas, nro_anexos, instruccion, prioridad,
+                        destinatario_nombre, destinatario_cargo, destinatario_unidad,
+                        primer_destinatario_id, fecha_creacion, fecha_limite_respuesta,
+                        creado_por, ubicacion_org_id, usuario_actual_id, ubicacion_actual_id,
+                        activo, created_at, updated_at
+                    ) VALUES (
+                        'CDE1-1/' + CAST(@Year AS VARCHAR), @Year, 2, 'POR_RECIBIR',
+                        'Dr. Gonzalo Valda Cardozo', 'Empresa de Servicios Informáticos Andina SRL', 'ESIA-LEG-045/2026',
+                        'Contrato administrativo de provisión, soporte y licenciamiento para servidores del Data Center Central del Gobierno Autónomo Municipal.',
+                        'CORRESPONDENCIA', 45, 3, 'Para revisión técnica de especificaciones y visto bueno antes de firma de despacho.', 'NORMAL',
+                        'ADMINISTRADOR SISTEMA GENERAL', 'RESPONSABLE DE SISTEMAS', 'Unidad de Tecnologías de Información y Sistemas',
+                        1, @Ayer, @FechaVigente,
+                        2, 3, 1, 6,
+                        1, @Ayer, @Ayer
+                    );
+                    DECLARE @T3_ID INT = SCOPE_IDENTITY();
+
+                    INSERT INTO dbo.movimientos (
+                        tramite_id, orden, tipo_movimiento, actividad_nombre,
+                        usuario_origen_id, ubicacion_origen_id, usuario_destino_id, ubicacion_destino_id,
+                        estado_movimiento, proveido, instruccion, tiempo_estimado_minutos,
+                        fecha_recepcion, fecha_envio, created_at
+                    ) VALUES 
+                    (@T3_ID, 1, 'INICIO', 'Recepción en Ventanilla Única', 2, 3, 1, 6, 'POR_RECIBIR', 'Despachado en carpeta oficial. Pendiente de recepción por Sistemas.', 'Para VoBo Técnico', 4320, NULL, @Ayer, @Ayer);
+
+                    -- 4. Trámite CDE2-1: Convenio ATENDIDO listo para despachar
+                    INSERT INTO dbo.tramites (
+                        numero_correlativo, gestion, tipo_proceso_id, estado,
+                        remitente, institucion_remitente, cite_externo, referencia,
+                        tipo_corres, nro_hojas, nro_anexos, instruccion, prioridad,
+                        destinatario_nombre, destinatario_cargo, destinatario_unidad,
+                        primer_destinatario_id, fecha_creacion, fecha_limite_respuesta,
+                        creado_por, ubicacion_org_id, usuario_actual_id, ubicacion_actual_id,
+                        activo, created_at, updated_at
+                    ) VALUES (
+                        'CDE2-1/' + CAST(@Year AS VARCHAR), @Year, 3, 'ATENDIDO',
+                        'Rectorado USFX', 'Universidad Mayor, Real y Pontificia de San Francisco Xavier de Chuquisaca', 'USFX-REC-332/2026',
+                        'Convenio marco de cooperación interinstitucional para pasantías académicas e investigación en sistemas de información geográfica.',
+                        'CORRESPONDENCIA', 18, 1, 'Atendido satisfactoriamente. Con informe favorable adjunto.', 'NORMAL',
+                        'ADMINISTRADOR SISTEMA GENERAL', 'RESPONSABLE DE SISTEMAS', 'Unidad de Tecnologías de Información y Sistemas',
+                        1, @Hace5Dias, @FechaVigente,
+                        2, 3, 1, 6,
+                        1, @Hace5Dias, @Ahora
+                    );
+                    DECLARE @T4_ID INT = SCOPE_IDENTITY();
+
+                    INSERT INTO dbo.movimientos (
+                        tramite_id, orden, tipo_movimiento, actividad_nombre,
+                        usuario_origen_id, ubicacion_origen_id, usuario_destino_id, ubicacion_destino_id,
+                        estado_movimiento, proveido, instruccion, tiempo_estimado_minutos,
+                        fecha_recepcion, fecha_envio, created_at
+                    ) VALUES 
+                    (@T4_ID, 1, 'INICIO', 'Recepción en Ventanilla', 2, 3, 1, 6, 'DESPACHADO', 'Ingresado por ventanilla.', 'Atención', 2880, @Hace5Dias, @Hace5Dias, @Hace5Dias),
+                    (@T4_ID, 2, 'EVALUACION', 'Evaluación técnica de Sistemas', 1, 6, 1, 6, 'ATENDIDO', 'Informe técnico INF-TIC-08/2026 elaborado con visto bueno favorable. Listo para remitir a Dirección Jurídica.', 'Concluido informe', 2880, @Hace3Dias, NULL, @Ayer);
+
+                    -- 5. Trámite CM-3: DESPACHADO por Sistemas hacia Dirección Jurídica
+                    INSERT INTO dbo.tramites (
+                        numero_correlativo, gestion, tipo_proceso_id, estado,
+                        remitente, institucion_remitente, cite_externo, referencia,
+                        tipo_corres, nro_hojas, nro_anexos, instruccion, prioridad,
+                        destinatario_nombre, destinatario_cargo, destinatario_unidad,
+                        primer_destinatario_id, fecha_creacion, fecha_limite_respuesta,
+                        creado_por, ubicacion_org_id, usuario_actual_id, ubicacion_actual_id,
+                        activo, created_at, updated_at
+                    ) VALUES (
+                        'CM-3/' + CAST(@Year AS VARCHAR), @Year, 1, 'POR_RECIBIR',
+                        'ADMINISTRADOR SISTEMA GENERAL', 'Unidad de Tecnologías de Información y Sistemas', 'INF-TIC-05/2026',
+                        'Informe pericial técnico sobre derechos de autor y licencias de software propietario para el Concejo Municipal.',
+                        'CORRESPONDENCIA', 8, 1, 'Para criterio legal y elaboración de resolución municipal.', 'ALTA',
+                        'JUAN CARLOS SANCHEZ MENDOZA', 'ASESOR LEGAL', 'Dirección Jurídica',
+                        6, @Hace3Dias, @FechaVigente,
+                        1, 6, 6, 4,
+                        1, @Hace3Dias, @Ayer
+                    );
+                    DECLARE @T5_ID INT = SCOPE_IDENTITY();
+
+                    INSERT INTO dbo.movimientos (
+                        tramite_id, orden, tipo_movimiento, actividad_nombre,
+                        usuario_origen_id, ubicacion_origen_id, usuario_destino_id, ubicacion_destino_id,
+                        estado_movimiento, proveido, instruccion, tiempo_estimado_minutos,
+                        fecha_recepcion, fecha_envio, created_at
+                    ) VALUES 
+                    (@T5_ID, 1, 'DESPACHO', 'Despacho desde Sistemas a Jurídica', 1, 6, 6, 4, 'POR_RECIBIR', 'Se remite informe técnico pericial foliado. Favor proceder con análisis de legalidad.', 'Para informe legal', 1440, NULL, @Ayer, @Ayer);
+
+                    -- 6. Trámite CDH1-1: Condecoración para Funcionario Carlos Mamani (id 3)
+                    INSERT INTO dbo.tramites (
+                        numero_correlativo, gestion, tipo_proceso_id, estado,
+                        remitente, institucion_remitente, cite_externo, referencia,
+                        tipo_corres, nro_hojas, nro_anexos, instruccion, prioridad,
+                        destinatario_nombre, destinatario_cargo, destinatario_unidad,
+                        primer_destinatario_id, fecha_creacion, fecha_limite_respuesta,
+                        creado_por, ubicacion_org_id, usuario_actual_id, ubicacion_actual_id,
+                        activo, created_at, updated_at
+                    ) VALUES (
+                        'CDH1-1/' + CAST(@Year AS VARCHAR), @Year, 4, 'EN_ATENCION',
+                        'Comité Cívico de Chuquisaca', 'Comité Cívico de los Intereses de Chuquisaca', 'CCICH-SUC-12/2026',
+                        'Postulación oficial de personalidades e instituciones meritorias para la Condecoración Gran Mariscal de Ayacucho - Bicentenario.',
+                        'CORRESPONDENCIA', 14, 2, 'Para compulsa de antecedentes curriculares y verificación de requisitos.', 'NORMAL',
+                        'CARLOS MAMANI QUISPE', 'ANALISTA DE SISTEMAS', 'Unidad de Tecnologías de Información y Sistemas',
+                        3, @Hace5Dias, @FechaVigente,
+                        2, 3, 3, 6,
+                        1, @Hace5Dias, @Ayer
+                    );
+                    DECLARE @T6_ID INT = SCOPE_IDENTITY();
+
+                    INSERT INTO dbo.movimientos (
+                        tramite_id, orden, tipo_movimiento, actividad_nombre,
+                        usuario_origen_id, ubicacion_origen_id, usuario_destino_id, ubicacion_destino_id,
+                        estado_movimiento, proveido, instruccion, tiempo_estimado_minutos,
+                        fecha_recepcion, fecha_envio, created_at
+                    ) VALUES 
+                    (@T6_ID, 1, 'INICIO', 'Recepción en Ventanilla Única', 2, 3, 3, 6, 'DESPACHADO', 'Pase a analista asignado.', 'Para verificación', 2880, @Hace5Dias, @Hace5Dias, @Hace5Dias),
+                    (@T6_ID, 2, 'REVISION', 'Verificación de expediente', 3, 6, 3, 6, 'EN_ATENCION', 'Expediente recepcionado. Verificando antecedentes de postulantes.', 'En curso', 2880, @Hace3Dias, NULL, @Ayer);
+
+                    -- 7. Trámite CM-4: Trámite para Juan Carlos Sánchez (id 6, DIR-JUR)
+                    INSERT INTO dbo.tramites (
+                        numero_correlativo, gestion, tipo_proceso_id, estado,
+                        remitente, institucion_remitente, cite_externo, referencia,
+                        tipo_corres, nro_hojas, nro_anexos, instruccion, prioridad,
+                        destinatario_nombre, destinatario_cargo, destinatario_unidad,
+                        primer_destinatario_id, fecha_creacion, fecha_limite_respuesta,
+                        creado_por, ubicacion_org_id, usuario_actual_id, ubicacion_actual_id,
+                        activo, created_at, updated_at
+                    ) VALUES (
+                        'CM-4/' + CAST(@Year AS VARCHAR), @Year, 1, 'EN_ATENCION',
+                        'Junta Vecinal Distrito 2', 'Asociación Comunitaria de Juntas Vecinales', 'JV-D2-44/2026',
+                        'Demanda de cesión de terrenos municipales para construcción de módulo policial y posta de salud vecinal.',
+                        'CORRESPONDENCIA', 22, 1, 'Para emisión de dictamen técnico-jurídico sobre derecho propietario municipal.', 'NORMAL',
+                        'JUAN CARLOS SANCHEZ MENDOZA', 'ASESOR LEGAL', 'Dirección Jurídica',
+                        6, @Hace3Dias, @FechaVigente,
+                        2, 3, 6, 4,
+                        1, @Hace3Dias, @Ayer
+                    );
+                    DECLARE @T7_ID INT = SCOPE_IDENTITY();
+
+                    INSERT INTO dbo.movimientos (
+                        tramite_id, orden, tipo_movimiento, actividad_nombre,
+                        usuario_origen_id, ubicacion_origen_id, usuario_destino_id, ubicacion_destino_id,
+                        estado_movimiento, proveido, instruccion, tiempo_estimado_minutos,
+                        fecha_recepcion, fecha_envio, created_at
+                    ) VALUES 
+                    (@T7_ID, 1, 'INICIO', 'Recepción en Ventanilla', 2, 3, 6, 4, 'DESPACHADO', 'Derivado a Jurídica.', 'Dictamen legal', 1440, @Hace3Dias, @Hace3Dias, @Hace3Dias),
+                    (@T7_ID, 2, 'ANALISIS', 'Análisis en Dirección Jurídica', 6, 4, 6, 4, 'EN_ATENCION', 'Revisando folio real en Catastro y Derechos Reales.', 'En estudio', 1440, @Ayer, NULL, @Ayer);
+
+                    -- Inicializar correlativos
+                    IF NOT EXISTS (SELECT 1 FROM dbo.correlativos WHERE gestion = @Year)
+                    BEGIN
+                        INSERT INTO dbo.correlativos (tipo_proceso_id, ubicacion_org_id, gestion, ultimo_numero, formato_patron, created_at, updated_at)
+                        VALUES 
+                        (1, 3, @Year, 4, '{CODIGO}-{NUMERO}/{GESTION}', @Ahora, @Ahora),
+                        (2, 3, @Year, 1, '{CODIGO}-{NUMERO}/{GESTION}', @Ahora, @Ahora),
+                        (3, 3, @Year, 1, '{CODIGO}-{NUMERO}/{GESTION}', @Ahora, @Ahora),
+                        (4, 3, @Year, 1, '{CODIGO}-{NUMERO}/{GESTION}', @Ahora, @Ahora);
+                    END;
+
+                    -- Documentos PDF adjuntos simulados
+                    INSERT INTO dbo.adjuntos (
+                        tramite_id, movimiento_id, nombre_original, nombre_almacenado,
+                        ruta_archivo, tamano_bytes, tipo_mime, subido_por, activo, created_at
+                    ) VALUES 
+                    (@T1_ID, 1, 'Oficio_MOPSV_FibraOptica_2026.pdf', 'adj_t1_1.pdf', 'Uploads/2026/adj_t1_1.pdf', 245890, 'application/pdf', 2, 1, @Hace3Dias),
+                    (@T1_ID, 1, 'Especificaciones_Tecnicas_Red.pdf', 'adj_t1_2.pdf', 'Uploads/2026/adj_t1_2.pdf', 589410, 'application/pdf', 2, 1, @Hace3Dias),
+                    (@T2_ID, 1, 'Requerimiento_Certificados_BancoUnion.pdf', 'adj_t2_1.pdf', 'Uploads/2026/adj_t2_1.pdf', 182300, 'application/pdf', 2, 1, @Hace10Dias),
+                    (@T3_ID, 1, 'Contrato_DataCenter_AndinaSRL.pdf', 'adj_t3_1.pdf', 'Uploads/2026/adj_t3_1.pdf', 1240500, 'application/pdf', 2, 1, @Ayer);
+                END;";
+            using (var cmd = new SqlCommand(tramitesSeedSql, conn)) await cmd.ExecuteNonQueryAsync();
 
             Console.WriteLine("\n🎉 ¡Datos iniciales y de prueba sembrados exitosamente en SQL Server!");
             Console.WriteLine("Credenciales disponibles (Contraseña para todos: admin123):");

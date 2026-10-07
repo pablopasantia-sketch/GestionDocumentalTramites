@@ -142,6 +142,167 @@ namespace GestionDocumental.Api.Controllers
             return Ok(ApiResponse<List<TramiteListItemDto>>.Ok(list));
         }
 
+        /// <summary>
+        /// Obtener trámites de la bandeja de trabajo para el Escritorio Virtual (RF-04)
+        /// Bandejas: RECIBIDOS (pendientes), DESPACHADOS (enviados), TODOS
+        /// </summary>
+        [Authorize]
+        [HttpGet("bandeja")]
+        public async Task<IActionResult> GetBandeja(
+            [FromQuery] string? bandeja = "RECIBIDOS",
+            [FromQuery] string? categoria = "TODOS",
+            [FromQuery] string? estado = "TODOS",
+            [FromQuery] string? search = null,
+            [FromQuery] int? gestion = null,
+            [FromQuery] bool? soloVencidos = false,
+            [FromQuery] bool? verGlobal = false,
+            [FromQuery] int limit = 50,
+            [FromQuery] int offset = 0)
+        {
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+
+            var rolCodigo = User.FindFirst("rolCodigo")?.Value ?? User.FindFirst(ClaimTypes.Role)?.Value;
+            bool esAdmin = rolCodigo == "ADMIN_SISTEMA" || rolCodigo == "ADMIN_TRAMITES";
+            bool aplicarGlobal = (verGlobal == true) && esAdmin;
+
+            var list = await _sp.QueryAsync(
+                "dbo.usp_Escritorio_ListarBandeja",
+                reader => new BandejaItemDto
+                {
+                    Id = reader.GetSafeInt32("id"),
+                    NumeroCorrelativo = reader.GetSafeString("numero_correlativo"),
+                    Gestion = reader.GetSafeInt32("gestion"),
+                    TipoProcesoId = reader.GetSafeInt32("tipo_proceso_id"),
+                    TipoProcesoCodigo = reader.GetSafeString("tipo_proceso_codigo"),
+                    TipoProcesoNombre = reader.GetSafeString("tipo_proceso_nombre"),
+                    TipoCategoria = reader.GetSafeString("tipo_categoria"),
+                    Remitente = reader.GetSafeString("remitente"),
+                    InstitucionRemitente = reader.GetNullableString("institucion_remitente"),
+                    CiteExterno = reader.GetNullableString("cite_externo"),
+                    Referencia = reader.GetSafeString("referencia"),
+                    Prioridad = reader.GetSafeString("prioridad"),
+                    NroHojas = reader.GetSafeInt32("nro_hojas", 1),
+                    NroAnexos = reader.GetSafeInt32("nro_anexos", 0),
+                    Estado = reader.GetSafeString("estado"),
+                    ActividadActual = reader.GetSafeString("actividad_actual"),
+                    DestinatarioNombre = reader.GetNullableString("destinatario_nombre"),
+                    DestinatarioCargo = reader.GetNullableString("destinatario_cargo"),
+                    DestinatarioUnidad = reader.GetNullableString("destinatario_unidad"),
+                    UsuarioActualId = reader.GetNullableInt32("usuario_actual_id"),
+                    UsuarioActualNombre = reader.GetNullableString("usuario_actual_nombre"),
+                    UbicacionActualId = reader.GetNullableInt32("ubicacion_actual_id"),
+                    UbicacionActualNombre = reader.GetNullableString("ubicacion_actual_nombre"),
+                    FechaCreacion = reader.GetSafeDateTime("fecha_creacion"),
+                    FechaEnvio = reader.GetNullableDateTime("fecha_envio"),
+                    FechaRecepcion = reader.GetNullableDateTime("fecha_recepcion"),
+                    FechaLimiteRespuesta = reader.GetNullableDateTime("fecha_limite_respuesta"),
+                    EsVencido = reader.GetSafeInt32("es_vencido") == 1,
+                    DiasRestantes = reader.GetNullableInt32("dias_restantes"),
+                    NroAdjuntos = reader.GetSafeInt32("nro_adjuntos"),
+                    UltimoProveido = reader.GetNullableString("ultimo_proveido"),
+                    BandejaTipo = reader.GetSafeString("bandeja_tipo")
+                },
+                new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId },
+                new SqlParameter("@UbicacionOrgId", SqlDbType.Int) { Value = (object?)ubicacionId ?? DBNull.Value },
+                new SqlParameter("@Bandeja", SqlDbType.VarChar, 30) { Value = (bandeja ?? "RECIBIDOS").ToUpperInvariant() },
+                new SqlParameter("@Categoria", SqlDbType.VarChar, 30) { Value = string.IsNullOrWhiteSpace(categoria) || categoria == "TODOS" ? DBNull.Value : categoria.ToUpperInvariant() },
+                new SqlParameter("@Estado", SqlDbType.VarChar, 30) { Value = string.IsNullOrWhiteSpace(estado) || estado == "TODOS" ? DBNull.Value : estado.ToUpperInvariant() },
+                new SqlParameter("@Search", SqlDbType.NVarChar, 100) { Value = (object?)search?.Trim() ?? DBNull.Value },
+                new SqlParameter("@Gestion", SqlDbType.Int) { Value = (object?)gestion ?? DBNull.Value },
+                new SqlParameter("@SoloVencidos", SqlDbType.Bit) { Value = soloVencidos == true ? 1 : 0 },
+                new SqlParameter("@VerGlobal", SqlDbType.Bit) { Value = aplicarGlobal ? 1 : 0 },
+                new SqlParameter("@Limit", SqlDbType.Int) { Value = limit },
+                new SqlParameter("@Offset", SqlDbType.Int) { Value = offset }
+            );
+
+            return Ok(ApiResponse<List<BandejaItemDto>>.Ok(list));
+        }
+
+        /// <summary>
+        /// Obtener métricas y resumen numérico de las bandejas (KPIs para Escritorio Virtual)
+        /// </summary>
+        [Authorize]
+        [HttpGet("bandeja/resumen")]
+        public async Task<IActionResult> GetBandejaResumen([FromQuery] int? gestion, [FromQuery] bool? verGlobal = false)
+        {
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+
+            var rolCodigo = User.FindFirst("rolCodigo")?.Value ?? User.FindFirst(ClaimTypes.Role)?.Value;
+            bool esAdmin = rolCodigo == "ADMIN_SISTEMA" || rolCodigo == "ADMIN_TRAMITES";
+            bool aplicarGlobal = (verGlobal == true) && esAdmin;
+
+            int year = gestion ?? DateTime.UtcNow.Year;
+
+            var resumen = await _sp.QueryFirstOrDefaultAsync(
+                "dbo.usp_Escritorio_ObtenerResumen",
+                reader => new BandejaResumenDto
+                {
+                    Gestion = reader.GetSafeInt32("gestion", year),
+                    TotalBandeja = reader.GetSafeInt32("total_bandeja"),
+                    PorRecibir = reader.GetSafeInt32("por_recibir"),
+                    EnAtencion = reader.GetSafeInt32("en_atencion"),
+                    Atendidos = reader.GetSafeInt32("atendidos"),
+                    TotalDespachados = reader.GetSafeInt32("total_despachados"),
+                    DespachadosSinConfirmar = reader.GetSafeInt32("despachados_sin_confirmar"),
+                    DespachadosConfirmados = reader.GetSafeInt32("despachados_confirmados"),
+                    Vencidos = reader.GetSafeInt32("vencidos"),
+                    Urgentes = reader.GetSafeInt32("urgentes")
+                },
+                new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId },
+                new SqlParameter("@UbicacionOrgId", SqlDbType.Int) { Value = (object?)ubicacionId ?? DBNull.Value },
+                new SqlParameter("@Gestion", SqlDbType.Int) { Value = year },
+                new SqlParameter("@VerGlobal", SqlDbType.Bit) { Value = aplicarGlobal ? 1 : 0 }
+            );
+
+            resumen ??= new BandejaResumenDto { Gestion = year };
+
+            return Ok(ApiResponse<BandejaResumenDto>.Ok(resumen));
+        }
+
+        /// <summary>
+        /// Confirmar recepción de un trámite despachado (RF-04.3, Sprint 3)
+        /// Transición de estado: POR_RECIBIR / EN_TRANSITO -> EN_ATENCION
+        /// </summary>
+        [Authorize]
+        [HttpPost("{id}/recepcionar")]
+        public async Task<IActionResult> Recepcionar(int id, [FromBody] RecepcionarTramiteDto? dto)
+        {
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+            if (ubicacionId <= 0) ubicacionId = 1;
+
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_Recepcionar",
+                    new SqlParameter("@TramiteId", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@UbicacionOrgId", SqlDbType.Int) { Value = ubicacionId },
+                    new SqlParameter("@Proveido", SqlDbType.NVarChar, -1) { Value = (object?)dto?.Proveido?.Trim() ?? DBNull.Value }
+                );
+
+                return Ok(ApiResponse.SuccessResult("Recepción confirmada exitosamente. El trámite se encuentra en su bandeja En Atención."));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+        }
+
         [Authorize]
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats([FromQuery] int? gestion)

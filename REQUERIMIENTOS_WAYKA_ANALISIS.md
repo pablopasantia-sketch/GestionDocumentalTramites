@@ -584,10 +584,10 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 - [x] Migración total a Stored Procedures (SPs) fuertemente tipados en SQL Server (`usp_*`).
 
 ### Sprint 3 (29 Sep - 12 Oct): Flujo directo de trabajo
-- [ ] Escritorio Virtual con bandejas (pendientes, recibidos, despachados)
+- [x] Escritorio Virtual con bandejas (pendientes, recibidos, despachados)
 - [ ] Derivación libre (Avanzar) con selección de destinatarios
 - [ ] Retroceder proceso (con justificación)
-- [ ] Recepcionar proceso
+- [x] Recepcionar proceso
 - [ ] Detalle histórico del proceso (trazabilidad y auditoría)
 
 ### Sprint 4 (13 Oct - 26 Oct): Administración y Hoja de Ruta
