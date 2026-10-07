@@ -223,30 +223,26 @@ test.describe('Sprint 1 E2E - Módulo de Administración de Sistemas', () => {
     await modalUnidad.locator('button[type="submit"]:has-text("Registrar Unidad")').click();
     await expect(page.locator('text=creada exitosamente')).toBeVisible({ timeout: 10000 });
 
-    // 3.2 Verificar en Catálogo "Direcciones y Unidades"
-    const btnDirecciones = page.locator('button:has-text("Direcciones y Unidades")');
-    await btnDirecciones.click();
-    const searchUnidad = page.locator('input[placeholder*="Buscar por código o nombre"]');
+    // 3.2 Verificar presencia en la vista unificada (Árbol y Tabla con Cargos Registrados)
+    const tabUnidades = page.locator('button:has-text("Estructura y Unidades Orgánicas")');
+    await expect(tabUnidades).toBeVisible();
+
+    // Verificar en la Vista de Lista (Tabla)
+    const searchUnidad = page.locator('input[placeholder*="Buscar por código, nombre o sigla"]');
     await searchUnidad.fill(nombUnidad);
-    const rowUnidad = page.locator(`table.table-sucre tr:has-text("${nombUnidad}")`);
+    const rowUnidad = page.locator(`table tr:has-text("${nombUnidad}")`);
     await expect(rowUnidad).toBeVisible();
+    await expect(rowUnidad.locator('span:has-text("0 cargo(s)")')).toBeVisible();
 
     // 3.3 Verificar presencia en el "Árbol Jerárquico Visual"
-    const btnArbol = page.locator('button:has-text("Árbol Jerárquico Visual")');
-    await btnArbol.click();
     await expect(page.locator('text=Vista de Árbol Jerárquico')).toBeVisible();
     await page.locator('button:has-text("Expandir todo")').click();
     
-    // Verificar dentro del contenedor del organigrama
     const treeContainer = page.locator('.card:has-text("Vista de Árbol Jerárquico")');
     await expect(treeContainer.locator(`span:has-text("${nombUnidad}")`).first()).toBeVisible();
 
     // 3.4 Editar Unidad Orgánica
-    const btnDirectorios = page.locator('button:has-text("Directorio Institucional")');
-    await btnDirectorios.click();
-    await btnDirecciones.click();
-    await searchUnidad.fill(nombUnidad);
-    await rowUnidad.locator('button[title="Editar Unidad"]').click();
+    await rowUnidad.locator('button[title="Editar unidad"]').click();
     await expect(page.locator('text=Editar Unidad Orgánica')).toBeVisible();
 
     const nombUnidadEditada = `${nombUnidad} EDITADA`;
@@ -254,7 +250,7 @@ test.describe('Sprint 1 E2E - Módulo de Administración de Sistemas', () => {
     await page.locator('.modal-dialog button[type="submit"]:has-text("Actualizar Unidad")').click();
     await expect(page.locator('text=actualizada exitosamente')).toBeVisible({ timeout: 10000 });
 
-    // 3.5 Crear Cargo Institucional
+    // 3.5 Crear Cargo Institucional en la sub-pestaña "Cargos Institucionales"
     const btnCargos = page.locator('button:has-text("Cargos Institucionales")');
     await btnCargos.click();
     await page.locator('button:has-text("Nuevo Cargo")').click();
@@ -289,16 +285,16 @@ test.describe('Sprint 1 E2E - Módulo de Administración de Sistemas', () => {
     await page.locator('.modal-dialog button:has-text("Sí, Eliminar")').click();
     await expect(page.locator('text=No se encontraron cargos institucionales que coincidan').or(page.locator('text=eliminado exitosamente'))).toBeVisible({ timeout: 10000 });
 
-    // 3.8 Eliminar Unidad Orgánica
-    await btnDirecciones.click();
+    // 3.8 Volver a "Estructura y Unidades Orgánicas" y Eliminar la Unidad
+    await tabUnidades.click();
     await searchUnidad.fill(nombUnidadEditada);
-    const rowUnidadModificada = page.locator(`table.table-sucre tr:has-text("${nombUnidadEditada}")`);
+    const rowUnidadModificada = page.locator(`table tr:has-text("${nombUnidadEditada}")`);
     await expect(rowUnidadModificada).toBeVisible();
 
-    await rowUnidadModificada.locator('button[title="Desactivar / Eliminar Unidad"]').click();
-    await expect(page.locator('text=Confirmar Eliminación')).toBeVisible();
-    await page.locator('.modal-dialog button:has-text("Sí, Eliminar")').click();
-    await expect(page.locator('text=dada de baja exitosamente').or(page.locator('text=correctamente'))).toBeVisible({ timeout: 10000 });
+    await rowUnidadModificada.locator('button[title="Dar de baja"]').click();
+    await expect(page.locator('text=Confirmar Baja Lógica')).toBeVisible();
+    await page.locator('.modal-dialog button:has-text("Confirmar Baja")').click();
+    await expect(page.locator('text=dada de baja').or(page.locator('text=correctamente'))).toBeVisible({ timeout: 10000 });
   });
 
 });

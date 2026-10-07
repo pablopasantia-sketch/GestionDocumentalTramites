@@ -16,8 +16,14 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-export default function InstitucionalCatalogosManager({ onOpenNuevaUnidad, onEditUnidad, refreshKey }) {
-  const [subTab, setSubTab] = useState('unidades'); // 'unidades' | 'cargos'
+export default function InstitucionalCatalogosManager({ 
+  onOpenNuevaUnidad, 
+  onEditUnidad, 
+  refreshKey,
+  hideUnidades = false,
+  defaultTab = 'cargos'
+}) {
+  const [subTab, setSubTab] = useState(hideUnidades ? 'cargos' : defaultTab);
   
   // Datos
   const [unidades, setUnidades] = useState([]);
@@ -222,59 +228,90 @@ export default function InstitucionalCatalogosManager({ onOpenNuevaUnidad, onEdi
       )}
 
       {/* Sub-Navegación de Catálogos */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={() => { setSubTab('unidades'); setSearchTerm(''); }}
-            className={`btn btn-sm ${subTab === 'unidades' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <Building2 size={15} />
-            <span>Direcciones y Unidades</span>
-            <span style={{ 
-              marginLeft: '4px', 
-              fontSize: '0.75rem', 
-              padding: '1px 6px', 
-              borderRadius: '10px', 
-              backgroundColor: subTab === 'unidades' ? 'rgba(255,255,255,0.25)' : 'var(--color-border)' 
-            }}>
-              {unidades.length}
-            </span>
-          </button>
+      {!hideUnidades ? (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => { setSubTab('unidades'); setSearchTerm(''); }}
+              className={`btn btn-sm ${subTab === 'unidades' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Building2 size={15} />
+              <span>Direcciones y Unidades</span>
+              <span style={{ 
+                marginLeft: '4px', 
+                fontSize: '0.75rem', 
+                padding: '1px 6px', 
+                borderRadius: '10px', 
+                backgroundColor: subTab === 'unidades' ? 'rgba(255,255,255,0.25)' : 'var(--color-border)' 
+              }}>
+                {unidades.length}
+              </span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => { setSubTab('cargos'); setSearchTerm(''); }}
-            className={`btn btn-sm ${subTab === 'cargos' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <Briefcase size={15} />
-            <span>Cargos Institucionales</span>
-            <span style={{ 
-              marginLeft: '4px', 
-              fontSize: '0.75rem', 
-              padding: '1px 6px', 
-              borderRadius: '10px', 
-              backgroundColor: subTab === 'cargos' ? 'rgba(255,255,255,0.25)' : 'var(--color-border)' 
-            }}>
-              {cargos.length}
-            </span>
-          </button>
+            <button
+              type="button"
+              onClick={() => { setSubTab('cargos'); setSearchTerm(''); }}
+              className={`btn btn-sm ${subTab === 'cargos' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Briefcase size={15} />
+              <span>Cargos Institucionales</span>
+              <span style={{ 
+                marginLeft: '4px', 
+                fontSize: '0.75rem', 
+                padding: '1px 6px', 
+                borderRadius: '10px', 
+                backgroundColor: subTab === 'cargos' ? 'rgba(255,255,255,0.25)' : 'var(--color-border)' 
+              }}>
+                {cargos.length}
+              </span>
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              onClick={loadAll} 
+              disabled={loading} 
+              className="btn btn-secondary btn-sm"
+              title="Recargar datos de DB_TRAMITES_EXTERNOS"
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              <span>Actualizar</span>
+            </button>
+
+            {subTab === 'cargos' && (
+              <button 
+                onClick={handleOpenNuevoCargo} 
+                className="btn btn-primary btn-sm"
+                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Plus size={15} />
+                <span>Nuevo Cargo</span>
+              </button>
+            )}
+          </div>
         </div>
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Briefcase size={18} color="#800000" />
+            <span style={{ fontWeight: 700, color: '#1B365D', fontSize: '1.05rem' }}>Catálogo Oficial de Cargos Institucionales</span>
+            <span className="badge badge-sucre" style={{ marginLeft: '4px' }}>{cargos.length} cargo(s)</span>
+          </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            onClick={loadAll} 
-            disabled={loading} 
-            className="btn btn-secondary btn-sm"
-            title="Recargar datos de DB_TRAMITES_EXTERNOS"
-          >
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-            <span>Actualizar</span>
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              onClick={loadAll} 
+              disabled={loading} 
+              className="btn btn-secondary btn-sm"
+              title="Recargar datos de DB_TRAMITES_EXTERNOS"
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              <span>Actualizar</span>
+            </button>
 
-          {subTab === 'cargos' && (
             <button 
               onClick={handleOpenNuevoCargo} 
               className="btn btn-primary btn-sm"
@@ -283,9 +320,9 @@ export default function InstitucionalCatalogosManager({ onOpenNuevaUnidad, onEdi
               <Plus size={15} />
               <span>Nuevo Cargo</span>
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Barra de Filtros y Búsqueda */}
       <div className="card" style={{ padding: '12px 16px', marginBottom: '1.25rem' }}>

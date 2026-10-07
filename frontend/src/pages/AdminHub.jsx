@@ -25,14 +25,16 @@ import {
   Landmark,
   ArrowLeft,
   RotateCcw,
-  GitBranch
+  GitBranch,
+  Briefcase
 } from 'lucide-react';
 import {
   personasService,
   usuariosService,
   rolesService,
   usuarioRolesService,
-  ubicacionesService
+  ubicacionesService,
+  institucionalService
 } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import InstitucionalSelectors from '../components/institucional/InstitucionalSelectors';
@@ -89,7 +91,7 @@ export default function AdminHub() {
   }
 
   const [activeTab, setActiveTab] = useState('personas'); // 'personas' | 'usuarios' | 'roles' | 'estructura' | 'tipos_externos'
-  const [estructuraSubTab, setEstructuraSubTab] = useState('catalogos'); // 'catalogos' | 'arbol'
+  const [estructuraSubTab, setEstructuraSubTab] = useState('unidades'); // 'unidades' | 'cargos'
   const [catalogosRefreshKey, setCatalogosRefreshKey] = useState(0);
 
   // Datos del backend
@@ -97,6 +99,7 @@ export default function AdminHub() {
   const [usuarios, setUsuarios] = useState([]);
   const [roles, setRoles] = useState([]);
   const [ubicaciones, setUbicaciones] = useState([]);
+  const [cargos, setCargos] = useState([]);
 
   // Estados de carga y feedback
   const [loading, setLoading] = useState(true);
@@ -181,26 +184,42 @@ export default function AdminHub() {
     loadAllData();
   }, []);
 
+  useEffect(() => {
+    institucionalService.getCargos().then(res => {
+      const list = Array.isArray(res) ? res : (res?.data || []);
+      setCargos(list);
+    }).catch(console.error);
+  }, [catalogosRefreshKey]);
+
   const loadAllData = async () => {
     setLoading(true);
     try {
-      const [resPers, resUsr, resRol, resUbic] = await Promise.all([
+      const [resPers, resUsr, resRol, resUbic, resCargos] = await Promise.all([
         personasService.getAll({ search: '', activo: 'all' }),
         usuariosService.getAll({ search: '', activo: 'all' }),
         rolesService.getAll(),
-        ubicacionesService.getAll({ search: '', activo: 'all' })
+        ubicacionesService.getAll({ search: '', activo: 'all' }),
+        institucionalService.getCargos()
       ]);
 
       if (resPers.success) setPersonas(resPers.data || []);
       if (resUsr.success) setUsuarios(resUsr.data || []);
       if (resRol.success) setRoles(resRol.data || []);
       if (resUbic.success) setUbicaciones(resUbic.data || []);
+      const listCargos = Array.isArray(resCargos) ? resCargos : (resCargos?.data || []);
+      setCargos(listCargos);
     } catch (err) {
       console.error('Error al cargar datos administrativos:', err);
       showFeedbackMsg('error', 'No se pudieron cargar los datos del panel administrativo.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const getCargosCount = (u) => {
+    if (!u) return 0;
+    const cod = u.cod_u || u.codU || u.id;
+    return cargos.filter(c => c.codU === cod || String(c.codU) === String(cod)).length;
   };
 
   const showFeedbackMsg = (type, message) => {
@@ -750,6 +769,14 @@ export default function AdminHub() {
                 ({node.sigla})
               </span>
             )}
+            {(() => {
+              const cCount = getCargosCount(node);
+              return cCount > 0 ? (
+                <span className="badge badge-sucre" style={{ fontSize: '0.72rem', padding: '1px 6px' }}>
+                  {cCount} cargo(s)
+                </span>
+              ) : null;
+            })()}
             {!node.activo && (
               <span className="badge badge-inactive" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
                 Baja
@@ -1487,7 +1514,7 @@ export default function AdminHub() {
               <button
                 type="button"
                 onClick={() => {
-                  setEstructuraSubTab('catalogos');
+                  setEstructuraSubTab('unidades');
                   setSearchTerm('');
                 }}
                 style={{
@@ -1496,34 +1523,9 @@ export default function AdminHub() {
                   gap: '8px',
                   padding: '8px 16px',
                   borderRadius: '6px',
-                  border: estructuraSubTab === 'catalogos' ? '1px solid #800000' : '1px solid #DEE2E6',
-                  background: estructuraSubTab === 'catalogos' ? '#800000' : '#F8F9FA',
-                  color: estructuraSubTab === 'catalogos' ? '#FFFFFF' : '#495057',
-                  fontWeight: 600,
-                  fontSize: '0.88rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease-in-out'
-                }}
-              >
-                <Building2 size={16} />
-                <span>Directorio Institucional (Unidades y Cargos)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setEstructuraSubTab('arbol');
-                  setSearchTerm('');
-                }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  border: estructuraSubTab === 'arbol' ? '1px solid #800000' : '1px solid #DEE2E6',
-                  background: estructuraSubTab === 'arbol' ? '#800000' : '#F8F9FA',
-                  color: estructuraSubTab === 'arbol' ? '#FFFFFF' : '#495057',
+                  border: estructuraSubTab === 'unidades' ? '1px solid #800000' : '1px solid #DEE2E6',
+                  background: estructuraSubTab === 'unidades' ? '#800000' : '#F8F9FA',
+                  color: estructuraSubTab === 'unidades' ? '#FFFFFF' : '#495057',
                   fontWeight: 600,
                   fontSize: '0.88rem',
                   cursor: 'pointer',
@@ -1531,46 +1533,65 @@ export default function AdminHub() {
                 }}
               >
                 <Network size={16} />
-                <span>Árbol Jerárquico Visual</span>
+                <span>Estructura y Unidades Orgánicas</span>
+                <span style={{
+                  fontSize: '0.75rem',
+                  padding: '1px 6px',
+                  borderRadius: '10px',
+                  backgroundColor: estructuraSubTab === 'unidades' ? 'rgba(255,255,255,0.25)' : 'var(--color-border)'
+                }}>
+                  {ubicaciones.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEstructuraSubTab('cargos');
+                  setSearchTerm('');
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  border: estructuraSubTab === 'cargos' ? '1px solid #800000' : '1px solid #DEE2E6',
+                  background: estructuraSubTab === 'cargos' ? '#800000' : '#F8F9FA',
+                  color: estructuraSubTab === 'cargos' ? '#FFFFFF' : '#495057',
+                  fontWeight: 600,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease-in-out'
+                }}
+              >
+                <Briefcase size={16} />
+                <span>Cargos Institucionales</span>
+                <span style={{
+                  fontSize: '0.75rem',
+                  padding: '1px 6px',
+                  borderRadius: '10px',
+                  backgroundColor: estructuraSubTab === 'cargos' ? 'rgba(255,255,255,0.25)' : 'var(--color-border)'
+                }}>
+                  {cargos.length}
+                </span>
               </button>
             </div>
 
-            <button
-              onClick={() => handleOpenUbicacionModal()}
-              className="btn btn-primary btn-sm"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            >
-              <Plus size={16} />
-              <span>Nueva Unidad</span>
-            </button>
+            {estructuraSubTab === 'unidades' && (
+              <button
+                onClick={() => handleOpenUbicacionModal()}
+                className="btn btn-primary btn-sm"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Plus size={16} />
+                <span>Nueva Unidad</span>
+              </button>
+            )}
           </div>
 
-          {/* Sub-vista 1: Catálogos Oficiales (TUnidad y TCargo) */}
-          {estructuraSubTab === 'catalogos' && (
-            <InstitucionalCatalogosManager
-              onOpenNuevaUnidad={() => handleOpenUbicacionModal()}
-              onEditUnidad={(u) => {
-                const match = ubicaciones.find(x => x.cod_u === u.codU || x.codU === u.codU);
-                if (match) {
-                  handleOpenUbicacionModal(match);
-                } else {
-                  setUbicacionEditing(null);
-                  setUbicacionForm({
-                    codigo: `UNI-${u.codU}`,
-                    nombre: u.nombU,
-                    sigla: '',
-                    padre_id: '',
-                    descripcion: ''
-                  });
-                  setShowUbicacionModal(true);
-                }
-              }}
-              refreshKey={catalogosRefreshKey}
-            />
-          )}
-
-          {/* Sub-vista 2: Árbol Jerárquico y Tabla de Unidades Orgánicas */}
-          {estructuraSubTab === 'arbol' && (
+          {/* Sub-vista 1: Estructura Orgánica y Unidades (Árbol y Tabla Unificada) */}
+          {estructuraSubTab === 'unidades' && (
             <div>
               {/* Barra de Filtros, Búsqueda y Botón Nueva Unidad para el Árbol */}
               <div
@@ -1676,15 +1697,16 @@ export default function AdminHub() {
                         <th style={{ width: '80px' }}>Sigla</th>
                         <th>Unidad Padre</th>
                         <th style={{ width: '60px', textAlign: 'center' }}>Nivel</th>
+                        <th style={{ width: '130px', textAlign: 'center' }}>Cargos Registrados</th>
                         <th style={{ textAlign: 'center', width: '80px' }}>Estado</th>
                         <th style={{ textAlign: 'right', width: '100px' }}>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {loading ? (
-                        <tr><td colSpan="8" style={{ textAlign: 'center', padding: '2rem' }}>Cargando...</td></tr>
+                        <tr><td colSpan="9" style={{ textAlign: 'center', padding: '2rem' }}>Cargando...</td></tr>
                       ) : filteredUbicaciones.length === 0 ? (
-                        <tr><td colSpan="8" style={{ textAlign: 'center', padding: '2rem', color: '#6C757D' }}>No se encontraron unidades.</td></tr>
+                        <tr><td colSpan="9" style={{ textAlign: 'center', padding: '2rem', color: '#6C757D' }}>No se encontraron unidades.</td></tr>
                       ) : (
                         filteredUbicaciones.map((u) => (
                           <tr key={u.id}>
@@ -1721,6 +1743,11 @@ export default function AdminHub() {
                             </td>
                             <td style={{ textAlign: 'center' }}>
                               <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1B365D' }}>{u.nivel}</span>
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <span className="badge badge-sucre" style={{ fontSize: '0.8rem' }}>
+                                {getCargosCount(u)} cargo(s)
+                              </span>
                             </td>
                             <td style={{ textAlign: 'center' }}>
                               <span className={`badge ${u.activo ? 'badge-active' : 'badge-inactive'}`}>
@@ -1777,6 +1804,15 @@ export default function AdminHub() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Sub-vista 2: Catálogo Especializado de Cargos Institucionales */}
+          {estructuraSubTab === 'cargos' && (
+            <InstitucionalCatalogosManager
+              hideUnidades={true}
+              defaultTab="cargos"
+              refreshKey={catalogosRefreshKey}
+            />
           )}
         </div>
       )}
