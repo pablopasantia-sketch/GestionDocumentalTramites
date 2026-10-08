@@ -170,7 +170,7 @@ export default function VentanillaUnica() {
   // 4. Manejo de selección de funcionario desde padrón TEmpleados
   const handleSelectEmpleado = (emp) => {
     if (!emp) return;
-    const fullName = `${emp.nombres || emp.Nombres || ''} ${emp.apellidos || emp.Apellidos || ''}`.trim();
+    const fullName = emp.nombreCompleto || `${emp.nombres || emp.Nombres || ''} ${emp.apellidos || emp.Apellidos || ''}`.trim();
     setFormData(prev => ({
       ...prev,
       ci_empleado_destino: emp.ci || emp.CI || '',
@@ -282,11 +282,15 @@ export default function VentanillaUnica() {
   const filteredHistorial = historialTramites.filter(t => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
+    const corr = (t.numeroCorrelativo || t.numero_correlativo || '').toLowerCase();
+    const rem = (t.remitente || '').toLowerCase();
+    const ref = (t.referencia || '').toLowerCase();
+    const tipo = (t.tipoProcesoNombre || t.tipo_proceso_nombre || '').toLowerCase();
     return (
-      (t.numero_correlativo && t.numero_correlativo.toLowerCase().includes(term)) ||
-      (t.remitente && t.remitente.toLowerCase().includes(term)) ||
-      (t.referencia && t.referencia.toLowerCase().includes(term)) ||
-      (t.tipo_proceso_nombre && t.tipo_proceso_nombre.toLowerCase().includes(term))
+      corr.includes(term) ||
+      rem.includes(term) ||
+      ref.includes(term) ||
+      tipo.includes(term)
     );
   });
 
@@ -908,12 +912,12 @@ export default function VentanillaUnica() {
                     <tr key={t.id}>
                       <td>
                         <strong style={{ color: '#800000', fontSize: '0.92rem' }}>
-                          {t.numero_correlativo}
+                          {t.numeroCorrelativo || t.numero_correlativo}
                         </strong>
                       </td>
                       <td>
                         <span className="badge" style={{ background: '#F1F5F9', color: '#1B365D', fontWeight: 600 }}>
-                          {t.tipo_proceso_nombre || 'Correspondencia'}
+                          {t.tipoProcesoNombre || t.tipo_proceso_nombre || 'Correspondencia'}
                         </span>
                       </td>
                       <td>
@@ -926,11 +930,11 @@ export default function VentanillaUnica() {
                           {t.referencia}
                         </div>
                         <div style={{ fontSize: '0.72rem', color: '#6C757D', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
-                          <span>{t.nro_hojas} fojas {t.nro_anexos > 0 ? `| ${t.nro_anexos} anexos` : ''}</span>
-                          {t.nro_adjuntos > 0 && (
+                          <span>{t.nroHojas ?? t.nro_hojas} fojas {(t.nroAnexos ?? t.nro_anexos) > 0 ? `| ${t.nroAnexos ?? t.nro_anexos} anexos` : ''}</span>
+                          {(t.nroAdjuntos ?? t.nro_adjuntos) > 0 && (
                             <span className="badge" style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: '0.68rem', padding: '1px 5px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                               <Paperclip size={10} />
-                              {t.nro_adjuntos} PDF{t.nro_adjuntos > 1 ? 's' : ''}
+                              {t.nroAdjuntos ?? t.nro_adjuntos} PDF{(t.nroAdjuntos ?? t.nro_adjuntos) > 1 ? 's' : ''}
                             </span>
                           )}
                         </div>
@@ -946,7 +950,7 @@ export default function VentanillaUnica() {
                         </span>
                       </td>
                       <td style={{ fontSize: '0.8rem', color: '#4B5563' }}>
-                        {t.fecha_creacion ? new Date(t.fecha_creacion).toLocaleDateString() : '---'}
+                        {(t.fechaCreacion || t.fecha_creacion) ? new Date(t.fechaCreacion || t.fecha_creacion).toLocaleDateString() : '---'}
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         <button

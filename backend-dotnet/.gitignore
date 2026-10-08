@@ -48,3 +48,5 @@ Thumbs.db
 appsettings.Local.json
 appsettings.*.Local.json
 *.local.json
+
+Uploads/

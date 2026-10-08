@@ -530,6 +530,7 @@ BEGIN
         t.id,
         t.numero_correlativo,
         t.gestion,
+        t.tipo_proceso_id,
         tp.nombre AS tipo_proceso_nombre,
         tp.tipo_categoria,
         t.remitente,

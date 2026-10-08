@@ -71,6 +71,8 @@ export default function EmpleadoSearchAutocomplete({ onSelectEmpleado, currentCi
     onSelectEmpleado({
       ci: foundEmpleado.ci.toString(),
       nombres: foundEmpleado.nombres || '',
+      apellidos: foundEmpleado.apellidos || `${paterno} ${materno}`.trim(),
+      nombreCompleto: foundEmpleado.nombreCompleto || `${foundEmpleado.nombres || ''} ${foundEmpleado.apellidos || ''}`.trim(),
       apellido_paterno: paterno,
       apellido_materno: materno,
       telefono: foundEmpleado.cel ? foundEmpleado.cel.toString() : '',

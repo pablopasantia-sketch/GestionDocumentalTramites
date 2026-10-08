@@ -43,10 +43,10 @@ test.describe('Sprint 1 E2E - Módulo de Administración de Sistemas', () => {
     const testPaterno = 'PRUEBA_E2E';
 
     const modalPersona = page.locator('.modal-backdrop');
-    await modalPersona.locator('form input').nth(0).fill(testNombre);
-    await modalPersona.locator('form input').nth(1).fill(testPaterno);
-    await modalPersona.locator('form input').nth(2).fill('SUCRE');
-    await modalPersona.locator('form input').nth(3).fill(randomCI);
+    await modalPersona.locator('label:has-text("Nombres") + input').fill(testNombre);
+    await modalPersona.locator('label:has-text("Apellido Paterno") + input').fill(testPaterno);
+    await modalPersona.locator('label:has-text("Apellido Materno") + input').fill('SUCRE');
+    await modalPersona.locator('label:has-text("Cédula de Identidad") + input').fill(randomCI);
     await modalPersona.locator('input[placeholder="Ej: 72881234"]').fill('71234567');
     await modalPersona.locator('input[type="email"]').fill(`test_${randomCI}@sucre.bo`);
     await modalPersona.locator('input[placeholder="Calle, Número, Zona"]').fill('Plaza 25 de Mayo #123');
@@ -283,7 +283,7 @@ test.describe('Sprint 1 E2E - Módulo de Administración de Sistemas', () => {
     await rowCargoEditado.locator('button[title="Eliminar Cargo"]').click();
     await expect(page.locator('text=Confirmar Eliminación')).toBeVisible();
     await page.locator('.modal-dialog button:has-text("Sí, Eliminar")').click();
-    await expect(page.locator('text=No se encontraron cargos institucionales que coincidan').or(page.locator('text=eliminado exitosamente'))).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=eliminado exitosamente').first()).toBeVisible({ timeout: 10000 });
 
     // 3.8 Volver a "Estructura y Unidades Orgánicas" y Eliminar la Unidad
     await tabUnidades.click();

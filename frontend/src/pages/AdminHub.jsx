@@ -40,6 +40,7 @@ import { useAuth } from '../context/AuthContext';
 import InstitucionalSelectors from '../components/institucional/InstitucionalSelectors';
 import InstitucionalCatalogosManager from '../components/institucional/InstitucionalCatalogosManager';
 import TiposProcesoExternoManager from '../components/admin/TiposProcesoExternoManager';
+import EmpleadoSearchAutocomplete from '../components/institucional/EmpleadoSearchAutocomplete';
 // Componente de supervisión de trámites pre-construido para ser activado en Sprint 4:
 // import AdminTramitesHub from './AdminTramitesHub';
 
@@ -1992,6 +1993,26 @@ export default function AdminHub() {
                     <AlertCircle size={16} style={{ flexShrink: 0 }} />
                     <span>{personaModalError}</span>
                   </div>
+                )}
+
+                {!personaEditing && (
+                  <EmpleadoSearchAutocomplete
+                    currentCi={personaForm.ci}
+                    onSelectEmpleado={(emp) => {
+                      if (!emp) return;
+                      setPersonaForm((prev) => ({
+                        ...prev,
+                        ci: emp.ci || prev.ci,
+                        nombres: emp.nombres || prev.nombres,
+                        apellido_paterno: emp.apellido_paterno || prev.apellido_paterno,
+                        apellido_materno: emp.apellido_materno || prev.apellido_materno,
+                        telefono: emp.telefono || prev.telefono,
+                        email: emp.email || prev.email,
+                        direccion: emp.direccion || prev.direccion,
+                        ci_expedido: emp.ci_expedido || prev.ci_expedido
+                      }));
+                    }}
+                  />
                 )}
 
                 <div style={{ gridColumn: 'span 2' }}>
