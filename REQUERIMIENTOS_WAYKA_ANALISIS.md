@@ -604,11 +604,11 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
   - [X] Incorporación del campo `instrumento_generado` (`VARCHAR(50) NULL`) en `dbo.movimientos` para registrar los 5 instrumentos legislativos salientes (`PIE`, `PIO`, `MINUTA`, `RESOLUCION`, `NOTA_EXTERNA`, `INFORME`).
   - [X] Actualización de los procedimientos almacenados `usp_Tramites_Derivar`, `usp_Tramites_MarcarAtendido` y `usp_Tramites_ObtenerPorId` para persistir, validar y proyectar el instrumento resultante.
   - [X] Parámetro dinámico de plazo de comisión (`@DiasPlazo INT`: 5 a 15 días reglamentarios) recalculando `fecha_limite_respuesta` en la sub-asignación interna.
-- [ ] **Ventanilla Única CMS (Macro-Bifurcación y Preselección de Destinos)**:
-  - [ ] Implementación de la bifurcación operativa oficial:
+- [X] **Ventanilla Única CMS (Macro-Bifurcación y Preselección de Destinos)**:
+  - [X] Implementación de la bifurcación operativa oficial:
     - *Notas Externas:* Sugerencia predeterminada de remisión inmediata a **Presidencia del CMS** para análisis político-normativo y asignación a comisiones.
     - *Notas Internas:* Sugerencia predeterminada de remisión a **Secretaría Administrativa** para distribución operativa a dependencias internas.
-  - [ ] Mapeo automático de categorías y preservación de la flexibilidad para derivaciones excepcionales.
+  - [X] Mapeo automático de categorías y preservación de la flexibilidad para derivaciones excepcionales.
 - [ ] **Flujo de Comisión y Asignación Interna (Presidencia de Comisión → Asesor)**:
   - [ ] Sub-asignación interna dentro de la comisión manteniendo íntegra la Hoja de Ruta matriz (sin fragmentación de expedientes).
   - [ ] Selector rápido de plazo reglamentario de informe (5, 10 o 15 días hábiles) con semaforización de alertas de vencimiento en el Escritorio Virtual del asesor.

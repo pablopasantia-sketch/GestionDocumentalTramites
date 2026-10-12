@@ -217,6 +217,9 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("tipo_proceso_id")]
         public int TipoProcesoId { get; set; }
 
+        [JsonPropertyName("tipo_corres")]
+        public string? TipoCorres { get; set; } = "EXTERNA";
+
         [Required(ErrorMessage = "El nombre o entidad del remitente es obligatorio")]
         [MaxLength(200, ErrorMessage = "El remitente no puede exceder 200 caracteres")]
         [JsonPropertyName("remitente")]
@@ -315,6 +318,9 @@ namespace GestionDocumental.Api.DTOs.Tramites
 
         [JsonPropertyName("tipo_categoria")]
         public string TipoCategoria { get; set; } = string.Empty;
+
+        [JsonPropertyName("tipo_corres")]
+        public string TipoCorres { get; set; } = "EXTERNA";
 
         [JsonPropertyName("estado")]
         public string Estado { get; set; } = string.Empty;

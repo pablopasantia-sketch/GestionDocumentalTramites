@@ -40,17 +40,64 @@ const INSTRUCCIONES_SUGERIDAS = [
   'Con carácter de urgencia para respuesta inmediata'
 ];
 
+export const CANALES_CMS = {
+  EXTERNA: {
+    id: 'EXTERNA',
+    tipoCorres: 'EXTERNA',
+    label: 'Notas Externas',
+    titulo: 'Canal Político-Legislativo (Notas Externas)',
+    badge: 'CANAL POLÍTICO-LEGISLATIVO',
+    color: '#800000',
+    colorBg: '#FFF5F5',
+    colorBorder: '#FECACA',
+    descripcion: 'Correspondencia ingresada por ciudadanos, juntas vecinales, instituciones y Alcalde Municipal.',
+    circuitoTexto: 'Sugerencia oficial CMS: Remisión a Presidencia del Concejo Municipal para análisis político y asignación a comisiones permanentes.',
+    destinatarioDefault: {
+      cod_u: 1,
+      unidad: 'DIRECCION GENERAL EJECUTIVA',
+      cod_cargo: 1,
+      cargo: 'DIRECTOR GENERAL EJECUTIVO',
+      ci_empleado: '4000004',
+      nombre: 'ENRIQUE LEAÑO PALENQUE (PRESIDENCIA CMS)',
+      instruccion: 'Para su análisis político-normativo y asignación a Comisiones del Concejo Municipal de Sucre.'
+    }
+  },
+  INTERNA: {
+    id: 'INTERNA',
+    tipoCorres: 'INTERNA',
+    label: 'Notas Internas',
+    titulo: 'Canal Operativo-Administrativo (Notas Internas)',
+    badge: 'CANAL OPERATIVO-ADMINISTRATIVO',
+    color: '#1B365D',
+    colorBg: '#F0F4F8',
+    colorBorder: '#BFDBFE',
+    descripcion: 'Solicitudes de personal, compras, suministros, informes y correspondencia entre dependencias internas.',
+    circuitoTexto: 'Sugerencia oficial CMS: Remisión a Secretaría Administrativa para distribución operativa a dependencias internas.',
+    destinatarioDefault: {
+      cod_u: 2,
+      unidad: 'SECRETARIA GENERAL',
+      cod_cargo: 2,
+      cargo: 'SECRETARIO GENERAL',
+      ci_empleado: '',
+      nombre: 'SECRETARÍA ADMINISTRATIVA CMS',
+      instruccion: 'Para análisis operativo y distribución interna a dependencias correspondientes.'
+    }
+  }
+};
+
 export default function VentanillaUnica() {
   const { user: currentUser } = useAuth();
 
   // Estados de control
   const [activeTab, setActiveTab] = useState('nuevo'); // 'nuevo' | 'historial'
+  const [canalActivo, setCanalActivo] = useState('EXTERNA');
+  const [esDestinoExcepcional, setEsDestinoExcepcional] = useState(false);
   const [tiposExternos, setTiposExternos] = useState([]);
   const [loadingTipos, setLoadingTipos] = useState(true);
   const [correlativoPreview, setCorrelativoPreview] = useState('');
   const [loadingPreview, setLoadingPreview] = useState(false);
 
-  // Formulario de emisión
+  // Formulario de emisión con preselección oficial CMS
   const [formData, setFormData] = useState({
     tipo_proceso_id: '',
     remitente: '',
@@ -58,17 +105,18 @@ export default function VentanillaUnica() {
     cite_externo: '',
     referencia: '',
     prioridad: 'NORMAL',
+    tipo_corres: 'EXTERNA',
     nro_hojas: 1,
     nro_anexos: 0,
-    instruccion: INSTRUCCIONES_SUGERIDAS[0],
+    instruccion: CANALES_CMS.EXTERNA.destinatarioDefault.instruccion,
     proveido_inicial: '',
     // Destinatario institucional DB_TRAMITES_EXTERNOS
-    cod_u_destino: '',
-    cod_cargo_destino: '',
-    ci_empleado_destino: '',
-    destinatario_nombre: '',
-    destinatario_cargo: '',
-    destinatario_unidad: ''
+    cod_u_destino: CANALES_CMS.EXTERNA.destinatarioDefault.cod_u,
+    cod_cargo_destino: CANALES_CMS.EXTERNA.destinatarioDefault.cod_cargo,
+    ci_empleado_destino: CANALES_CMS.EXTERNA.destinatarioDefault.ci_empleado,
+    destinatario_nombre: CANALES_CMS.EXTERNA.destinatarioDefault.nombre,
+    destinatario_cargo: CANALES_CMS.EXTERNA.destinatarioDefault.cargo,
+    destinatario_unidad: CANALES_CMS.EXTERNA.destinatarioDefault.unidad
   });
 
   const [saving, setSaving] = useState(false);
@@ -145,8 +193,45 @@ export default function VentanillaUnica() {
     }
   };
 
-  // 3. Manejo de cambios en selectores de unidad y cargo institucional (DB_TRAMITES_EXTERNOS)
+  // 3. Manejo de cambios de Canal Oficial CMS (Macro-Bifurcación)
+  const handleSelectCanal = (canalKey) => {
+    setCanalActivo(canalKey);
+    const canal = CANALES_CMS[canalKey];
+    const def = canal.destinatarioDefault;
+    setFormData(prev => ({
+      ...prev,
+      tipo_corres: canal.tipoCorres,
+      cod_u_destino: def.cod_u,
+      destinatario_unidad: def.unidad,
+      cod_cargo_destino: def.cod_cargo,
+      destinatario_cargo: def.cargo,
+      ci_empleado_destino: def.ci_empleado || '',
+      destinatario_nombre: def.nombre,
+      instruccion: def.instruccion
+    }));
+    setEsDestinoExcepcional(false);
+  };
+
+  const handleRestaurarSugerenciaOficial = () => {
+    const canal = CANALES_CMS[canalActivo];
+    const def = canal.destinatarioDefault;
+    setFormData(prev => ({
+      ...prev,
+      cod_u_destino: def.cod_u,
+      destinatario_unidad: def.unidad,
+      cod_cargo_destino: def.cod_cargo,
+      destinatario_cargo: def.cargo,
+      ci_empleado_destino: def.ci_empleado || '',
+      destinatario_nombre: def.nombre,
+      instruccion: def.instruccion
+    }));
+    setEsDestinoExcepcional(false);
+  };
+
+  // 4. Manejo de cambios en selectores de unidad y cargo institucional (DB_TRAMITES_EXTERNOS)
   const handleUnidadChange = (codU, unidadObj) => {
+    const def = CANALES_CMS[canalActivo].destinatarioDefault;
+    setEsDestinoExcepcional(codU !== def.cod_u);
     setFormData(prev => ({
       ...prev,
       cod_u_destino: codU,
@@ -160,6 +245,10 @@ export default function VentanillaUnica() {
   };
 
   const handleCargoChange = (codCargo, cargoObj) => {
+    const def = CANALES_CMS[canalActivo].destinatarioDefault;
+    if (codCargo !== def.cod_cargo) {
+      setEsDestinoExcepcional(true);
+    }
     setFormData(prev => ({
       ...prev,
       cod_cargo_destino: codCargo,
@@ -167,10 +256,11 @@ export default function VentanillaUnica() {
     }));
   };
 
-  // 4. Manejo de selección de funcionario desde padrón TEmpleados
+  // 5. Manejo de selección de funcionario desde padrón TEmpleados
   const handleSelectEmpleado = (emp) => {
     if (!emp) return;
     const fullName = emp.nombreCompleto || `${emp.nombres || emp.Nombres || ''} ${emp.apellidos || emp.Apellidos || ''}`.trim();
+    setEsDestinoExcepcional(true);
     setFormData(prev => ({
       ...prev,
       ci_empleado_destino: emp.ci || emp.CI || '',
@@ -178,7 +268,7 @@ export default function VentanillaUnica() {
     }));
   };
 
-  // 5. Envío del formulario
+  // 6. Envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
@@ -205,6 +295,7 @@ export default function VentanillaUnica() {
         cite_externo: formData.cite_externo.trim() || null,
         referencia: formData.referencia.trim(),
         prioridad: formData.prioridad,
+        tipo_corres: formData.tipo_corres || canalActivo,
         nro_hojas: parseInt(formData.nro_hojas, 10) || 1,
         nro_anexos: parseInt(formData.nro_anexos, 10) || 0,
         instruccion: formData.instruccion.trim() || null,
@@ -247,7 +338,8 @@ export default function VentanillaUnica() {
       const currentTipo = tiposExternos.find(t => t.id === payload.tipo_proceso_id);
       handleSelectTipo(payload.tipo_proceso_id, currentTipo);
 
-      // Limpiar datos transaccionales del formulario pero conservar tipo y preferencias
+      // Limpiar datos pero conservar canal y preselección oficial CMS
+      const def = CANALES_CMS[canalActivo].destinatarioDefault;
       setFormData(prev => ({
         ...prev,
         remitente: '',
@@ -256,9 +348,15 @@ export default function VentanillaUnica() {
         referencia: '',
         nro_hojas: 1,
         nro_anexos: 0,
-        proveido_inicial: ''
+        proveido_inicial: '',
+        cod_u_destino: def.cod_u,
+        destinatario_unidad: def.unidad,
+        cod_cargo_destino: def.cod_cargo,
+        destinatario_cargo: def.cargo,
+        ci_empleado_destino: def.ci_empleado || '',
+        destinatario_nombre: def.nombre,
+        instruccion: def.instruccion
       }));
-
     } catch (err) {
       console.error('Error al emitir trámite externo:', err);
       const errMsg = err?.response?.data?.message || err?.message || 'Error al emitir la Hoja de Ruta.';
@@ -394,12 +492,99 @@ export default function VentanillaUnica() {
             {/* COLUMNA IZQUIERDA: FORMULARIO PRINCIPAL */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               
-              {/* BLOQUE 1: TIPO DE TRÁMITE EXTERNO */}
+              {/* BLOQUE 1: MACRO-BIFURCACIÓN OPERATIVA OFICIAL CMS */}
+              <div className="card" style={{ padding: '1.5rem', borderLeft: `4px solid ${CANALES_CMS[canalActivo].color}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Landmark size={18} color={CANALES_CMS[canalActivo].color} />
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
+                      1. Canal Operativo Oficial CMS (Macro-Bifurcación de Entrada)
+                    </h3>
+                  </div>
+                  <span className="badge badge-sucre" style={{ fontSize: '0.72rem' }}>
+                    MODELO OPERATIVO CMS
+                  </span>
+                </div>
+
+                <p style={{ fontSize: '0.84rem', color: '#6C757D', marginBottom: '1rem' }}>
+                  Seleccione la procedencia oficial del documento. El sistema aplicará la ruta reglamentaria correspondiente del Concejo Municipal de Sucre:
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', marginBottom: '0.5rem' }}>
+                  {/* Tarjeta Notas Externas */}
+                  <div
+                    onClick={() => handleSelectCanal('EXTERNA')}
+                    style={{
+                      padding: '16px',
+                      borderRadius: '8px',
+                      border: canalActivo === 'EXTERNA' ? '2.5px solid #800000' : '1px solid #D1D5DB',
+                      background: canalActivo === 'EXTERNA' ? '#FFF5F5' : 'white',
+                      cursor: 'pointer',
+                      boxShadow: canalActivo === 'EXTERNA' ? '0 4px 12px rgba(128, 0, 0, 0.15)' : 'none',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#800000', fontSize: '1rem' }}>
+                        <Landmark size={20} />
+                        <span>Notas Externas</span>
+                      </div>
+                      <span className="badge" style={{ background: '#800000', color: 'white', fontSize: '0.68rem' }}>
+                        POLÍTICO-LEGISLATIVO
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#4B5563', lineHeight: 1.35 }}>
+                      Ingreso de memoriales, solicitudes ciudadanas, juntas vecinales, instituciones y Alcalde Municipal.
+                    </div>
+                    <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed #FECACA', fontSize: '0.74rem', color: '#991B1B', fontWeight: 600 }}>
+                      🏛️ Sugerencia oficial: <strong>Presidencia del CMS</strong> para análisis y asignación a Comisiones.
+                    </div>
+                  </div>
+
+                  {/* Tarjeta Notas Internas */}
+                  <div
+                    onClick={() => handleSelectCanal('INTERNA')}
+                    style={{
+                      padding: '16px',
+                      borderRadius: '8px',
+                      border: canalActivo === 'INTERNA' ? '2.5px solid #1B365D' : '1px solid #D1D5DB',
+                      background: canalActivo === 'INTERNA' ? '#F0F4F8' : 'white',
+                      cursor: 'pointer',
+                      boxShadow: canalActivo === 'INTERNA' ? '0 4px 12px rgba(27, 54, 93, 0.15)' : 'none',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#1B365D', fontSize: '1rem' }}>
+                        <Building2 size={20} />
+                        <span>Notas Internas</span>
+                      </div>
+                      <span className="badge" style={{ background: '#1B365D', color: 'white', fontSize: '0.68rem' }}>
+                        ADMINISTRATIVO-OPERATIVO
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#4B5563', lineHeight: 1.35 }}>
+                      Solicitudes de personal, compras, suministros, informes y trámites entre dependencias internas.
+                    </div>
+                    <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed #BFDBFE', fontSize: '0.74rem', color: '#1E40AF', fontWeight: 600 }}>
+                      📋 Sugerencia oficial: <strong>Secretaría Administrativa</strong> para distribución operativa.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* BLOQUE 2: TIPO DE TRÁMITE EXTERNO */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #800000' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
                   <Tag size={18} color="#800000" />
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                    1. Clasificación de Correspondencia Oficial Externa
+                    2. Clasificación de Correspondencia Oficial ({CANALES_CMS[canalActivo].label})
                   </h3>
                 </div>
 
@@ -452,12 +637,12 @@ export default function VentanillaUnica() {
                 )}
               </div>
 
-              {/* BLOQUE 2: REMITENTE EXTERNO */}
+              {/* BLOQUE 3: REMITENTE EXTERNO */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #1B365D' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
                   <User size={18} color="#1B365D" />
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                    2. Procedencia y Remitente Externo
+                    3. Procedencia y Remitente ({CANALES_CMS[canalActivo].label})
                   </h3>
                 </div>
 
@@ -504,12 +689,12 @@ export default function VentanillaUnica() {
                 </div>
               </div>
 
-              {/* BLOQUE 3: ASUNTO Y DOCUMENTACIÓN */}
+              {/* BLOQUE 4: ASUNTO Y DOCUMENTACIÓN */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #800000' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
                   <FileText size={18} color="#800000" />
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                    3. Asunto, Hojas y Nivel de Prioridad
+                    4. Asunto, Hojas y Nivel de Prioridad
                   </h3>
                 </div>
 
@@ -572,22 +757,55 @@ export default function VentanillaUnica() {
                 </div>
               </div>
 
-              {/* BLOQUE 4: DESTINATARIO INSTITUCIONAL (DB_TRAMITES_EXTERNOS) */}
+              {/* BLOQUE 5: DESTINATARIO INSTITUCIONAL (DB_TRAMITES_EXTERNOS) */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #1B365D' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Building2 size={18} color="#1B365D" />
                     <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                      4. Asignación y Destinatario Institucional
+                      5. Asignación y Destinatario Institucional
                     </h3>
                   </div>
                   <span className="badge badge-sucre" style={{ fontSize: '0.72rem' }}>
-                    Estructura Institucional
+                    Estructura Institucional CMS
                   </span>
                 </div>
 
+                {/* Banner de estado de la ruta oficial vs derivación excepcional */}
+                {!esDestinoExcepcional ? (
+                  <div style={{ background: canalActivo === 'EXTERNA' ? '#FFF5F5' : '#F0F4F8', border: `1px solid ${canalActivo === 'EXTERNA' ? '#FECACA' : '#BFDBFE'}`, padding: '10px 14px', borderRadius: '6px', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <CheckCircle2 size={18} color={canalActivo === 'EXTERNA' ? '#800000' : '#1B365D'} />
+                      <div style={{ fontSize: '0.82rem', color: '#1E293B' }}>
+                        <strong style={{ color: canalActivo === 'EXTERNA' ? '#800000' : '#1B365D' }}>Ruta Reglamentaria CMS Activa:</strong>{' '}
+                        {CANALES_CMS[canalActivo].circuitoTexto}
+                      </div>
+                    </div>
+                    <span className="badge" style={{ background: canalActivo === 'EXTERNA' ? '#800000' : '#1B365D', color: 'white', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
+                      DERIVACIÓN PREDEFINIDA
+                    </span>
+                  </div>
+                ) : (
+                  <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', padding: '10px 14px', borderRadius: '6px', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <AlertCircle size={18} color="#D97706" />
+                      <div style={{ fontSize: '0.82rem', color: '#92400E' }}>
+                        <strong>Derivación Excepcional Activa:</strong> Ha modificado el destino predeterminado del CMS (Ruta normal de {CANALES_CMS[canalActivo].label}: {CANALES_CMS[canalActivo].destinatarioDefault.unidad}).
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-outline-warning btn-sm"
+                      style={{ fontSize: '0.75rem', padding: '3px 8px', whiteSpace: 'nowrap' }}
+                      onClick={handleRestaurarSugerenciaOficial}
+                    >
+                      Restablecer Sugerencia Oficial
+                    </button>
+                  </div>
+                )}
+
                 <p style={{ fontSize: '0.82rem', color: '#6C757D', marginBottom: '1rem' }}>
-                  Indique la unidad organizacional y cargo municipal que debe atender y recibir este trámite oficial.
+                  Indique la unidad organizacional y cargo municipal que debe atender y recibir este trámite oficial. Se preserva total flexibilidad para derivaciones excepcionales:
                 </p>
 
                 {/* Cascada de Unidad y Cargo */}
@@ -632,12 +850,12 @@ export default function VentanillaUnica() {
                 </div>
               </div>
 
-              {/* BLOQUE 5: PROVEÍDO INICIAL E INSTRUCCIÓN */}
+              {/* BLOQUE 6: PROVEÍDO INICIAL E INSTRUCCIÓN */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #800000' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
                   <Send size={18} color="#800000" />
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                    5. Instrucción Municipal y Proveído Inicial de Recepción
+                    6. Instrucción Municipal y Proveído Inicial de Recepción
                   </h3>
                 </div>
 
@@ -685,13 +903,13 @@ export default function VentanillaUnica() {
                 </div>
               </div>
 
-              {/* BLOQUE 6: DOCUMENTACIÓN DIGITAL ADJUNTA (PDFs DE RESPALDO - RF-07) */}
+              {/* BLOQUE 7: DOCUMENTACIÓN DIGITAL ADJUNTA */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #1B365D' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Paperclip size={18} color="#1B365D" />
                     <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                      6. Documentos Digitales Adjuntos (Archivos PDF de Respaldo)
+                      7. Documentos Digitales Adjuntos (Archivos PDF de Respaldo)
                     </h3>
                   </div>
                   <span className="badge badge-secondary" style={{ fontSize: '0.72rem' }}>
@@ -761,6 +979,12 @@ export default function VentanillaUnica() {
 
                 {/* Resumen de Datos Clave */}
                 <div style={{ fontSize: '0.82rem', display: 'flex', flexDirection: 'column', gap: '8px', color: '#4B5563', marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #E5E7EB', paddingBottom: '4px' }}>
+                    <span>Canal Operativo:</span>
+                    <strong style={{ color: CANALES_CMS[canalActivo].color }}>
+                      {CANALES_CMS[canalActivo].label}
+                    </strong>
+                  </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #E5E7EB', paddingBottom: '4px' }}>
                     <span>Plazo de Respuesta:</span>
                     <strong style={{ color: '#1B365D' }}>{selectedTipoObj?.tiempo_estimado_horas || 24} Horas</strong>
@@ -898,6 +1122,7 @@ export default function VentanillaUnica() {
                 <thead>
                   <tr>
                     <th>Hoja de Ruta</th>
+                    <th>Canal CMS</th>
                     <th>Tipo</th>
                     <th>Remitente / Procedencia</th>
                     <th>Referencia</th>
@@ -914,6 +1139,17 @@ export default function VentanillaUnica() {
                         <strong style={{ color: '#800000', fontSize: '0.92rem' }}>
                           {t.numeroCorrelativo || t.numero_correlativo}
                         </strong>
+                      </td>
+                      <td>
+                        {(t.tipoCorres === 'INTERNA' || t.tipo_corres === 'INTERNA') ? (
+                          <span className="badge" style={{ background: '#1B365D', color: 'white', fontSize: '0.7rem' }}>
+                            Nota Interna
+                          </span>
+                        ) : (
+                          <span className="badge" style={{ background: '#800000', color: 'white', fontSize: '0.7rem' }}>
+                            Nota Externa
+                          </span>
+                        )}
                       </td>
                       <td>
                         <span className="badge" style={{ background: '#F1F5F9', color: '#1B365D', fontWeight: 600 }}>

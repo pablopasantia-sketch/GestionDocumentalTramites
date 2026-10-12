@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { institucionalService } from '../../services/api';
 import { Search, UserCheck, AlertCircle, Loader2, Sparkles } from 'lucide-react';
 
@@ -7,17 +7,21 @@ import { Search, UserCheck, AlertCircle, Loader2, Sparkles } from 'lucide-react'
  * 
  * Props:
  *  - onSelectEmpleado: (empleadoData) => void
- *  - currentCi: string (CI actual en el formulario para pre-cargar)
+ *  - currentCi: string | number (CI actual en el formulario para pre-cargar)
  */
 export default function EmpleadoSearchAutocomplete({ onSelectEmpleado, currentCi = '' }) {
-  const [ciInput, setCiInput] = useState(currentCi || '');
+  const [ciInput, setCiInput] = useState(currentCi != null ? String(currentCi) : '');
   const [searching, setSearching] = useState(false);
   const [foundEmpleado, setFoundEmpleado] = useState(null);
   const [searchStatus, setSearchStatus] = useState(null); // 'found' | 'not_found' | 'error' | null
 
+  useEffect(() => {
+    setCiInput(currentCi != null ? String(currentCi) : '');
+  }, [currentCi]);
+
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
-    const cleanCi = ciInput.toString().trim();
+    const cleanCi = String(ciInput || '').trim();
     if (!cleanCi) return;
 
     setSearching(true);
@@ -130,7 +134,7 @@ export default function EmpleadoSearchAutocomplete({ onSelectEmpleado, currentCi
         <button
           type="button"
           onClick={handleSearch}
-          disabled={searching || !ciInput.trim()}
+          disabled={searching || !String(ciInput || '').trim()}
           className="btn btn-sm"
           style={{
             backgroundColor: '#800000',
@@ -143,8 +147,8 @@ export default function EmpleadoSearchAutocomplete({ onSelectEmpleado, currentCi
             fontWeight: 600,
             fontSize: '0.82rem',
             border: 'none',
-            cursor: searching || !ciInput.trim() ? 'not-allowed' : 'pointer',
-            opacity: searching || !ciInput.trim() ? 0.7 : 1
+            cursor: searching || !String(ciInput || '').trim() ? 'not-allowed' : 'pointer',
+            opacity: searching || !String(ciInput || '').trim() ? 0.7 : 1
           }}
         >
           {searching ? <Loader2 size={14} className="spin" /> : <Search size={14} />}
