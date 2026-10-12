@@ -612,14 +612,14 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 - [X] **Flujo de Comisión y Asignación Interna (Presidencia de Comisión → Asesor)**:
   - [X] Sub-asignación interna dentro de la comisión manteniendo íntegra la Hoja de Ruta matriz (sin fragmentación de expedientes).
   - [X] Selector rápido de plazo reglamentario de informe (5, 10 o 15 días hábiles) con semaforización de alertas de vencimiento en el Escritorio Virtual del asesor.
-- [ ] **Generación y Registro de Instrumentos Legislativos Salientes**:
-  - [ ] En la acción de "Atender / Informe", habilitar la selección de los productos normativos proyectados:
+- [X] **Generación y Registro de Instrumentos Legislativos Salientes**:
+  - [X] En la acción de "Atender / Informe", habilitar la selección de los productos normativos proyectados:
     - Petición de Informe Escrito (PIE)
     - Petición de Informe Oral (PIO)
     - Minuta de Comunicación
     - Resolución Municipal / Proyecto Normativo
     - Nota Externa de Contestación
-  - [ ] Visualización destacada de los instrumentos en el timeline histórico, comprobante de Hoja de Ruta y auditoría del proceso.
+  - [X] Visualización destacada de los instrumentos en el timeline histórico, comprobante de Hoja de Ruta y auditoría del proceso.
 - [ ] **Circuito Plenario, Firmas Duales y Despacho Final**:
   - [ ] Trazabilidad del paso por **Asesoría del Pleno** y constancia de **Aprobación en Sesión del Pleno del CMS**.
   - [ ] Registro de firmas duales concurrentes (Presidencia CMS y Secretaría General CMS) antes del despacho final al Alcalde Municipal o a instituciones externas.

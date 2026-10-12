@@ -77,6 +77,94 @@ const PROVEIDOS_SUGERIDOS_ATENCION = [
   'Atención técnica concluida satisfactoriamente sin observaciones.'
 ];
 
+const INSTRUMENTOS_LEGISLATIVOS_CMS = [
+  {
+    id: 'INFORME',
+    sigla: 'INF',
+    nombre: 'Informe Técnico / Legal',
+    descripcion: 'Dictamen técnico o jurídico ordinario de la comisión o unidad.',
+    color: '#0F766E',
+    bg: '#F0FDFA',
+    border: '#99F6E4',
+    icono: '📄'
+  },
+  {
+    id: 'PIE',
+    sigla: 'PIE',
+    nombre: 'Petición de Informe Escrito (PIE)',
+    descripcion: 'Solicitud formal por escrito al Ejecutivo Municipal u otra instancia.',
+    color: '#1E40AF',
+    bg: '#EFF6FF',
+    border: '#BFDBFE',
+    icono: '📝'
+  },
+  {
+    id: 'PIO',
+    sigla: 'PIO',
+    nombre: 'Petición de Informe Oral (PIO)',
+    descripcion: 'Convocatoria a comparecencia oral ante el Pleno o Comisión.',
+    color: '#6B21A8',
+    bg: '#FAF5FF',
+    border: '#E9D5FF',
+    icono: '🗣️'
+  },
+  {
+    id: 'MINUTA',
+    sigla: 'MINUTA',
+    nombre: 'Minuta de Comunicación',
+    descripcion: 'Recomendación legislativa oficial al Órgano Ejecutivo Municipal.',
+    color: '#B45309',
+    bg: '#FEFCE8',
+    border: '#FDE047',
+    icono: '📜'
+  },
+  {
+    id: 'RESOLUCION',
+    sigla: 'RESOLUCIÓN',
+    nombre: 'Resolución Municipal / Proyecto Normativo',
+    descripcion: 'Norma de carácter legislativo o administrativo aprobada por el CMS.',
+    color: '#800000',
+    bg: '#FFF5F5',
+    border: '#FECACA',
+    icono: '⚖️'
+  },
+  {
+    id: 'NOTA_EXTERNA',
+    sigla: 'NOTA',
+    nombre: 'Nota Externa de Contestación',
+    descripcion: 'Oficio de respuesta oficial a peticionarios, juntas vecinales o entidades.',
+    color: '#334155',
+    bg: '#F8FAFC',
+    border: '#CBD5E1',
+    icono: '✉️'
+  }
+];
+
+const PROVEIDOS_POR_INSTRUMENTO = {
+  INFORME: 'Informe técnico y dictamen legal de comisión elaborado conforme a normativa vigente.',
+  PIE: 'Proyecto de Petición de Informe Escrito (P.I.E.) elaborado y visado para consideración y remisión al Pleno.',
+  PIO: 'Proyecto de Petición de Informe Oral (P.I.O.) formulado para su tratamiento en Sesión Plenaria del CMS.',
+  MINUTA: 'Proyecto de Minuta de Comunicación redactado recomendando acciones concretas al Ejecutivo Municipal.',
+  RESOLUCION: 'Proyecto de Resolución Municipal elaborado con fundamentación técnica y legal para tratamiento plenario.',
+  NOTA_EXTERNA: 'Proyecto de Nota Externa de Contestación elaborado para suscripción de Presidencia del Concejo Municipal.'
+};
+
+const getInstrumentoInfo = (codigo) => {
+  if (!codigo) return null;
+  const match = INSTRUMENTOS_LEGISLATIVOS_CMS.find(i => i.id === codigo || i.sigla === codigo);
+  if (match) return match;
+  return {
+    id: codigo,
+    sigla: codigo,
+    nombre: codigo,
+    descripcion: 'Instrumento normativo institucional',
+    color: '#1E293B',
+    bg: '#F1F5F9',
+    border: '#CBD5E1',
+    icono: '📄'
+  };
+};
+
 export default function EscritorioVirtual() {
   const { user, activeRole } = useAuth();
 
@@ -143,11 +231,12 @@ export default function EscritorioVirtual() {
   const [infoPasoPrevio, setInfoPasoPrevio] = useState(null);
   const [loadingPasoPrevio, setLoadingPasoPrevio] = useState(false);
 
-  // Modal de Concluir Atención / Marcar Atendido (Sprint 3)
+  // Modal de Concluir Atención / Marcar Atendido (Sprint 3 & CMS)
   const [atenderModalOpen, setAtenderModalOpen] = useState(false);
   const [tramiteAAtender, setTramiteAAtender] = useState(null);
+  const [instrumentoGeneradoAtencion, setInstrumentoGeneradoAtencion] = useState('INFORME');
   const [proveidoAtencion, setProveidoAtencion] = useState('');
-  const [actividadNombreAtencion, setActividadNombreAtencion] = useState('Informe y atención técnica concluida');
+  const [actividadNombreAtencion, setActividadNombreAtencion] = useState('Informe y dictamen técnico de comisión');
   const [atendiendo, setAtendiendo] = useState(false);
   const [atenderError, setAtenderError] = useState(null);
 
@@ -515,16 +604,17 @@ export default function EscritorioVirtual() {
     }
   };
 
-  // Abrir modal de Concluir Atención / Marcar Atendido (Sprint 3)
+  // Abrir modal de Concluir Atención / Marcar Atendido (Sprint 3 & CMS)
   const handleAbrirAtender = (tramite) => {
     setTramiteAAtender(tramite);
-    setProveidoAtencion(PROVEIDOS_SUGERIDOS_ATENCION[0]);
-    setActividadNombreAtencion('Informe y evaluación técnica concluida');
+    setInstrumentoGeneradoAtencion('INFORME');
+    setProveidoAtencion(PROVEIDOS_POR_INSTRUMENTO.INFORME);
+    setActividadNombreAtencion('Informe y dictamen técnico de comisión');
     setAtenderError(null);
     setAtenderModalOpen(true);
   };
 
-  // Confirmar conclusión de atención técnica (cambio a ATENDIDO)
+  // Confirmar conclusión de atención técnica (cambio a ATENDIDO con Instrumento Legislativo)
   const handleConfirmarAtender = async () => {
     if (!tramiteAAtender) return;
 
@@ -539,12 +629,13 @@ export default function EscritorioVirtual() {
     try {
       const payload = {
         proveido: proveidoAtencion.trim(),
-        actividad_nombre: actividadNombreAtencion.trim() || 'Informe y atención técnica concluida'
+        actividad_nombre: actividadNombreAtencion.trim() || 'Informe y atención técnica concluida',
+        instrumento_generado: instrumentoGeneradoAtencion || null
       };
 
       await tramitesService.marcarAtendido(tramiteAAtender.id, payload);
 
-      setAlertSuccess(`¡Trámite ${tramiteAAtender.numero_correlativo} marcado como ATENDIDO exitosamente! Listo para ser despachado a la siguiente instancia.`);
+      setAlertSuccess(`¡Trámite ${tramiteAAtender.numero_correlativo} marcado como ATENDIDO exitosamente con instrumento ${instrumentoGeneradoAtencion}! Listo para ser despachado a la siguiente instancia.`);
       setAtenderModalOpen(false);
       setTramiteAAtender(null);
       if (detalleModalOpen) {
@@ -1439,6 +1530,20 @@ export default function EscritorioVirtual() {
                             COMISIÓN
                           </span>
                         )}
+                        {item.ult_instrumento_generado && (
+                          <span
+                            className="badge"
+                            style={{
+                              backgroundColor: getInstrumentoInfo(item.ult_instrumento_generado)?.color || '#800000',
+                              color: 'white',
+                              fontSize: '9px',
+                              padding: '1px 5px',
+                              fontWeight: 700
+                            }}
+                          >
+                            {getInstrumentoInfo(item.ult_instrumento_generado)?.icono} {getInstrumentoInfo(item.ult_instrumento_generado)?.sigla}
+                          </span>
+                        )}
                       </div>
                       <div style={{ fontSize: '0.75rem', color: '#6C757D' }}>
                         {item.destinatario_unidad || item.ubicacion_actual_nombre || 'Unidad asignada'}
@@ -1877,6 +1982,32 @@ export default function EscritorioVirtual() {
                       <small style={{ color: '#6C757D', display: 'block', fontWeight: 600 }}>PRIORIDAD & FOJAS</small>
                       <span>{tramiteDetalle.prioridad} • {tramiteDetalle.nro_hojas} hojas ({tramiteDetalle.nro_anexos} anexos)</span>
                     </div>
+                    {(() => {
+                      const ultimoInstrumento = tramiteDetalle.historial?.slice().reverse().find(m => m.instrumento_generado)?.instrumento_generado;
+                      if (!ultimoInstrumento) return null;
+                      const info = getInstrumentoInfo(ultimoInstrumento);
+                      return (
+                        <div>
+                          <small style={{ color: '#800000', display: 'block', fontWeight: 700 }}>PRODUCTO NORMATIVO CMS</small>
+                          <span
+                            className="badge"
+                            style={{
+                              backgroundColor: info?.color || '#800000',
+                              color: '#FFFFFF',
+                              fontSize: '0.78rem',
+                              padding: '3px 8px',
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <span>{info?.icono || '📜'}</span>
+                            <span>{info?.sigla}</span>
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Datos del Remitente y Referencia */}
@@ -2120,6 +2251,27 @@ export default function EscritorioVirtual() {
                                     >
                                       {step.unidad_destino || step.unidad_origen}
                                     </div>
+                                    {step.instrumento_generado && (
+                                      <div
+                                        style={{
+                                          fontSize: '0.62rem',
+                                          fontWeight: 800,
+                                          color: getInstrumentoInfo(step.instrumento_generado)?.color || '#800000',
+                                          backgroundColor: getInstrumentoInfo(step.instrumento_generado)?.bg || '#FEF2F2',
+                                          border: `1px solid ${getInstrumentoInfo(step.instrumento_generado)?.border || '#FECACA'}`,
+                                          borderRadius: '4px',
+                                          padding: '1px 4px',
+                                          marginTop: '3px',
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '2px',
+                                          width: 'fit-content'
+                                        }}
+                                      >
+                                        <span>{getInstrumentoInfo(step.instrumento_generado)?.icono}</span>
+                                        <span>{getInstrumentoInfo(step.instrumento_generado)?.sigla}</span>
+                                      </div>
+                                    )}
                                   </div>
 
                                   {sIdx < tramiteDetalle.historial.length - 1 && (
@@ -2315,6 +2467,49 @@ export default function EscritorioVirtual() {
                                       Proveído / Dictamen:
                                     </strong>
                                     {mov.proveido}
+                                  </div>
+                                )}
+
+                                {/* Producto Normativo Generado (CMS) */}
+                                {mov.instrumento_generado && (
+                                  <div
+                                    style={{
+                                      backgroundColor: getInstrumentoInfo(mov.instrumento_generado)?.bg || '#FFF5F5',
+                                      border: `1.5px solid ${getInstrumentoInfo(mov.instrumento_generado)?.border || '#FECACA'}`,
+                                      borderRadius: '6px',
+                                      padding: '9px 12px',
+                                      marginTop: '8px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+                                    }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      <span style={{ fontSize: '1.25rem' }}>
+                                        {getInstrumentoInfo(mov.instrumento_generado)?.icono || '📄'}
+                                      </span>
+                                      <div>
+                                        <span style={{ fontSize: '0.68rem', fontWeight: 800, color: getInstrumentoInfo(mov.instrumento_generado)?.color, textTransform: 'uppercase', display: 'block' }}>
+                                          Producto Normativo Saliente (CMS)
+                                        </span>
+                                        <strong style={{ fontSize: '0.86rem', color: getInstrumentoInfo(mov.instrumento_generado)?.color }}>
+                                          {getInstrumentoInfo(mov.instrumento_generado)?.nombre}
+                                        </strong>
+                                      </div>
+                                    </div>
+                                    <span
+                                      className="badge"
+                                      style={{
+                                        backgroundColor: getInstrumentoInfo(mov.instrumento_generado)?.color,
+                                        color: '#FFFFFF',
+                                        fontSize: '0.72rem',
+                                        padding: '3px 8px',
+                                        fontWeight: 700
+                                      }}
+                                    >
+                                      {getInstrumentoInfo(mov.instrumento_generado)?.sigla}
+                                    </span>
                                   </div>
                                 )}
                               </div>
@@ -3591,6 +3786,81 @@ export default function EscritorioVirtual() {
                 <p style={{ margin: '4px 0 0 0' }}>
                   El trámite pasará al estado <span style={{ color: '#0F766E', fontWeight: 700 }}>🟢 ATENDIDO</span> en su bandeja de Recibidos. Esto certifica que el informe, revisión técnica o respuesta interna en esta unidad ha sido finalizada y está lista para ser despachada formalmente (<span style={{ fontWeight: 600 }}>Avanzar</span>) a su siguiente destino.
                 </p>
+              </div>
+
+              {/* Selector de Producto Normativo / Instrumento Legislativo Saliente CMS */}
+              <div>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    color: '#1B365D',
+                    marginBottom: '4px'
+                  }}
+                >
+                  <FileText size={16} color="#800000" />
+                  <span>Producto Normativo / Instrumento Legislativo Generado:</span>
+                </label>
+                <p style={{ fontSize: '0.74rem', color: '#64748B', margin: '0 0 8px 0' }}>
+                  Seleccione el tipo de producto oficial que emite la comisión o despacho para este trámite:
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: '4px' }}>
+                  {INSTRUMENTOS_LEGISLATIVOS_CMS.map((inst) => {
+                    const isSelected = instrumentoGeneradoAtencion === inst.id;
+                    return (
+                      <div
+                        key={inst.id}
+                        onClick={() => {
+                          setInstrumentoGeneradoAtencion(inst.id);
+                          setProveidoAtencion(PROVEIDOS_POR_INSTRUMENTO[inst.id] || proveidoAtencion);
+                          setActividadNombreAtencion(`Elaboración de ${inst.nombre}`);
+                        }}
+                        style={{
+                          padding: '9px 11px',
+                          borderRadius: '6px',
+                          border: isSelected ? `2px solid ${inst.color}` : '1px solid #CBD5E1',
+                          backgroundColor: isSelected ? inst.bg : '#FFFFFF',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '2px',
+                          boxShadow: isSelected ? `0 2px 6px ${inst.color}25` : 'none'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 800, fontSize: '0.82rem', color: isSelected ? inst.color : '#1E293B' }}>
+                            {inst.icono} {inst.sigla}
+                          </span>
+                          {isSelected && (
+                            <span
+                              style={{
+                                fontSize: '0.62rem',
+                                fontWeight: 700,
+                                backgroundColor: inst.color,
+                                color: '#FFFFFF',
+                                padding: '1px 5px',
+                                borderRadius: '6px'
+                              }}
+                            >
+                              SELECCIONADO
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '0.77rem', fontWeight: 600, color: isSelected ? inst.color : '#334155' }}>
+                          {inst.nombre}
+                        </div>
+                        <div style={{ fontSize: '0.68rem', color: '#64748B', lineHeight: 1.25 }}>
+                          {inst.descripcion}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Nombre de la actividad o informe opcional */}
