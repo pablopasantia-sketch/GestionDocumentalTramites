@@ -609,9 +609,9 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
     - *Notas Externas:* Sugerencia predeterminada de remisión inmediata a **Presidencia del CMS** para análisis político-normativo y asignación a comisiones.
     - *Notas Internas:* Sugerencia predeterminada de remisión a **Secretaría Administrativa** para distribución operativa a dependencias internas.
   - [X] Mapeo automático de categorías y preservación de la flexibilidad para derivaciones excepcionales.
-- [ ] **Flujo de Comisión y Asignación Interna (Presidencia de Comisión → Asesor)**:
-  - [ ] Sub-asignación interna dentro de la comisión manteniendo íntegra la Hoja de Ruta matriz (sin fragmentación de expedientes).
-  - [ ] Selector rápido de plazo reglamentario de informe (5, 10 o 15 días hábiles) con semaforización de alertas de vencimiento en el Escritorio Virtual del asesor.
+- [X] **Flujo de Comisión y Asignación Interna (Presidencia de Comisión → Asesor)**:
+  - [X] Sub-asignación interna dentro de la comisión manteniendo íntegra la Hoja de Ruta matriz (sin fragmentación de expedientes).
+  - [X] Selector rápido de plazo reglamentario de informe (5, 10 o 15 días hábiles) con semaforización de alertas de vencimiento en el Escritorio Virtual del asesor.
 - [ ] **Generación y Registro de Instrumentos Legislativos Salientes**:
   - [ ] En la acción de "Atender / Informe", habilitar la selección de los productos normativos proyectados:
     - Petición de Informe Escrito (PIE)

@@ -46,10 +46,18 @@ import EmpleadoSearchAutocomplete from '../components/institucional/EmpleadoSear
 const INSTRUCCIONES_SUGERIDAS_DERIVACION = [
   'Para su atención y trámite correspondiente según normativa',
   'Para informe técnico y dictamen pertinente',
+  'Para análisis y formulación de informe de comisión (plazo reglamentario)',
+  'Para proyecto de Minuta de Comunicación / PIE / PIO',
   'Para visto bueno y firma de aprobación',
   'Para conocimiento y fines consiguientes',
   'Para elaboración de nota de respuesta oficial',
   'Para archivo y custodia definitiva'
+];
+
+const PLAZOS_REGLAMENTARIOS_CMS = [
+  { dias: 5, label: '5 Días Hábiles', subtitulo: 'Urgente / Preferente', color: '#B91C1C', bg: '#FEF2F2', border: '#FCA5A5' },
+  { dias: 10, label: '10 Días Hábiles', subtitulo: 'Ordinario Estándar CMS', color: '#1E40AF', bg: '#EFF6FF', border: '#BFDBFE' },
+  { dias: 15, label: '15 Días Hábiles', subtitulo: 'Máximo de Comisión CMS', color: '#854D0E', bg: '#FEFCE8', border: '#FDE047' }
 ];
 
 const JUSTIFICACIONES_SUGERIDAS_RETROCESO = [
@@ -287,6 +295,7 @@ export default function EscritorioVirtual() {
   const handleAbrirDerivar = (tramite) => {
     setTramiteADerivar(tramite);
     setDerivarForm({
+      modoAsignacion: 'REGULAR', // 'REGULAR' | 'SUBASIGNACION_COMISION'
       codUDestino: '',
       unidadDestinoObj: null,
       codCargoDestino: '',
@@ -299,7 +308,7 @@ export default function EscritorioVirtual() {
       proveido: '',
       instruccion: INSTRUCCIONES_SUGERIDAS_DERIVACION[0],
       prioridad: tramite.prioridad || 'NORMAL',
-      diasPlazo: 3,
+      diasPlazo: 10, // Estándar reglamentario CMS
       esConclusion: false,
       otrosDestinatarios: []
     });
@@ -585,6 +594,134 @@ export default function EscritorioVirtual() {
       default:
         return <span className="badge">{estado}</span>;
     }
+  };
+
+  // Helper de semaforización de alertas SLA y plazos reglamentarios CMS
+  const renderSlaSemaforo = (item) => {
+    if (!item || !item.fecha_limite_respuesta) {
+      return (
+        <span style={{ fontSize: '0.72rem', color: '#94A3B8', fontStyle: 'italic' }}>
+          Sin plazo fijado
+        </span>
+      );
+    }
+
+    const isVencido = item.es_vencido || (item.dias_restantes != null && item.dias_restantes < 0);
+    const dias = item.dias_restantes;
+    const fechaObj = new Date(item.fecha_limite_respuesta);
+    const fechaStr = !isNaN(fechaObj.getTime()) ? fechaObj.toLocaleDateString('es-BO') : item.fecha_limite_respuesta;
+
+    if (isVencido) {
+      const diasRetraso = dias != null ? Math.abs(dias) : 0;
+      return (
+        <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '2px', alignItems: 'flex-start' }}>
+          <span
+            className="badge"
+            style={{
+              backgroundColor: '#DC2626',
+              color: 'white',
+              fontSize: '10.5px',
+              padding: '2px 7px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontWeight: 700,
+              borderRadius: '4px',
+              boxShadow: '0 1px 3px rgba(220, 38, 38, 0.25)'
+            }}
+          >
+            <AlertCircle size={11} />
+            <span>VENCIDO {diasRetraso > 0 ? `(${diasRetraso}d)` : ''}</span>
+          </span>
+          <span style={{ fontSize: '0.7rem', color: '#991B1B', fontWeight: 600 }}>
+            Límite: {fechaStr}
+          </span>
+        </div>
+      );
+    }
+
+    // Alerta Crítica: 0 a 2 días restantes
+    if (dias != null && dias <= 2) {
+      return (
+        <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '2px', alignItems: 'flex-start' }}>
+          <span
+            className="badge"
+            style={{
+              backgroundColor: '#EA580C',
+              color: 'white',
+              fontSize: '10.5px',
+              padding: '2px 7px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontWeight: 700,
+              borderRadius: '4px',
+              boxShadow: '0 1px 3px rgba(234, 88, 12, 0.2)'
+            }}
+          >
+            <Clock size={11} />
+            <span>{dias === 0 ? '¡VENCE HOY!' : `CRÍTICO (${dias}d)`}</span>
+          </span>
+          <span style={{ fontSize: '0.7rem', color: '#C2410C', fontWeight: 600 }}>
+            Límite: {fechaStr}
+          </span>
+        </div>
+      );
+    }
+
+    // Alerta Amarilla: 3 a 5 días restantes (Atención reglamentaria)
+    if (dias != null && dias <= 5) {
+      return (
+        <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '2px', alignItems: 'flex-start' }}>
+          <span
+            className="badge"
+            style={{
+              backgroundColor: '#D97706',
+              color: 'white',
+              fontSize: '10.5px',
+              padding: '2px 7px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontWeight: 600,
+              borderRadius: '4px'
+            }}
+          >
+            <Clock size={11} />
+            <span>ATENCIÓN ({dias}d)</span>
+          </span>
+          <span style={{ fontSize: '0.7rem', color: '#B45309' }}>
+            Límite: {fechaStr}
+          </span>
+        </div>
+      );
+    }
+
+    // Verde: Más de 5 días (En plazo reglamentario)
+    return (
+      <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '2px', alignItems: 'flex-start' }}>
+        <span
+          className="badge"
+          style={{
+            backgroundColor: '#16A34A',
+            color: 'white',
+            fontSize: '10.5px',
+            padding: '2px 7px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            fontWeight: 600,
+            borderRadius: '4px'
+          }}
+        >
+          <Clock size={11} />
+          <span>EN PLAZO ({dias != null ? `${dias}d` : 'OK'})</span>
+        </span>
+        <span style={{ fontSize: '0.7rem', color: '#15803D' }}>
+          Límite: {fechaStr}
+        </span>
+      </div>
+    );
   };
 
   // Helper para formato de fechas
@@ -1219,15 +1356,17 @@ export default function EscritorioVirtual() {
             </thead>
             <tbody>
               {tramitesFiltrados.map((item) => {
-                const isVencido = item.es_vencido;
+                const isVencido = item.es_vencido || (item.dias_restantes != null && item.dias_restantes < 0);
+                const isCritico = !isVencido && item.dias_restantes != null && item.dias_restantes <= 2;
+                const isAtencion = !isVencido && item.dias_restantes != null && item.dias_restantes > 2 && item.dias_restantes <= 5;
                 const esPorRecibir = item.estado === 'POR_RECIBIR' || item.estado === 'EN_TRANSITO';
 
                 return (
                   <tr
                     key={item.id}
                     style={{
-                      backgroundColor: isVencido ? '#FFF5F5' : undefined,
-                      borderLeft: isVencido ? '4px solid #DC3545' : undefined
+                      backgroundColor: isVencido ? '#FFF5F5' : isCritico ? '#FFFBEB' : isAtencion ? '#FEFCE8' : undefined,
+                      borderLeft: isVencido ? '4px solid #DC2626' : isCritico ? '4px solid #EA580C' : isAtencion ? '4px solid #F59E0B' : undefined
                     }}
                   >
                     {/* Columna 1: Hoja de Ruta y Prioridad */}
@@ -1293,8 +1432,13 @@ export default function EscritorioVirtual() {
 
                     {/* Columna 4: Actividad y Destinatario */}
                     <td>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1B365D' }}>
-                        {item.actividad_actual || 'Atención institucional'}
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1B365D', display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                        <span>{item.actividad_actual || 'Atención institucional'}</span>
+                        {item.actividad_actual && item.actividad_actual.toLowerCase().includes('comisión') && (
+                          <span className="badge" style={{ backgroundColor: '#047857', color: 'white', fontSize: '9px', padding: '1px 5px', fontWeight: 700 }}>
+                            COMISIÓN
+                          </span>
+                        )}
                       </div>
                       <div style={{ fontSize: '0.75rem', color: '#6C757D' }}>
                         {item.destinatario_unidad || item.ubicacion_actual_nombre || 'Unidad asignada'}
@@ -1308,38 +1452,10 @@ export default function EscritorioVirtual() {
 
                     {/* Columna 5: Fechas y Alerta SLA */}
                     <td>
-                      <div style={{ fontSize: '0.75rem', color: '#495057' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#495057', marginBottom: '4px' }}>
                         {formatFecha(item.fecha_recepcion || item.fecha_envio || item.fecha_creacion)}
                       </div>
-                      {item.fecha_limite_respuesta && (
-                        <div style={{ marginTop: '4px' }}>
-                          {isVencido ? (
-                            <span
-                              className="badge badge-alerta"
-                              style={{
-                                fontSize: '10px',
-                                padding: '2px 6px',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '3px'
-                              }}
-                            >
-                              <AlertCircle size={10} />
-                              <span>VENCIDO</span>
-                            </span>
-                          ) : (
-                            <span
-                              style={{
-                                fontSize: '0.72rem',
-                                color: item.dias_restantes <= 1 ? '#8D6500' : '#6C757D',
-                                fontWeight: item.dias_restantes <= 1 ? 700 : 400
-                              }}
-                            >
-                              Límite: {new Date(item.fecha_limite_respuesta).toLocaleDateString('es-BO')}
-                            </span>
-                          )}
-                        </div>
-                      )}
+                      {renderSlaSemaforo(item)}
                     </td>
 
                     {/* Columna 6: Estado */}
@@ -1748,6 +1864,10 @@ export default function EscritorioVirtual() {
                     <div>
                       <small style={{ color: '#6C757D', display: 'block', fontWeight: 600 }}>ESTADO ACTUAL</small>
                       {renderBadgeEstado(tramiteDetalle.estado)}
+                    </div>
+                    <div>
+                      <small style={{ color: '#6C757D', display: 'block', fontWeight: 600 }}>PLAZO REGLAMENTARIO / SLA</small>
+                      {renderSlaSemaforo(tramiteDetalle)}
                     </div>
                     <div>
                       <small style={{ color: '#6C757D', display: 'block', fontWeight: 600 }}>FECHA DE CREACIÓN</small>
@@ -2408,6 +2528,108 @@ export default function EscritorioVirtual() {
               {/* Si NO es conclusión: Selección de Destinatarios Institucionales */}
               {!derivarForm.esConclusion && (
                 <>
+                  {/* Selector de Modalidad Operativa CMS: Derivación Libre vs Sub-asignación Interna de Comisión */}
+                  <div
+                    style={{
+                      marginBottom: '1.25rem',
+                      padding: '12px 14px',
+                      backgroundColor: '#F8FAFC',
+                      borderRadius: '8px',
+                      border: '1px solid #E2E8F0'
+                    }}
+                  >
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1B365D', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Building2 size={16} color="#800000" />
+                      <span>Modalidad Operativa CMS:</span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDerivarForm(prev => ({
+                            ...prev,
+                            modoAsignacion: 'REGULAR',
+                            actividadNombre: 'Atención y derivación institucional'
+                          }));
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '6px',
+                          border: derivarForm.modoAsignacion === 'REGULAR' ? '2px solid #1B365D' : '1px solid #CBD5E1',
+                          backgroundColor: derivarForm.modoAsignacion === 'REGULAR' ? '#EFF6FF' : '#FFFFFF',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <div style={{ fontWeight: 700, fontSize: '0.84rem', color: '#1B365D' }}>
+                          🏛️ Derivación Inter-Unidades
+                        </div>
+                        <div style={{ fontSize: '0.73rem', color: '#64748B', marginTop: '3px' }}>
+                          Despacho regular hacia otra Comisión, Dirección o Secretaría.
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const unidadActualId = tramiteADerivar.ubicacion_actual_id || (activeRole && activeRole.ubicacionOrgId) || '';
+                          const unidadActualNombre = tramiteADerivar.destinatario_unidad || (activeRole && activeRole.ubicacionOrgNombre) || '';
+                          setDerivarForm(prev => ({
+                            ...prev,
+                            modoAsignacion: 'SUBASIGNACION_COMISION',
+                            codUDestino: unidadActualId ? String(unidadActualId) : prev.codUDestino,
+                            destinatarioUnidad: unidadActualNombre || prev.destinatarioUnidad,
+                            actividadNombre: 'Sub-asignación interna a Asesor de Comisión',
+                            proveido: prev.proveido || 'Para análisis técnico-jurídico y formulación de informe o proyecto de resolución de comisión.',
+                            instruccion: 'Para análisis y formulación de informe de comisión (plazo reglamentario)',
+                            diasPlazo: 10
+                          }));
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '6px',
+                          border: derivarForm.modoAsignacion === 'SUBASIGNACION_COMISION' ? '2px solid #800000' : '1px solid #CBD5E1',
+                          backgroundColor: derivarForm.modoAsignacion === 'SUBASIGNACION_COMISION' ? '#FFF5F5' : '#FFFFFF',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <div style={{ fontWeight: 700, fontSize: '0.84rem', color: '#800000' }}>
+                          ⚡ Sub-asignación Interna de Comisión
+                        </div>
+                        <div style={{ fontSize: '0.73rem', color: '#64748B', marginTop: '3px' }}>
+                          Presidencia de Comisión → Asesor (Mantiene Hoja de Ruta matriz).
+                        </div>
+                      </button>
+                    </div>
+
+                    {derivarForm.modoAsignacion === 'SUBASIGNACION_COMISION' && (
+                      <div
+                        style={{
+                          marginTop: '10px',
+                          padding: '8px 12px',
+                          backgroundColor: '#FEF3C7',
+                          borderRadius: '6px',
+                          border: '1px solid #FCD34D',
+                          fontSize: '0.76rem',
+                          color: '#92400E',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}
+                      >
+                        <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                        <div>
+                          <strong>Hoja de Ruta Matriz Preservada ({tramiteADerivar.numero_correlativo}):</strong>{' '}
+                          La sub-asignación interna dentro de la comisión no fragmenta el expediente. Toda actuación o informe del asesor se registrará cronológicamente en esta misma Hoja de Ruta.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Destinatario Principal */}
                   <div
                     style={{
@@ -2416,13 +2638,15 @@ export default function EscritorioVirtual() {
                       padding: '1.25rem',
                       marginBottom: '1.25rem',
                       backgroundColor: '#FFFFFF',
-                      borderLeft: '4px solid #1B365D'
+                      borderLeft: derivarForm.modoAsignacion === 'SUBASIGNACION_COMISION' ? '4px solid #800000' : '4px solid #1B365D'
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.75rem' }}>
-                      <Building2 size={18} color="#1B365D" />
+                      <Building2 size={18} color={derivarForm.modoAsignacion === 'SUBASIGNACION_COMISION' ? '#800000' : '#1B365D'} />
                       <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#1B365D' }}>
-                        1. Destinatario Institucional Principal
+                        {derivarForm.modoAsignacion === 'SUBASIGNACION_COMISION'
+                          ? '1. Asignación a Asesor de Comisión'
+                          : '1. Destinatario Institucional Principal'}
                       </h4>
                     </div>
 
@@ -2705,55 +2929,105 @@ export default function EscritorioVirtual() {
                 </div>
               </div>
 
-              {/* Sección 4: Plazo SLA y Prioridad (Solo si no es conclusión) */}
+              {/* Sección 4: Plazo Reglamentario CMS y Prioridad (Solo si no es conclusión) */}
               {!derivarForm.esConclusion && (
                 <div
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '12px',
-                    marginBottom: '1rem',
                     backgroundColor: '#F8FAFC',
-                    padding: '1rem',
+                    padding: '1.25rem',
                     borderRadius: '6px',
-                    border: '1px solid #E2E8F0'
+                    border: '1px solid #E2E8F0',
+                    marginBottom: '1rem',
+                    borderLeft: '4px solid #1B365D'
                   }}
                 >
-                  <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#212529', marginBottom: '4px', display: 'block' }}>
-                      Prioridad de Despacho:
-                    </label>
-                    <select
-                      className="form-select"
-                      style={{ fontSize: '0.85rem' }}
-                      value={derivarForm.prioridad}
-                      onChange={(e) => setDerivarForm({ ...derivarForm, prioridad: e.target.value })}
-                    >
-                      <option value="NORMAL">Normal (Según Flujo Regular)</option>
-                      <option value="ALTA">Alta Prioridad (Requerimiento Urgente)</option>
-                      <option value="URGENTE">Urgente (Plazo Inmediato)</option>
-                    </select>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.75rem' }}>
+                    <Timer size={18} color="#1B365D" />
+                    <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#1B365D' }}>
+                      4. Plazo Reglamentario CMS de Informe y Prioridad
+                    </h4>
                   </div>
 
-                  <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#212529', marginBottom: '4px', display: 'block' }}>
-                      Plazo Estimado de Respuesta (Días):
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="90"
-                      className="form-control"
-                      style={{ fontSize: '0.85rem' }}
-                      value={derivarForm.diasPlazo}
-                      onChange={(e) => setDerivarForm({ ...derivarForm, diasPlazo: e.target.value })}
-                    />
-                    <small style={{ color: '#6C757D', fontSize: '0.72rem', display: 'block', marginTop: '2px' }}>
-                      Fecha límite estimada:{' '}
-                      <strong>
-                        {new Date(Date.now() + (parseInt(derivarForm.diasPlazo || 3, 10) * 86400000)).toLocaleDateString('es-BO')}
-                      </strong>
-                    </small>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', alignItems: 'start' }}>
+                    {/* Prioridad de Despacho */}
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#212529', marginBottom: '6px', display: 'block' }}>
+                        Prioridad de Despacho:
+                      </label>
+                      <select
+                        className="form-select"
+                        style={{ fontSize: '0.85rem' }}
+                        value={derivarForm.prioridad}
+                        onChange={(e) => setDerivarForm({ ...derivarForm, prioridad: e.target.value })}
+                      >
+                        <option value="NORMAL">Normal (Flujo Ordinario)</option>
+                        <option value="ALTA">Alta Prioridad (Requerimiento Urgente)</option>
+                        <option value="URGENTE">Urgente (Atención Inmediata)</option>
+                      </select>
+                    </div>
+
+                    {/* Selector Rápido de Plazos Reglamentarios CMS */}
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#212529', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Clock size={14} color="#800000" />
+                        <span>Selector Rápido de Plazo Reglamentario de Comisión:</span>
+                      </label>
+
+                      {/* Botones Preset de Plazos CMS (5, 10, 15 días) */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '8px' }}>
+                        {PLAZOS_REGLAMENTARIOS_CMS.map(p => {
+                          const isSelected = parseInt(derivarForm.diasPlazo, 10) === p.dias;
+                          return (
+                            <button
+                              key={p.dias}
+                              type="button"
+                              onClick={() => setDerivarForm({ ...derivarForm, diasPlazo: p.dias })}
+                              style={{
+                                padding: '6px 4px',
+                                borderRadius: '6px',
+                                border: isSelected ? `2px solid ${p.color}` : '1px solid #CBD5E1',
+                                backgroundColor: isSelected ? p.bg : '#FFFFFF',
+                                cursor: 'pointer',
+                                textAlign: 'center',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: isSelected ? p.color : '#334155' }}>
+                                {p.label}
+                              </div>
+                              <div style={{ fontSize: '0.67rem', color: isSelected ? p.color : '#64748B' }}>
+                                {p.subtitulo}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.78rem', color: '#64748B' }}>Días:</span>
+                          <input
+                            type="number"
+                            min="1"
+                            max="90"
+                            className="form-control"
+                            style={{ fontSize: '0.85rem', width: '80px' }}
+                            value={derivarForm.diasPlazo}
+                            onChange={(e) => setDerivarForm({ ...derivarForm, diasPlazo: e.target.value })}
+                          />
+                        </div>
+
+                        <div style={{ fontSize: '0.76rem', color: '#475569' }}>
+                          Límite calculado:{' '}
+                          <strong style={{ color: '#800000', fontSize: '0.82rem' }}>
+                            {new Date(Date.now() + (parseInt(derivarForm.diasPlazo || 10, 10) * 86400000)).toLocaleDateString('es-BO')}
+                          </strong>
+                          <span style={{ color: '#64748B', marginLeft: '4px' }}>
+                            ({derivarForm.diasPlazo || 10} días)
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
