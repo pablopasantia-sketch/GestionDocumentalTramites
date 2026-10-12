@@ -103,6 +103,9 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("justificacion_retroceso")]
         public string? JustificacionRetroceso { get; set; }
 
+        [JsonPropertyName("instrumento_generado")]
+        public string? InstrumentoGenerado { get; set; }
+
         [JsonPropertyName("fecha_envio")]
         public DateTime? FechaEnvio { get; set; }
 
@@ -478,6 +481,9 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("ultimo_proveido")]
         public string? UltimoProveido { get; set; }
 
+        [JsonPropertyName("ultimo_instrumento_generado")]
+        public string? UltimoInstrumentoGenerado { get; set; }
+
         [JsonPropertyName("bandeja_tipo")]
         public string BandejaTipo { get; set; } = string.Empty;
     }
@@ -578,6 +584,9 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("dias_plazo")]
         public int? DiasPlazo { get; set; }
 
+        [JsonPropertyName("instrumento_generado")]
+        public string? InstrumentoGenerado { get; set; }
+
         [JsonPropertyName("es_conclusion")]
         public bool EsConclusion { get; set; } = false;
 
@@ -605,5 +614,8 @@ namespace GestionDocumental.Api.DTOs.Tramites
 
         [JsonPropertyName("actividad_nombre")]
         public string? ActividadNombre { get; set; }
+
+        [JsonPropertyName("instrumento_generado")]
+        public string? InstrumentoGenerado { get; set; }
     }
 }

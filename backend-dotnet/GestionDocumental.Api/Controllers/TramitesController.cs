@@ -100,6 +100,7 @@ namespace GestionDocumental.Api.Controllers
                                 Proveido = reader.GetNullableString("proveido"),
                                 Instruccion = reader.GetNullableString("instruccion"),
                                 JustificacionRetroceso = reader.GetNullableString("justificacion_retroceso"),
+                                InstrumentoGenerado = reader.GetNullableString("instrumento_generado"),
                                 FechaEnvio = reader.GetNullableDateTime("fecha_envio"),
                                 FechaRecepcion = reader.GetNullableDateTime("fecha_recepcion"),
                                 Fecha = reader.GetSafeDateTime("fecha"),
@@ -220,6 +221,7 @@ namespace GestionDocumental.Api.Controllers
                     DiasRestantes = reader.GetNullableInt32("dias_restantes"),
                     NroAdjuntos = reader.GetSafeInt32("nro_adjuntos"),
                     UltimoProveido = reader.GetNullableString("ultimo_proveido"),
+                    UltimoInstrumentoGenerado = reader.GetNullableString("ultimo_instrumento_generado"),
                     BandejaTipo = reader.GetSafeString("bandeja_tipo")
                 },
                 new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId },
@@ -368,6 +370,7 @@ namespace GestionDocumental.Api.Controllers
                     new SqlParameter("@DiasPlazo", SqlDbType.Int) { Value = (object?)dto.DiasPlazo ?? DBNull.Value },
                     new SqlParameter("@EsConclusion", SqlDbType.Bit) { Value = dto.EsConclusion ? 1 : 0 },
                     new SqlParameter("@OtrosDestinatariosJson", SqlDbType.NVarChar, -1) { Value = (object?)otrosDestJson ?? DBNull.Value },
+                    new SqlParameter("@InstrumentoGenerado", SqlDbType.VarChar, 50) { Value = (object?)dto.InstrumentoGenerado?.Trim() ?? DBNull.Value },
                     outNuevoMovimientoId
                 );
 
@@ -465,6 +468,7 @@ namespace GestionDocumental.Api.Controllers
                     new SqlParameter("@UbicacionOrgId", SqlDbType.Int) { Value = ubicacionId },
                     new SqlParameter("@Proveido", SqlDbType.NVarChar, -1) { Value = dto.Proveido.Trim() },
                     new SqlParameter("@ActividadNombre", SqlDbType.VarChar, 150) { Value = (object?)dto.ActividadNombre?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@InstrumentoGenerado", SqlDbType.VarChar, 50) { Value = (object?)dto.InstrumentoGenerado?.Trim() ?? DBNull.Value },
                     outNuevoMovimientoId
                 );
 
@@ -616,6 +620,7 @@ namespace GestionDocumental.Api.Controllers
                                 Proveido = reader.GetNullableString("proveido"),
                                 Instruccion = reader.GetNullableString("instruccion"),
                                 JustificacionRetroceso = reader.GetNullableString("justificacion_retroceso"),
+                                InstrumentoGenerado = reader.GetNullableString("instrumento_generado"),
                                 FechaEnvio = reader.GetNullableDateTime("fecha_envio"),
                                 FechaRecepcion = reader.GetNullableDateTime("fecha_recepcion"),
                                 Fecha = reader.GetSafeDateTime("fecha"),

@@ -598,6 +598,34 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 - [X] Recepcionar proceso
 - [X] Detalle histórico del proceso (trazabilidad y auditoría)
 
+### Adenda Operativa Post-Sprint 3: Alineación de Flujos Oficiales del Concejo Municipal de Sucre (CMS)
+
+- [X] **Modelo de Datos y Procedimientos Almacenados (Alineación CMS)**:
+  - [X] Incorporación del campo `instrumento_generado` (`VARCHAR(50) NULL`) en `dbo.movimientos` para registrar los 5 instrumentos legislativos salientes (`PIE`, `PIO`, `MINUTA`, `RESOLUCION`, `NOTA_EXTERNA`, `INFORME`).
+  - [X] Actualización de los procedimientos almacenados `usp_Tramites_Derivar`, `usp_Tramites_MarcarAtendido` y `usp_Tramites_ObtenerPorId` para persistir, validar y proyectar el instrumento resultante.
+  - [X] Parámetro dinámico de plazo de comisión (`@DiasPlazo INT`: 5 a 15 días reglamentarios) recalculando `fecha_limite_respuesta` en la sub-asignación interna.
+- [ ] **Ventanilla Única CMS (Macro-Bifurcación y Preselección de Destinos)**:
+  - [ ] Implementación de la bifurcación operativa oficial:
+    - *Notas Externas:* Sugerencia predeterminada de remisión inmediata a **Presidencia del CMS** para análisis político-normativo y asignación a comisiones.
+    - *Notas Internas:* Sugerencia predeterminada de remisión a **Secretaría Administrativa** para distribución operativa a dependencias internas.
+  - [ ] Mapeo automático de categorías y preservación de la flexibilidad para derivaciones excepcionales.
+- [ ] **Flujo de Comisión y Asignación Interna (Presidencia de Comisión → Asesor)**:
+  - [ ] Sub-asignación interna dentro de la comisión manteniendo íntegra la Hoja de Ruta matriz (sin fragmentación de expedientes).
+  - [ ] Selector rápido de plazo reglamentario de informe (5, 10 o 15 días hábiles) con semaforización de alertas de vencimiento en el Escritorio Virtual del asesor.
+- [ ] **Generación y Registro de Instrumentos Legislativos Salientes**:
+  - [ ] En la acción de "Atender / Informe", habilitar la selección de los productos normativos proyectados:
+    - Petición de Informe Escrito (PIE)
+    - Petición de Informe Oral (PIO)
+    - Minuta de Comunicación
+    - Resolución Municipal / Proyecto Normativo
+    - Nota Externa de Contestación
+  - [ ] Visualización destacada de los instrumentos en el timeline histórico, comprobante de Hoja de Ruta y auditoría del proceso.
+- [ ] **Circuito Plenario, Firmas Duales y Despacho Final**:
+  - [ ] Trazabilidad del paso por **Asesoría del Pleno** y constancia de **Aprobación en Sesión del Pleno del CMS**.
+  - [ ] Registro de firmas duales concurrentes (Presidencia CMS y Secretaría General CMS) antes del despacho final al Alcalde Municipal o a instituciones externas.
+- [ ] **Pruebas End-to-End (E2E) con Playwright**:
+  - [ ] Suite E2E que valide el circuito institucional completo del CMS: Ventanilla Única → Presidencia CMS → Comisión → Asesor (plazo 5-15 días) → Generación de PIE/Minuta → Asesoría del Pleno → Firmas y Despacho.
+
 ### Sprint 4 (13 Oct - 26 Oct): Administración y Hoja de Ruta
 
 - [ ] Bloquear / Desbloquear procesos
@@ -624,4 +652,155 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 
 ---
 
+## 9. MODELO OPERATIVO Y FLUJOGRAMAS OFICIALES DEL CONCEJO MUNICIPAL DE SUCRE (CMS)
+
+### 9.1 Contexto Institucional del Concejo Municipal de Sucre
+El Concejo Municipal de Sucre (CMS) es la máxima autoridad legislativa, deliberativa y fiscalizadora del Gobierno Autónomo Municipal. A diferencia de las instancias netamente administrativas del Órgano Ejecutivo (Alcaldía), la dinámica del CMS se rige por su **Reglamento General del Concejo**, caracterizado por:
+1. **Órgano Colegiado:** Las decisiones sustantivas no las toma un funcionario unipersonal, sino comisiones permanentes integradas por concejales y, en última instancia, el **Pleno del Concejo Municipal**.
+2. **Naturaleza de los Expedientes:** Una sola Nota Externa (ej. reclamo vecinal por obras públicas) puede generar múltiples instrumentos fiscalizadores simultáneos dirigidos al Ejecutivo Municipal.
+3. **Distribución Mixta (Digital y Mensajería Física):** Los expedientes físicos (carpetas encuadernadas con memoriales, planos y respaldos) se trasladan físicamente mediante auxiliares de mensajería (carrito distribuidor), debiendo coordinarse digitalmente con los estados de recepción de la plataforma.
+
+---
+
+### 9.2 Diagrama 1: Flujo de Ventanilla Única CMS (Macro-Bifurcación y Despacho)
+
+```mermaid
+graph TD
+    subgraph INGRESO["Ventanilla Única CMS"]
+        VU[Recepción de Correspondencia<br/>Interna y Externa]
+    end
+
+    subgraph CANAL_EXTERNO["Canal Político-Legislativo (Notas Externas)"]
+        VU -->|Notas Externas| PRES[Presidencia CMS<br/>Análisis de Notas Externas]
+        PRES -->|Proveído de Remisión| DIST_EXT[Se devuelven Notas para entrega<br/>a Comisiones del C.M.S]
+        DIST_EXT -->|Mensajería / Carrito| COM1[Secretaría Administrativa]
+        DIST_EXT -->|Mensajería / Carrito| COM2[Comisión de Medio Ambiente]
+        DIST_EXT -->|Mensajería / Carrito| COM3[Comisión Social y Seg. Ciudadana]
+        DIST_EXT -->|Mensajería / Carrito| COM4[Comisión de Obras Públicas]
+        DIST_EXT -->|Mensajería / Carrito| COM5[Comisión Económica]
+        DIST_EXT -->|Mensajería / Carrito| COM6[Comisión Autonómica y Legislativa]
+        DIST_EXT -->|Mensajería / Carrito| COM7[Asesoría Pleno del Concejo]
+    end
+
+    subgraph CANAL_INTERNO["Canal Operativo-Administrativo (Notas Internas)"]
+        VU -->|Notas Internas| SEC_ADM[Secretaría Administrativa<br/>Análisis Operativo]
+        SEC_ADM -->|Proveído de Remisión| AUX_ADM[Secretaría Aux. Administrativa<br/>Entrega con Proveídos]
+        AUX_ADM -->|Distribución Interna| U1[Unidad de Cómputo]
+        AUX_ADM -->|Distribución Interna| U2[Unidad de Comunicación]
+        AUX_ADM -->|Distribución Interna| U3[Unidad de Contabilidad]
+        AUX_ADM -->|Distribución Interna| U4[Unidad de Activos Fijos]
+        AUX_ADM -->|Distribución Interna| U5[Unidad de Almacenes]
+        AUX_ADM -->|Distribución Interna| U6[Unidad de RRHH]
+        AUX_ADM -->|Distribución Interna| U7[Unidad de Archivos y Gaceta]
+        AUX_ADM -->|Distribución Interna| U8[Unidad de Conserjes y Servicio]
+        AUX_ADM -->|Distribución Interna| U9[Personal del C.M.S]
+    end
+```
+
+#### Reglas Operativas de la Macro-Bifurcación:
+* **Canal Político-Legislativo (Notas Externas):**
+  * Toda nota de ciudadanos, juntas vecinales, instituciones públicas o el Alcalde ingresa por Ventanilla Única y se deriva directamente a **Presidencia del Concejo**.
+  * Presidencia analiza la nota y emite el proveído oficial destinándola a una de las **6 Comisiones Permanentes** o a la **Asesoría del Pleno**.
+* **Canal Administrativo-Operativo (Notas Internas):**
+  * Solicitudes internas de personal, requerimientos de suministros, reportes de soporte o permisos van a **Secretaría Administrativa**, la cual distribuye a las unidades de soporte.
+* **El Papel de la Mensajería Física vs. Reflejo Digital:**
+  * Entre la emisión del proveído y la recepción física en la comisión media el traslado material por mensajería.
+  * El sistema modela esta fase con el estado **`POR_RECIBIR`** (en tránsito), que se consolida cuando la comisión pulsa **"Recepcionar"**, garantizando que no se computen demoras de atención mientras el expediente físico esté en manos del mensajero.
+
+---
+
+### 9.3 Diagrama 2: Flujo de Comisión (Ciclo Técnico-Legislativo y Aprobación Plenaria)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Presidencia as Presidencia CMS
+    actor PresidenteCom as Presidente de Comisión
+    actor AsesorCom as Asesor de Comisión
+    actor AsesoriaPleno as Asesoría del Pleno
+    actor Pleno as Pleno del Concejo
+    actor Secretarias as Secretaría CMS
+    actor Alcalde as Alcalde Municipal / Externos
+
+    Presidencia->>PresidenteCom: Remite Correspondencia Externa con Proveído
+    Note over PresidenteCom: Análisis de Correspondencia en Comisión
+    PresidenteCom->>AsesorCom: Asignación para Elaboración de Informe
+    Note over AsesorCom: Plazo Normativo: 5 a 15 días hábiles
+    Note over AsesorCom: Proyección de Instrumento:<br/>PIE / PIO / Minuta / Resolución / Nota Externa
+    AsesorCom->>PresidenteCom: Informe Técnico-Jurídico concluido
+    PresidenteCom->>AsesoriaPleno: Remisión de Informe de Comisión
+    AsesoriaPleno->>Pleno: Agendamiento y Lectura de Informe
+    Note over Pleno: Deliberación y Aprobación de Informe
+    Pleno->>Presidencia: Remisión para Firma Oficial
+    Presidencia->>Secretarias: Remisión para Firma y Refrendo Dual
+    Secretarias->>Alcalde: Despacho Final de Documentos Firmados<br/>(Notas / Minutas / PIE / PIO)
+```
+
+#### Ciclo de Vida Interno en Comisiones:
+1. **Sub-asignación:** El Presidente de Comisión (Concejal) recibe la nota y la asigna formalmente a su Asesor de Comisión.
+2. **Plazo Reglamentario (5 a 15 días hábiles):** Por normativa interna del CMS, la comisión cuenta con una ventana reglamentaria de **5 a 15 días** para emitir su criterio técnico-legal. El sistema calcula dinámicamente este SLA sobre el movimiento.
+3. **Los 5 Instrumentos Legislativos Salientes:**
+   * **Petición de Informe Escrito (PIE):** Pliego de preguntas vinculantes remitido al Alcalde Municipal.
+   * **Petición de Informe Oral (PIO):** Convocatoria a autoridades del Ejecutivo para brindar informes en Sesión Plenaria.
+   * **Minutas de Comunicación:** Recomendaciones formales de gestión administrativa o correctiva al Ejecutivo.
+   * **Resoluciones Municipales / Proyectos de Ley:** Normas de carácter deliberativo o reglamentario emitidas por el Concejo.
+   * **Notas Externas de Respuesta:** Contestaciones oficiales de fondo al solicitante original.
+4. **Circuito de Pleno y Firmas Duales:**
+   * El informe se agenda para Sesión Plenaria.
+   * Tras la aprobación del Pleno, el documento no sale inmediatamente; requiere **Firmas Duales Concurrentes** (Firma de Presidencia CMS y refrendo de Secretaría General CMS) antes del despacho final al Alcalde o terceros.
+
+---
+
+### 9.4 Matriz de Coexistencia Arquitectónica
+
+```
++---------------------------------------------------------------------------------+
+|                       EXPEDIENTE MATRIZ (HOJA DE RUTA)                          |
+|                       Código Único Anual: CM-XX/2026                            |
++---------------------------------------+-----------------------------------------+
+                                        |
+     +----------------------------------+-----------------------------------+
+     |                                                                      |
+     v                                                                      v
+[ENTRADA: Correspondencia Externa]                         [ENTRADA: Correspondencia Interna]
+- CM: Correspondencia Municipal                             - NI: Nota Interna Administrativa
+- CDE1: Contratos Institucionales                           - Requerimientos de Unidades
+- CDE2: Convenios Interinstitucionales                      - Informes de Soporte Operativo
+- CDH1: Condecoraciones y Distinciones                                      |
+     |                                                                      v
+     v                                                            (Secretaría Administrativa)
+(Presidencia del Concejo)
+     |
+     v
+(Comisión Permanente) -----> Regla de Plazo: 5 a 15 días
+     |
+     +======================================================================+
+     |        PRODUCTOS / INSTRUMENTOS LEGISLATIVOS RESULTANTES             |
+     |             (Registrados en la estación de atención)                 |
+     +----------------------------------------------------------------------+
+     | 1. PIE (Petición de Informe Escrito)                                 |
+     | 2. PIO (Petición de Informe Oral)                                    |
+     | 3. MINUTA (Minuta de Comunicación)                                   |
+     | 4. RESOLUCION (Resolución Municipal / Proyecto Normativo)            |
+     | 5. NOTA_EXTERNA (Nota de Respuesta Oficial)                          |
+     +======================================================================+
+                                        |
+                                        v
+                    (Lectura y Aprobación en Pleno del Concejo)
+                                        |
+                                        v
+                    (Firmas Duales: Presidencia + Secretaría CMS)
+                                        |
+                                        v
+                 [DESPACHO FINAL: Alcalde Municipal / Entidad Externa]
+```
+
+#### Principios Clave de Diseño:
+1. **Preservación de la Hoja de Ruta Matriz:** Los instrumentos legislativos (PIE, PIO, Minutas) **no son trámites huérfanos**. Nacen vinculados al historial del expediente original (`CM-XX/2026`), preservando la cadena de custodia y los memoriales adjuntos.
+2. **Coexistencia con el Manual de Procedimientos Técnicos:** Cuando en fases futuras se incorporen trámites procedimentales específicos (catastro, auditorías, fiscalizaciones especiales), estos operarán como reglas de validación adicionales sobre las actividades de comisión sin alterar la estructura unificada de movimientos.
+3. **Flexibilidad con Derivación Libre:** El motor de derivación libre implementado en el backend soporta con naturalidad la secuencia completa descrita por los diagramas sin necesidad de codificar máquinas de estados rígidas.
+
+---
+
 > **NOTA:** Este documento es un contexto vivo. Debe ser actualizado conforme se tomen decisiones de diseño e implementación durante el desarrollo del MVP.
+
