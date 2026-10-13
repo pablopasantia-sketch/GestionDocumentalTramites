@@ -620,9 +620,9 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
     - Resolución Municipal / Proyecto Normativo
     - Nota Externa de Contestación
   - [X] Visualización destacada de los instrumentos en el timeline histórico, comprobante de Hoja de Ruta y auditoría del proceso.
-- [ ] **Circuito Plenario, Firmas Duales y Despacho Final**:
-  - [ ] Trazabilidad del paso por **Asesoría del Pleno** y constancia de **Aprobación en Sesión del Pleno del CMS**.
-  - [ ] Registro de firmas duales concurrentes (Presidencia CMS y Secretaría General CMS) antes del despacho final al Alcalde Municipal o a instituciones externas.
+- [X] **Circuito Plenario, Firmas Duales y Despacho Final**:
+  - [X] Trazabilidad del paso por **Asesoría del Pleno** y constancia de **Aprobación en Sesión del Pleno del CMS**.
+  - [X] Registro de firmas duales concurrentes (Presidencia CMS y Secretaría General CMS) antes del despacho final al Alcalde Municipal o a instituciones externas.
 - [ ] **Pruebas End-to-End (E2E) con Playwright**:
   - [ ] Suite E2E que valide el circuito institucional completo del CMS: Ventanilla Única → Presidencia CMS → Comisión → Asesor (plazo 5-15 días) → Generación de PIE/Minuta → Asesoría del Pleno → Firmas y Despacho.
 

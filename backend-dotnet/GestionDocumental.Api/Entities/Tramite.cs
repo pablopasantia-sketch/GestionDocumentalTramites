@@ -119,6 +119,48 @@ namespace GestionDocumental.Api.Entities
         [Column("motivo_anulacion")]
         public string? MotivoAnulacion { get; set; }
 
+        [MaxLength(100)]
+        [Column("sesion_pleno_nro")]
+        public string? SesionPlenoNro { get; set; }
+
+        [Column("sesion_pleno_fecha")]
+        public DateTime? SesionPlenoFecha { get; set; }
+
+        [MaxLength(100)]
+        [Column("sesion_pleno_resultado")]
+        public string? SesionPlenoResultado { get; set; }
+
+        [Column("firma_presidencia")]
+        public bool FirmaPresidencia { get; set; } = false;
+
+        [Column("firma_presidencia_fecha")]
+        public DateTime? FirmaPresidenciaFecha { get; set; }
+
+        [MaxLength(150)]
+        [Column("firma_presidencia_usuario")]
+        public string? FirmaPresidenciaUsuario { get; set; }
+
+        [Column("firma_secretaria")]
+        public bool FirmaSecretaria { get; set; } = false;
+
+        [Column("firma_secretaria_fecha")]
+        public DateTime? FirmaSecretariaFecha { get; set; }
+
+        [MaxLength(150)]
+        [Column("firma_secretaria_usuario")]
+        public string? FirmaSecretariaUsuario { get; set; }
+
+        [Column("despacho_final_fecha")]
+        public DateTime? DespachoFinalFecha { get; set; }
+
+        [MaxLength(100)]
+        [Column("despacho_final_cite")]
+        public string? DespachoFinalCite { get; set; }
+
+        [MaxLength(250)]
+        [Column("despacho_final_destinatario")]
+        public string? DespachoFinalDestinatario { get; set; }
+
         [Column("activo")]
         public bool Activo { get; set; } = true;
 

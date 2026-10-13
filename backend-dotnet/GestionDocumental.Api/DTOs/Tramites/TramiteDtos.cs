@@ -385,6 +385,42 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("unidad_origen")]
         public string UnidadOrigen { get; set; } = string.Empty;
 
+        [JsonPropertyName("sesion_pleno_nro")]
+        public string? SesionPlenoNro { get; set; }
+
+        [JsonPropertyName("sesion_pleno_fecha")]
+        public DateTime? SesionPlenoFecha { get; set; }
+
+        [JsonPropertyName("sesion_pleno_resultado")]
+        public string? SesionPlenoResultado { get; set; }
+
+        [JsonPropertyName("firma_presidencia")]
+        public bool FirmaPresidencia { get; set; } = false;
+
+        [JsonPropertyName("firma_presidencia_fecha")]
+        public DateTime? FirmaPresidenciaFecha { get; set; }
+
+        [JsonPropertyName("firma_presidencia_usuario")]
+        public string? FirmaPresidenciaUsuario { get; set; }
+
+        [JsonPropertyName("firma_secretaria")]
+        public bool FirmaSecretaria { get; set; } = false;
+
+        [JsonPropertyName("firma_secretaria_fecha")]
+        public DateTime? FirmaSecretariaFecha { get; set; }
+
+        [JsonPropertyName("firma_secretaria_usuario")]
+        public string? FirmaSecretariaUsuario { get; set; }
+
+        [JsonPropertyName("despacho_final_fecha")]
+        public DateTime? DespachoFinalFecha { get; set; }
+
+        [JsonPropertyName("despacho_final_cite")]
+        public string? DespachoFinalCite { get; set; }
+
+        [JsonPropertyName("despacho_final_destinatario")]
+        public string? DespachoFinalDestinatario { get; set; }
+
         [JsonPropertyName("historial")]
         public List<MovimientoTimelineDto> Historial { get; set; } = new();
 
@@ -489,6 +525,21 @@ namespace GestionDocumental.Api.DTOs.Tramites
 
         [JsonPropertyName("ultimo_instrumento_generado")]
         public string? UltimoInstrumentoGenerado { get; set; }
+
+        [JsonPropertyName("sesion_pleno_nro")]
+        public string? SesionPlenoNro { get; set; }
+
+        [JsonPropertyName("sesion_pleno_resultado")]
+        public string? SesionPlenoResultado { get; set; }
+
+        [JsonPropertyName("firma_presidencia")]
+        public bool FirmaPresidencia { get; set; } = false;
+
+        [JsonPropertyName("firma_secretaria")]
+        public bool FirmaSecretaria { get; set; } = false;
+
+        [JsonPropertyName("despacho_final_cite")]
+        public string? DespachoFinalCite { get; set; }
 
         [JsonPropertyName("bandeja_tipo")]
         public string BandejaTipo { get; set; } = string.Empty;
@@ -623,5 +674,49 @@ namespace GestionDocumental.Api.DTOs.Tramites
 
         [JsonPropertyName("instrumento_generado")]
         public string? InstrumentoGenerado { get; set; }
+    }
+
+    public class RegistrarAprobacionPlenoDto
+    {
+        [Required(ErrorMessage = "Debe especificar el número o denominación de la Sesión del Pleno del CMS.")]
+        [JsonPropertyName("sesion_pleno_nro")]
+        public string SesionPlenoNro { get; set; } = string.Empty;
+
+        [JsonPropertyName("sesion_pleno_fecha")]
+        public DateTime? SesionPlenoFecha { get; set; }
+
+        [Required(ErrorMessage = "Debe especificar el resultado del tratamiento en el Pleno.")]
+        [JsonPropertyName("sesion_pleno_resultado")]
+        public string SesionPlenoResultado { get; set; } = string.Empty;
+
+        [JsonPropertyName("proveido")]
+        public string? Proveido { get; set; }
+
+        [JsonPropertyName("instrumento_generado")]
+        public string? InstrumentoGenerado { get; set; }
+    }
+
+    public class RegistrarFirmaDualDto
+    {
+        [Required(ErrorMessage = "El tipo de firma es obligatorio ('PRESIDENCIA' o 'SECRETARIA').")]
+        [JsonPropertyName("tipo_firma")]
+        public string TipoFirma { get; set; } = string.Empty;
+
+        [JsonPropertyName("observaciones")]
+        public string? Observaciones { get; set; }
+    }
+
+    public class DespachoFinalDto
+    {
+        [Required(ErrorMessage = "Debe indicar el CITE o número oficial de oficio saliente del CMS.")]
+        [JsonPropertyName("cite_despacho")]
+        public string CiteDespacho { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Debe especificar el destinatario final oficial.")]
+        [JsonPropertyName("destinatario_final")]
+        public string DestinatarioFinal { get; set; } = string.Empty;
+
+        [JsonPropertyName("proveido")]
+        public string? Proveido { get; set; }
     }
 }

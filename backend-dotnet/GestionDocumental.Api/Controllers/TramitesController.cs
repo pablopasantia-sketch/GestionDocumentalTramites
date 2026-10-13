@@ -222,6 +222,11 @@ namespace GestionDocumental.Api.Controllers
                     NroAdjuntos = reader.GetSafeInt32("nro_adjuntos"),
                     UltimoProveido = reader.GetNullableString("ultimo_proveido"),
                     UltimoInstrumentoGenerado = reader.GetNullableString("ultimo_instrumento_generado"),
+                    SesionPlenoNro = reader.GetNullableString("sesion_pleno_nro"),
+                    SesionPlenoResultado = reader.GetNullableString("sesion_pleno_resultado"),
+                    FirmaPresidencia = reader.GetSafeInt32("firma_presidencia", 0) == 1,
+                    FirmaSecretaria = reader.GetSafeInt32("firma_secretaria", 0) == 1,
+                    DespachoFinalCite = reader.GetNullableString("despacho_final_cite"),
                     BandejaTipo = reader.GetSafeString("bandeja_tipo")
                 },
                 new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId },
@@ -485,6 +490,122 @@ namespace GestionDocumental.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Constancia de Aprobación en Sesión del Pleno del CMS
+        /// </summary>
+        [Authorize]
+        [HttpPost("{id}/pleno/aprobacion")]
+        public async Task<IActionResult> RegistrarAprobacionPleno(int id, [FromBody] RegistrarAprobacionPlenoDto dto)
+        {
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            var outNuevoMovimientoId = new SqlParameter("@NuevoMovimientoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_RegistrarAprobacionPleno",
+                    new SqlParameter("@TramiteId", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@SesionPlenoNro", SqlDbType.VarChar, 100) { Value = dto.SesionPlenoNro.Trim() },
+                    new SqlParameter("@SesionPlenoFecha", SqlDbType.DateTime2) { Value = (object?)dto.SesionPlenoFecha ?? DBNull.Value },
+                    new SqlParameter("@SesionPlenoResultado", SqlDbType.VarChar, 100) { Value = dto.SesionPlenoResultado.Trim() },
+                    new SqlParameter("@Proveido", SqlDbType.NVarChar, -1) { Value = (object?)dto.Proveido?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@InstrumentoGenerado", SqlDbType.VarChar, 50) { Value = (object?)dto.InstrumentoGenerado?.Trim() ?? DBNull.Value },
+                    outNuevoMovimientoId
+                );
+
+                int movId = outNuevoMovimientoId.Value != DBNull.Value ? (int)outNuevoMovimientoId.Value : 0;
+
+                return Ok(ApiResponse<object>.Ok(
+                    new { tramiteId = id, movimientoId = movId },
+                    $"Constancia de Sesión del Pleno '{dto.SesionPlenoNro}' registrada exitosamente con resultado '{dto.SesionPlenoResultado}'."
+                ));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Registro de Firmas Duales Concurrentes (Presidencia CMS y Secretaría General CMS)
+        /// </summary>
+        [Authorize]
+        [HttpPost("{id}/firmas-duales")]
+        public async Task<IActionResult> RegistrarFirmaDual(int id, [FromBody] RegistrarFirmaDualDto dto)
+        {
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            var outNuevoMovimientoId = new SqlParameter("@NuevoMovimientoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_RegistrarFirmaDual",
+                    new SqlParameter("@TramiteId", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@TipoFirma", SqlDbType.VarChar, 30) { Value = dto.TipoFirma.Trim().ToUpperInvariant() },
+                    new SqlParameter("@Observaciones", SqlDbType.NVarChar, -1) { Value = (object?)dto.Observaciones?.Trim() ?? DBNull.Value },
+                    outNuevoMovimientoId
+                );
+
+                int movId = outNuevoMovimientoId.Value != DBNull.Value ? (int)outNuevoMovimientoId.Value : 0;
+                string cargoTexto = dto.TipoFirma.ToUpperInvariant() == "PRESIDENCIA" ? "Presidencia del CMS" : "Secretaría General del CMS";
+
+                return Ok(ApiResponse<object>.Ok(
+                    new { tramiteId = id, movimientoId = movId },
+                    $"Firma reglamentaria de {cargoTexto} estampada exitosamente."
+                ));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Despacho Final al Ejecutivo Municipal o Institución Externa con validación de Firmas Duales
+        /// </summary>
+        [Authorize]
+        [HttpPost("{id}/despacho-final")]
+        public async Task<IActionResult> DespachoFinal(int id, [FromBody] DespachoFinalDto dto)
+        {
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            var outNuevoMovimientoId = new SqlParameter("@NuevoMovimientoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_DespachoFinal",
+                    new SqlParameter("@TramiteId", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@CiteDespacho", SqlDbType.VarChar, 100) { Value = dto.CiteDespacho.Trim() },
+                    new SqlParameter("@DestinatarioFinal", SqlDbType.NVarChar, 250) { Value = dto.DestinatarioFinal.Trim() },
+                    new SqlParameter("@Proveido", SqlDbType.NVarChar, -1) { Value = (object?)dto.Proveido?.Trim() ?? DBNull.Value },
+                    outNuevoMovimientoId
+                );
+
+                int movId = outNuevoMovimientoId.Value != DBNull.Value ? (int)outNuevoMovimientoId.Value : 0;
+
+                return Ok(ApiResponse<object>.Ok(
+                    new { tramiteId = id, movimientoId = movId },
+                    $"Despacho Final bajo CITE '{dto.CiteDespacho}' procesado exitosamente. Trámite concluido."
+                ));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+        }
+
         [Authorize]
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats([FromQuery] int? gestion)
@@ -593,6 +714,18 @@ namespace GestionDocumental.Api.Controllers
                             TiempoEstimadoHoras = reader.GetSafeInt32("tiempo_estimado_horas", 24),
                             CreadoPorUsuario = reader.GetSafeString("creado_por_usuario"),
                             UnidadOrigen = reader.GetSafeString("unidad_origen"),
+                            SesionPlenoNro = reader.GetNullableString("sesion_pleno_nro"),
+                            SesionPlenoFecha = reader.GetNullableDateTime("sesion_pleno_fecha"),
+                            SesionPlenoResultado = reader.GetNullableString("sesion_pleno_resultado"),
+                            FirmaPresidencia = reader.GetSafeInt32("firma_presidencia", 0) == 1,
+                            FirmaPresidenciaFecha = reader.GetNullableDateTime("firma_presidencia_fecha"),
+                            FirmaPresidenciaUsuario = reader.GetNullableString("firma_presidencia_usuario"),
+                            FirmaSecretaria = reader.GetSafeInt32("firma_secretaria", 0) == 1,
+                            FirmaSecretariaFecha = reader.GetNullableDateTime("firma_secretaria_fecha"),
+                            FirmaSecretariaUsuario = reader.GetNullableString("firma_secretaria_usuario"),
+                            DespachoFinalFecha = reader.GetNullableDateTime("despacho_final_fecha"),
+                            DespachoFinalCite = reader.GetNullableString("despacho_final_cite"),
+                            DespachoFinalDestinatario = reader.GetNullableString("despacho_final_destinatario"),
                             Historial = historial,
                             Adjuntos = adjuntos
                         };

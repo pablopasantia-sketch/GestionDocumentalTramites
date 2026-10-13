@@ -36,7 +36,12 @@ import {
   RotateCcw,
   Activity,
   History,
-  Timer
+  Timer,
+  Award,
+  FileCheck,
+  PenTool,
+  Stamp,
+  CheckCheck
 } from 'lucide-react';
 import { tramitesService, adjuntosService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -239,6 +244,33 @@ export default function EscritorioVirtual() {
   const [actividadNombreAtencion, setActividadNombreAtencion] = useState('Informe y dictamen técnico de comisión');
   const [atendiendo, setAtendiendo] = useState(false);
   const [atenderError, setAtenderError] = useState(null);
+
+  // Modal de Constancia de Sesión del Pleno del CMS
+  const [plenoModalOpen, setPlenoModalOpen] = useState(false);
+  const [tramiteAPleno, setTramiteAPleno] = useState(null);
+  const [sesionPlenoNro, setSesionPlenoNro] = useState('');
+  const [sesionPlenoFecha, setSesionPlenoFecha] = useState(new Date().toISOString().slice(0, 16));
+  const [sesionPlenoResultado, setSesionPlenoResultado] = useState('APROBADO_UNANIMIDAD');
+  const [proveidoPleno, setProveidoPleno] = useState('');
+  const [instrumentoPleno, setInstrumentoPleno] = useState('MINUTA');
+  const [guardandoPleno, setGuardandoPleno] = useState(false);
+  const [plenoError, setPlenoError] = useState(null);
+
+  // Modal de Registro de Firmas Duales Concurrentes (Presidencia y Secretaría General CMS)
+  const [firmasModalOpen, setFirmasModalOpen] = useState(false);
+  const [tramiteAFirmas, setTramiteAFirmas] = useState(null);
+  const [observacionesFirma, setObservacionesFirma] = useState('');
+  const [firmando, setFirmando] = useState(false);
+  const [firmasError, setFirmasError] = useState(null);
+
+  // Modal de Despacho Final al Ejecutivo / Destino Externo
+  const [despachoModalOpen, setDespachoModalOpen] = useState(false);
+  const [tramiteADespacho, setTramiteADespacho] = useState(null);
+  const [citeDespacho, setCiteDespacho] = useState('');
+  const [destinatarioFinal, setDestinatarioFinal] = useState('Dr. Enrique Leaño Palenque - Alcalde Municipal de Sucre');
+  const [proveidoDespacho, setProveidoDespacho] = useState('');
+  const [despachando, setDespachando] = useState(false);
+  const [despachoError, setDespachoError] = useState(null);
 
   // Alertas temporales de acción
   const [alertSuccess, setAlertSuccess] = useState(null);
@@ -653,6 +685,154 @@ export default function EscritorioVirtual() {
     }
   };
 
+  // Handlers para Circuito Plenario CMS
+  const handleAbrirPleno = (tramite) => {
+    setTramiteAPleno(tramite);
+    const yr = new Date().getFullYear();
+    const sugeridoNro = tramite.sesion_pleno_nro || `Sesión Ordinaria N° 045/${yr}`;
+    setSesionPlenoNro(sugeridoNro);
+    setSesionPlenoFecha(new Date().toISOString().slice(0, 16));
+    setSesionPlenoResultado(tramite.sesion_pleno_resultado || 'APROBADO_UNANIMIDAD');
+    setProveidoPleno(tramite.ultimo_proveido || 'Aprobado y resuelto por el Pleno Camaral del Concejo Municipal de Sucre.');
+    setInstrumentoPleno(tramite.ultimo_instrumento_generado || tramite.ult_instrumento_generado || 'MINUTA');
+    setPlenoError(null);
+    setPlenoModalOpen(true);
+  };
+
+  const handleConfirmarPleno = async () => {
+    if (!tramiteAPleno) return;
+    if (!sesionPlenoNro || sesionPlenoNro.trim().length < 3) {
+      setPlenoError('Debe ingresar el número o denominación de la Sesión del Pleno (ej: Sesión Ordinaria N° 045/2026).');
+      return;
+    }
+    setGuardandoPleno(true);
+    setPlenoError(null);
+    try {
+      const payload = {
+        sesion_pleno_nro: sesionPlenoNro.trim(),
+        sesion_pleno_fecha: sesionPlenoFecha ? new Date(sesionPlenoFecha).toISOString() : new Date().toISOString(),
+        sesion_pleno_resultado: sesionPlenoResultado,
+        proveido: proveidoPleno.trim() || undefined,
+        instrumento_generado: instrumentoPleno || undefined
+      };
+      await tramitesService.registrarAprobacionPleno(tramiteAPleno.id, payload);
+      setAlertSuccess(`¡Constancia de Aprobación en ${sesionPlenoNro} registrada exitosamente! Listo para firmas duales reglamentarias.`);
+      setPlenoModalOpen(false);
+      setTramiteAPleno(null);
+      if (detalleModalOpen && tramiteDetalle?.id === tramiteAPleno.id) {
+        handleVerDetalle(tramiteAPleno.id);
+      }
+      cargarDatos();
+      cargarResumen();
+      setTimeout(() => setAlertSuccess(null), 6000);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Error al registrar aprobación del Pleno.';
+      setPlenoError(msg);
+    } finally {
+      setGuardandoPleno(false);
+    }
+  };
+
+  // Handlers para Firmas Duales Concurrentes CMS
+  const handleAbrirFirmas = async (tramite) => {
+    setTramiteAFirmas(tramite);
+    setObservacionesFirma('');
+    setFirmasError(null);
+    setFirmasModalOpen(true);
+    // Si no tiene datos completos de firmas, refrescar por getById
+    if (tramite.firma_presidencia === undefined) {
+      try {
+        const res = await tramitesService.getById(tramite.id);
+        if (res && res.data) {
+          setTramiteAFirmas(res.data);
+        }
+      } catch (e) {
+        console.error('Error al cargar detalle de firmas:', e);
+      }
+    }
+  };
+
+  const handleFirmar = async (tipoFirma) => {
+    if (!tramiteAFirmas) return;
+    setFirmando(true);
+    setFirmasError(null);
+    try {
+      const payload = {
+        tipo_firma: tipoFirma,
+        observaciones: observacionesFirma.trim() || undefined
+      };
+      await tramitesService.registrarFirmaDual(tramiteAFirmas.id, payload);
+      const res = await tramitesService.getById(tramiteAFirmas.id);
+      if (res && res.data) {
+        setTramiteAFirmas(res.data);
+        if (detalleModalOpen && tramiteDetalle?.id === tramiteAFirmas.id) {
+          setTramiteDetalle(res.data);
+        }
+      }
+      const cargoTexto = tipoFirma === 'PRESIDENCIA' ? 'Presidencia del CMS' : 'Secretaría General del CMS';
+      setAlertSuccess(`¡Rúbrica oficial de ${cargoTexto} estampada correctamente en el expediente!`);
+      cargarDatos();
+      cargarResumen();
+      setTimeout(() => setAlertSuccess(null), 6000);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Error al estampar firma dual.';
+      setFirmasError(msg);
+    } finally {
+      setFirmando(false);
+    }
+  };
+
+  // Handlers para Despacho Final al Ejecutivo
+  const handleAbrirDespacho = (tramite) => {
+    setTramiteADespacho(tramite);
+    const yr = new Date().getFullYear();
+    setCiteDespacho(`CMS-DESP-0${tramite.id}/${yr}`);
+    setDestinatarioFinal('Dr. Enrique Leaño Palenque - Alcalde Municipal de Sucre');
+    setProveidoDespacho('Remisión formal de instrumento normativo aprobado por el Pleno Camaral del CMS para su promulgación y estricto cumplimiento.');
+    setDespachoError(null);
+    setDespachoModalOpen(true);
+  };
+
+  const handleConfirmarDespacho = async () => {
+    if (!tramiteADespacho) return;
+    if (!citeDespacho || citeDespacho.trim().length < 3) {
+      setDespachoError('Debe indicar el CITE o número oficial de oficio saliente del CMS.');
+      return;
+    }
+    if (!destinatarioFinal || destinatarioFinal.trim().length < 3) {
+      setDespachoError('Debe especificar el destinatario final institucional.');
+      return;
+    }
+    if (!tramiteADespacho.firma_presidencia || !tramiteADespacho.firma_secretaria) {
+      setDespachoError('DESPACHO BLOQUEADO: Se requiere el registro concurrente de ambas firmas duales (Presidencia y Secretaría General) antes de proceder con el despacho.');
+      return;
+    }
+    setDespachando(true);
+    setDespachoError(null);
+    try {
+      const payload = {
+        cite_despacho: citeDespacho.trim(),
+        destinatario_final: destinatarioFinal.trim(),
+        proveido: proveidoDespacho.trim() || undefined
+      };
+      await tramitesService.despachoFinal(tramiteADespacho.id, payload);
+      setAlertSuccess(`¡Despacho Final bajo CITE ${citeDespacho} remitido exitosamente! Trámite formalmente concluido.`);
+      setDespachoModalOpen(false);
+      setTramiteADespacho(null);
+      if (detalleModalOpen && tramiteDetalle?.id === tramiteADespacho.id) {
+        handleVerDetalle(tramiteADespacho.id);
+      }
+      cargarDatos();
+      cargarResumen();
+      setTimeout(() => setAlertSuccess(null), 6000);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Error al procesar Despacho Final.';
+      setDespachoError(msg);
+    } finally {
+      setDespachando(false);
+    }
+  };
+
   const limpiarFiltros = () => {
     setSearchTerm('');
     setFiltroCategoria('TODOS');
@@ -664,6 +844,10 @@ export default function EscritorioVirtual() {
   // Helper de badges para estados institucionales
   const renderBadgeEstado = (estado) => {
     switch (estado) {
+      case 'APROBADO_PLENO':
+        return <span className="badge" style={{ backgroundColor: '#1E3A8A', color: '#FFFFFF', fontWeight: 700 }}>🏛️ APROBADO EN PLENO</span>;
+      case 'RECHAZADO_PLENO':
+        return <span className="badge badge-alerta" style={{ fontWeight: 700 }}>❌ RECHAZADO EN PLENO</span>;
       case 'EN_ATENCION':
         return <span className="badge badge-modificada">🟡 EN ATENCIÓN</span>;
       case 'ATENDIDO':
@@ -1544,6 +1728,59 @@ export default function EscritorioVirtual() {
                             {getInstrumentoInfo(item.ult_instrumento_generado)?.icono} {getInstrumentoInfo(item.ult_instrumento_generado)?.sigla}
                           </span>
                         )}
+                        {item.sesion_pleno_nro && (
+                          <span
+                            className="badge"
+                            style={{
+                              backgroundColor: '#1E3A8A',
+                              color: 'white',
+                              fontSize: '9px',
+                              padding: '1px 5px',
+                              fontWeight: 700
+                            }}
+                            title={`Sesión Pleno: ${item.sesion_pleno_nro} (${item.sesion_pleno_resultado || 'Aprobado'})`}
+                          >
+                            🏛️ {item.sesion_pleno_nro}
+                          </span>
+                        )}
+                        {(item.firma_presidencia || item.firma_secretaria || item.sesion_pleno_nro) && (
+                          <span
+                            className="badge"
+                            style={{
+                              backgroundColor: (item.firma_presidencia && item.firma_secretaria) ? '#059669' : (item.firma_presidencia || item.firma_secretaria) ? '#D97706' : '#6B7280',
+                              color: 'white',
+                              fontSize: '9px',
+                              padding: '1px 5px',
+                              fontWeight: 700
+                            }}
+                            title={
+                              item.firma_presidencia && item.firma_secretaria
+                                ? 'Firmas duales concurrentes completas (Presidencia y Secretaría)'
+                                : item.firma_presidencia
+                                ? 'Firma Presidencia registrada. Pendiente Secretaría General'
+                                : item.firma_secretaria
+                                ? 'Firma Secretaría General registrada. Pendiente Presidencia'
+                                : 'Pendiente de firmas duales concurrentes'
+                            }
+                          >
+                            ✍️ Duales {item.firma_presidencia && item.firma_secretaria ? '2/2' : (item.firma_presidencia || item.firma_secretaria) ? '1/2' : '0/2'}
+                          </span>
+                        )}
+                        {item.despacho_final_cite && (
+                          <span
+                            className="badge"
+                            style={{
+                              backgroundColor: '#7C3AED',
+                              color: 'white',
+                              fontSize: '9px',
+                              padding: '1px 5px',
+                              fontWeight: 700
+                            }}
+                            title={`Despacho Final bajo CITE ${item.despacho_final_cite}`}
+                          >
+                            📬 {item.despacho_final_cite}
+                          </span>
+                        )}
                       </div>
                       <div style={{ fontSize: '0.75rem', color: '#6C757D' }}>
                         {item.destinatario_unidad || item.ubicacion_actual_nombre || 'Unidad asignada'}
@@ -1746,6 +1983,82 @@ export default function EscritorioVirtual() {
                           >
                             <Send size={13} />
                             <span>Derivar</span>
+                          </button>
+                        )}
+
+                        {/* 5. Acción CMS: Sesión Plenario */}
+                        {item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && (
+                          <button
+                            onClick={() => handleAbrirPleno(item)}
+                            className="btn btn-sm"
+                            style={{
+                              backgroundColor: '#1E3A8A',
+                              color: '#FFFFFF',
+                              padding: '5px 8px',
+                              fontSize: '0.78rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              borderRadius: '4px',
+                              border: 'none',
+                              cursor: 'pointer'
+                            }}
+                            title="Constancia de Aprobación en Sesión del Pleno del CMS"
+                          >
+                            <Award size={13} />
+                            <span>Pleno</span>
+                          </button>
+                        )}
+
+                        {/* 6. Acción CMS: Firmas Duales Concurrentes */}
+                        {item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && (
+                          <button
+                            onClick={() => handleAbrirFirmas(item)}
+                            className="btn btn-sm"
+                            style={{
+                              backgroundColor: (item.firma_presidencia && item.firma_secretaria) ? '#059669' : '#0284C7',
+                              color: '#FFFFFF',
+                              padding: '5px 8px',
+                              fontSize: '0.78rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              borderRadius: '4px',
+                              border: 'none',
+                              cursor: 'pointer'
+                            }}
+                            title="Rúbricas Duales Concurrentes: Presidencia CMS y Secretaría General CMS"
+                          >
+                            <Stamp size={13} />
+                            <span>Firmas {item.firma_presidencia && item.firma_secretaria ? '✓' : ''}</span>
+                          </button>
+                        )}
+
+                        {/* 7. Acción CMS: Despacho Final al Ejecutivo */}
+                        {item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && (
+                          <button
+                            onClick={() => handleAbrirDespacho(item)}
+                            className="btn btn-sm"
+                            style={{
+                              backgroundColor: (item.firma_presidencia && item.firma_secretaria) ? '#7C3AED' : '#9CA3AF',
+                              color: '#FFFFFF',
+                              padding: '5px 8px',
+                              fontSize: '0.78rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              borderRadius: '4px',
+                              border: 'none',
+                              cursor: (item.firma_presidencia && item.firma_secretaria) ? 'pointer' : 'default'
+                            }}
+                            title={
+                              item.firma_presidencia && item.firma_secretaria
+                                ? 'Despacho Final al Alcalde Municipal o entidades externas'
+                                : 'Despacho Final bloqueado: requiere firmas duales concurrentes (Presidencia y Secretaría General)'
+                            }
+                          >
+                            <FileCheck size={13} />
+                            <span>Despacho</span>
                           </button>
                         )}
 
@@ -2062,6 +2375,265 @@ export default function EscritorioVirtual() {
                         <small style={{ color: '#6C757D', display: 'block' }}>UNIDAD / DEPENDENCIA</small>
                         <span>{tramiteDetalle.destinatario_unidad || '—'}</span>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Circuito Plenario, Firmas Duales Concurrentes y Despacho Final CMS */}
+                  <div
+                    style={{
+                      marginBottom: '1.5rem',
+                      padding: '1.25rem',
+                      backgroundColor: '#F8FAFC',
+                      borderRadius: '8px',
+                      border: '1px solid #CBD5E1',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid #E2E8F0', paddingBottom: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Award size={18} color="#1B365D" />
+                        <h4 style={{ margin: 0, fontSize: '0.98rem', color: '#1B365D', fontWeight: 700 }}>
+                          Circuito Plenario, Firmas Duales y Despacho Final (CMS)
+                        </h4>
+                      </div>
+                      <span className="badge" style={{ backgroundColor: '#1B365D', color: '#FFFFFF', fontSize: '10px' }}>
+                        Normativa CMS
+                      </span>
+                    </div>
+
+                    {/* 1. Sub-sección: Aprobación en Sesión del Pleno */}
+                    <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0', marginBottom: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1E3A8A', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          🏛️ SESIÓN DEL PLENO DEL CMS
+                        </span>
+                        {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                          <button
+                            type="button"
+                            onClick={() => handleAbrirPleno(tramiteDetalle)}
+                            className="btn btn-sm"
+                            style={{
+                              backgroundColor: '#1E3A8A',
+                              color: '#FFFFFF',
+                              padding: '3px 8px',
+                              fontSize: '0.72rem',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {tramiteDetalle.sesion_pleno_nro ? 'Modificar Sesión' : '+ Registrar Aprobación Plenaria'}
+                          </button>
+                        )}
+                      </div>
+                      {tramiteDetalle.sesion_pleno_nro ? (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
+                          <div>
+                            <small style={{ color: '#64748B', display: 'block' }}>NRO DE SESIÓN</small>
+                            <strong style={{ color: '#1E3A8A' }}>{tramiteDetalle.sesion_pleno_nro}</strong>
+                          </div>
+                          <div>
+                            <small style={{ color: '#64748B', display: 'block' }}>FECHA DE TRATAMIENTO</small>
+                            <span>{formatFecha(tramiteDetalle.sesion_pleno_fecha)}</span>
+                          </div>
+                          <div>
+                            <small style={{ color: '#64748B', display: 'block' }}>RESULTADO DE VOTACIÓN</small>
+                            <span className="badge" style={{ backgroundColor: '#059669', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                              {tramiteDetalle.sesion_pleno_resultado}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                          Trámite pendiente de tratamiento en Sesión del Pleno del Concejo Municipal de Sucre.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* 2. Sub-sección: Firmas Duales Concurrentes */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0F172A', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <Stamp size={15} color="#0D9488" />
+                        <span>FIRMAS DUALES CONCURRENTES (Suscripción Notificada CMS)</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                        {/* Sello Presidencia CMS */}
+                        <div
+                          style={{
+                            padding: '12px 14px',
+                            borderRadius: '6px',
+                            backgroundColor: tramiteDetalle.firma_presidencia ? '#F0FDF4' : '#FFFFFF',
+                            border: tramiteDetalle.firma_presidencia ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '6px'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#166534' }}>
+                              🏛️ PRESIDENCIA DEL CMS
+                            </span>
+                            {tramiteDetalle.firma_presidencia ? (
+                              <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700 }}>
+                                ✓ RÚBRICA VALIDADA
+                              </span>
+                            ) : (
+                              <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px' }}>
+                                PENDIENTE
+                              </span>
+                            )}
+                          </div>
+                          {tramiteDetalle.firma_presidencia ? (
+                            <div style={{ fontSize: '0.8rem', color: '#166534' }}>
+                              <div><strong>Firmado por:</strong> {tramiteDetalle.firma_presidencia_usuario}</div>
+                              <div><small>{formatFecha(tramiteDetalle.firma_presidencia_fecha)}</small></div>
+                            </div>
+                          ) : (
+                            <div>
+                              <p style={{ margin: '2px 0 6px', fontSize: '0.75rem', color: '#64748B' }}>
+                                Pendiente de firma y rúbrica de la Presidencia del Concejo Municipal.
+                              </p>
+                              {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleAbrirFirmas(tramiteDetalle)}
+                                  className="btn btn-sm"
+                                  style={{
+                                    backgroundColor: '#0D9488',
+                                    color: '#FFFFFF',
+                                    fontSize: '0.72rem',
+                                    padding: '3px 8px',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  Estampar Firma Presidencia
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Sello Secretaría General CMS */}
+                        <div
+                          style={{
+                            padding: '12px 14px',
+                            borderRadius: '6px',
+                            backgroundColor: tramiteDetalle.firma_secretaria ? '#F0FDF4' : '#FFFFFF',
+                            border: tramiteDetalle.firma_secretaria ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '6px'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#166534' }}>
+                              ✍️ SECRETARÍA GENERAL CMS
+                            </span>
+                            {tramiteDetalle.firma_secretaria ? (
+                              <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700 }}>
+                                ✓ RÚBRICA VALIDADA
+                              </span>
+                            ) : (
+                              <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px' }}>
+                                PENDIENTE
+                              </span>
+                            )}
+                          </div>
+                          {tramiteDetalle.firma_secretaria ? (
+                            <div style={{ fontSize: '0.8rem', color: '#166534' }}>
+                              <div><strong>Firmado por:</strong> {tramiteDetalle.firma_secretaria_usuario}</div>
+                              <div><small>{formatFecha(tramiteDetalle.firma_secretaria_fecha)}</small></div>
+                            </div>
+                          ) : (
+                            <div>
+                              <p style={{ margin: '2px 0 6px', fontSize: '0.75rem', color: '#64748B' }}>
+                                Pendiente de firma y rúbrica de la Secretaría General del Concejo Municipal.
+                              </p>
+                              {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleAbrirFirmas(tramiteDetalle)}
+                                  className="btn btn-sm"
+                                  style={{
+                                    backgroundColor: '#0D9488',
+                                    color: '#FFFFFF',
+                                    fontSize: '0.72rem',
+                                    padding: '3px 8px',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  Estampar Firma Secretaría
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 3. Sub-sección: Despacho Final al Ejecutivo */}
+                    <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#7C3AED', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          📬 DESPACHO FINAL AL EJECUTIVO / DESTINO EXTERNO
+                        </span>
+                        {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                          <button
+                            type="button"
+                            onClick={() => handleAbrirDespacho(tramiteDetalle)}
+                            disabled={!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria}
+                            className="btn btn-sm"
+                            style={{
+                              backgroundColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#7C3AED' : '#CBD5E1',
+                              color: '#FFFFFF',
+                              padding: '3px 8px',
+                              fontSize: '0.72rem',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? 'pointer' : 'not-allowed'
+                            }}
+                            title={
+                              (!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria)
+                                ? 'Requiere ambas firmas duales completas antes de habilitar el despacho'
+                                : 'Proceder al despacho final al Alcalde Municipal o institución externa'
+                            }
+                          >
+                            + Despacho Final
+                          </button>
+                        )}
+                      </div>
+                      {tramiteDetalle.despacho_final_cite ? (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
+                          <div>
+                            <small style={{ color: '#64748B', display: 'block' }}>CITE OFICIAL SALIENTE</small>
+                            <strong style={{ color: '#7C3AED' }}>{tramiteDetalle.despacho_final_cite}</strong>
+                          </div>
+                          <div>
+                            <small style={{ color: '#64748B', display: 'block' }}>DESTINATARIO OFICIAL</small>
+                            <span>{tramiteDetalle.despacho_final_destinatario || 'Alcalde Municipal de Sucre'}</span>
+                          </div>
+                          <div>
+                            <small style={{ color: '#64748B', display: 'block' }}>FECHA DE REMISIÓN</small>
+                            <span>{formatFecha(tramiteDetalle.despacho_final_fecha)}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '0.78rem', color: '#64748B' }}>
+                          {(!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria) ? (
+                            <span style={{ color: '#B45309', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              ⚠️ <em>Despacho Final bloqueado: Requiere la suscripción concurrente de ambas firmas reglamentarias (Presidencia y Secretaría General).</em>
+                            </span>
+                          ) : (
+                            <span style={{ color: '#15803D', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              ✅ <em>Firmas duales completas. El trámite está habilitado para ser despachado formalmente al Alcalde Municipal.</em>
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -2594,6 +3166,69 @@ export default function EscritorioVirtual() {
                   >
                     <Send size={14} />
                     <span>Derivar / Avanzar</span>
+                  </button>
+                )}
+                {tramiteDetalle && tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                  <button
+                    type="button"
+                    onClick={() => handleAbrirPleno(tramiteDetalle)}
+                    className="btn btn-sm"
+                    style={{
+                      backgroundColor: '#1E3A8A',
+                      borderColor: '#1E3A8A',
+                      color: '#FFFFFF',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem'
+                    }}
+                    title="Registrar o actualizar constancia de Aprobación en Sesión del Pleno del CMS"
+                  >
+                    <Award size={14} />
+                    <span>Pleno CMS</span>
+                  </button>
+                )}
+                {tramiteDetalle && tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                  <button
+                    type="button"
+                    onClick={() => handleAbrirFirmas(tramiteDetalle)}
+                    className="btn btn-sm"
+                    style={{
+                      backgroundColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#059669' : '#0284C7',
+                      borderColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#059669' : '#0284C7',
+                      color: '#FFFFFF',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem'
+                    }}
+                    title="Estampar firmas duales concurrentes (Presidencia y Secretaría General CMS)"
+                  >
+                    <Stamp size={14} />
+                    <span>Firmas Duales {tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria ? '(2/2)' : ''}</span>
+                  </button>
+                )}
+                {tramiteDetalle && tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                  <button
+                    type="button"
+                    onClick={() => handleAbrirDespacho(tramiteDetalle)}
+                    disabled={!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria}
+                    className="btn btn-sm"
+                    style={{
+                      backgroundColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#7C3AED' : '#9CA3AF',
+                      borderColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#7C3AED' : '#9CA3AF',
+                      color: '#FFFFFF',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      cursor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? 'pointer' : 'not-allowed'
+                    }}
+                    title={
+                      (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria)
+                        ? 'Despacho Final al Alcalde Municipal de Sucre'
+                        : 'Despacho bloqueado: Requiere firmas duales completas (Presidencia y Secretaría General)'
+                    }
+                  >
+                    <FileCheck size={14} />
+                    <span>Despacho Final</span>
                   </button>
                 )}
                 <button
@@ -4009,6 +4644,971 @@ export default function EscritorioVirtual() {
                     <span>Concluir Atención (Marcar Atendido)</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          MODAL: CONSTANCIA DE APROBACIÓN EN SESIÓN DEL PLENO CMS
+         ───────────────────────────────────────────────────────────── */}
+      {plenoModalOpen && tramiteAPleno && (
+        <div
+          className="modal-backdrop"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1060,
+            padding: '1rem'
+          }}
+        >
+          <div
+            className="modal-content"
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '8px',
+              maxWidth: '680px',
+              width: '100%',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+              border: '1px solid #E2E8F0',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Header */}
+            <div
+              className="modal-header"
+              style={{
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid #E2E8F0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                backgroundColor: '#1E3A8A',
+                color: '#FFFFFF'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <Award size={20} color="#93C5FD" />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#FFFFFF' }}>
+                    Aprobación en Sesión del Pleno del CMS
+                  </h3>
+                  <div style={{ fontSize: '0.78rem', color: '#BFDBFE', marginTop: '2px' }}>
+                    Trámite: <strong>{tramiteAPleno.numero_correlativo || tramiteAPleno.codigo}</strong> • Concejo Municipal de Sucre
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPlenoModalOpen(false)}
+                disabled={guardandoPleno}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  opacity: 0.8
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div
+              className="modal-body"
+              style={{
+                padding: '1.5rem',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.1rem'
+              }}
+            >
+              {/* Resumen */}
+              <div
+                style={{
+                  backgroundColor: '#EFF6FF',
+                  border: '1px solid #BFDBFE',
+                  borderRadius: '6px',
+                  padding: '10px 14px',
+                  fontSize: '0.82rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}
+              >
+                <div><strong>Referencia:</strong> {tramiteAPleno.referencia || tramiteAPleno.asunto}</div>
+                <div><strong>Remitente:</strong> {tramiteAPleno.remitente || tramiteAPleno.remitenteNombre}</div>
+              </div>
+
+              {/* Número de Sesión del Pleno */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1E3A8A', marginBottom: '4px' }}>
+                  Número o Denominación de la Sesión del Pleno *
+                </label>
+                <input
+                  type="text"
+                  value={sesionPlenoNro}
+                  onChange={(e) => setSesionPlenoNro(e.target.value)}
+                  placeholder="Ej: Sesión Ordinaria N° 045/2026"
+                  className="form-control"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    border: '1px solid #CBD5E1',
+                    fontSize: '0.9rem'
+                  }}
+                />
+                <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSesionPlenoNro(`Sesión Ordinaria N° 045/${new Date().getFullYear()}`)}
+                    style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '12px', border: '1px solid #93C5FD', backgroundColor: '#EFF6FF', color: '#1E3A8A', cursor: 'pointer' }}
+                  >
+                    + Ordinaria N° 045/{new Date().getFullYear()}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSesionPlenoNro(`Sesión Extraordinaria N° 012/${new Date().getFullYear()}`)}
+                    style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '12px', border: '1px solid #93C5FD', backgroundColor: '#EFF6FF', color: '#1E3A8A', cursor: 'pointer' }}
+                  >
+                    + Extraordinaria N° 012/{new Date().getFullYear()}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSesionPlenoNro(`Sesión de Honor N° 003/${new Date().getFullYear()}`)}
+                    style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '12px', border: '1px solid #93C5FD', backgroundColor: '#EFF6FF', color: '#1E3A8A', cursor: 'pointer' }}
+                  >
+                    + Sesión de Honor N° 003/{new Date().getFullYear()}
+                  </button>
+                </div>
+              </div>
+
+              {/* Fecha y Resultado */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1E3A8A', marginBottom: '4px' }}>
+                    Fecha y Hora de Sesión
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={sesionPlenoFecha}
+                    onChange={(e) => setSesionPlenoFecha(e.target.value)}
+                    className="form-control"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '4px',
+                      border: '1px solid #CBD5E1',
+                      fontSize: '0.85rem'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1E3A8A', marginBottom: '4px' }}>
+                    Resultado del Pleno Camaral *
+                  </label>
+                  <select
+                    value={sesionPlenoResultado}
+                    onChange={(e) => setSesionPlenoResultado(e.target.value)}
+                    className="form-control"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '4px',
+                      border: '1px solid #CBD5E1',
+                      fontSize: '0.85rem',
+                      fontWeight: 600
+                    }}
+                  >
+                    <option value="APROBADO_UNANIMIDAD">🟢 Aprobado por Unanimidad</option>
+                    <option value="APROBADO_MAYORIA">🟢 Aprobado por Mayoría Absoluta</option>
+                    <option value="APROBADO_MODIFICACIONES">🟡 Aprobado con Modificaciones</option>
+                    <option value="RECHAZADO">🔴 Rechazado por el Pleno</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Confirmación de Instrumento Normativo */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1E3A8A', marginBottom: '4px' }}>
+                  Instrumento Legislativo Proyectado
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '6px' }}>
+                  {[
+                    { sigla: 'MINUTA', nombre: 'Minuta de Comunicación', color: '#1E3A8A' },
+                    { sigla: 'RESOLUCION', nombre: 'Resolución Municipal', color: '#7C3AED' },
+                    { sigla: 'PIE', nombre: 'Petición Inf. Escrito', color: '#0369A1' },
+                    { sigla: 'PIO', nombre: 'Petición Inf. Oral', color: '#0D9488' },
+                    { sigla: 'NOTA_EXTERNA', nombre: 'Nota Externa Saliente', color: '#047857' },
+                    { sigla: 'INFORME', nombre: 'Informe de Comisión', color: '#4B5563' }
+                  ].map((inst) => {
+                    const sel = instrumentoPleno === inst.sigla;
+                    return (
+                      <button
+                        key={inst.sigla}
+                        type="button"
+                        onClick={() => setInstrumentoPleno(inst.sigla)}
+                        style={{
+                          padding: '6px 8px',
+                          borderRadius: '6px',
+                          border: sel ? `2px solid ${inst.color}` : '1px solid #E2E8F0',
+                          backgroundColor: sel ? '#F8FAFC' : '#FFFFFF',
+                          color: sel ? inst.color : '#475569',
+                          fontWeight: sel ? 700 : 500,
+                          fontSize: '0.78rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '2px'
+                        }}
+                      >
+                        <span>{inst.sigla}</span>
+                        <span style={{ fontSize: '0.68rem', color: '#64748B' }}>{inst.nombre}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Considerandos y Proveído */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1E3A8A', marginBottom: '4px' }}>
+                  Considerandos, Debate y Proveído del Pleno
+                </label>
+                <textarea
+                  rows={3}
+                  value={proveidoPleno}
+                  onChange={(e) => setProveidoPleno(e.target.value)}
+                  placeholder="Considerandos del debate plenario y remisión a Presidencia / Secretaría para suscripción de firmas duales..."
+                  className="form-control"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    border: '1px solid #CBD5E1',
+                    fontSize: '0.85rem',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+
+              {plenoError && (
+                <div style={{ backgroundColor: '#FEE2E2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '8px 12px', borderRadius: '4px', fontSize: '0.82rem' }}>
+                  {plenoError}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div
+              className="modal-footer"
+              style={{
+                padding: '1rem 1.5rem',
+                borderTop: '1px solid #E2E8F0',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '0.75rem',
+                backgroundColor: '#F8F9FA'
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setPlenoModalOpen(false)}
+                disabled={guardandoPleno}
+                className="btn btn-secondary"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmarPleno}
+                disabled={guardandoPleno || !sesionPlenoNro}
+                className="btn btn-primary"
+                style={{
+                  backgroundColor: '#1E3A8A',
+                  borderColor: '#1E3A8A',
+                  color: '#FFFFFF',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                {guardandoPleno ? <RefreshCw size={14} className="spin-animation" /> : <Award size={15} />}
+                <span>Registrar Aprobación en Pleno</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          MODAL: REGISTRO DE FIRMAS DUALES CONCURRENTES CMS
+         ───────────────────────────────────────────────────────────── */}
+      {firmasModalOpen && tramiteAFirmas && (
+        <div
+          className="modal-backdrop"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1060,
+            padding: '1rem'
+          }}
+        >
+          <div
+            className="modal-content"
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '8px',
+              maxWidth: '720px',
+              width: '100%',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #E2E8F0',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Header */}
+            <div
+              className="modal-header"
+              style={{
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid #E2E8F0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                backgroundColor: '#0D9488',
+                color: '#FFFFFF'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <Stamp size={22} color="#A7F3D0" />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#FFFFFF' }}>
+                    Firmas Duales Concurrentes (CMS)
+                  </h3>
+                  <div style={{ fontSize: '0.78rem', color: '#CCFBF1', marginTop: '2px' }}>
+                    Trámite: <strong>{tramiteAFirmas.numero_correlativo || tramiteAFirmas.codigo}</strong> • Presidencia y Secretaría General
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFirmasModalOpen(false)}
+                disabled={firmando}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  opacity: 0.8
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div
+              className="modal-body"
+              style={{
+                padding: '1.5rem',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.2rem'
+              }}
+            >
+              {/* Explicación reglamentaria */}
+              <div
+                style={{
+                  backgroundColor: '#F0FDFA',
+                  borderLeft: '4px solid #0D9488',
+                  padding: '10px 14px',
+                  borderRadius: '0 6px 6px 0',
+                  fontSize: '0.82rem',
+                  color: '#134E4A'
+                }}
+              >
+                <strong>Principio de Firmas Duales Concurrentes:</strong>
+                <p style={{ margin: '3px 0 0' }}>
+                  De acuerdo con el Reglamento Interno del Concejo Municipal de Sucre, los instrumentos legislativos aprobados por el Pleno deben ser suscritos conjuntamente por <strong>Presidencia del CMS</strong> y <strong>Secretaría General del CMS</strong> antes de su remisión formal al Alcalde Municipal. Ambas firmas pueden estamparse en cualquier orden cronológico.
+                </p>
+              </div>
+
+              {/* Panel de sellos de firmas duales */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                {/* Sello Presidencia */}
+                <div
+                  style={{
+                    border: tramiteAFirmas.firma_presidencia ? '2px solid #10B981' : '2px dashed #CBD5E1',
+                    borderRadius: '8px',
+                    padding: '1.25rem',
+                    backgroundColor: tramiteAFirmas.firma_presidencia ? '#F0FDF4' : '#F8FAFC',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    minHeight: '190px',
+                    position: 'relative'
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#166534' }}>
+                        🏛️ PRESIDENCIA CMS
+                      </span>
+                      {tramiteAFirmas.firma_presidencia ? (
+                        <span className="badge" style={{ backgroundColor: '#10B981', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                          ✓ FIRMADO
+                        </span>
+                      ) : (
+                        <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '10px' }}>
+                          PENDIENTE
+                        </span>
+                      )}
+                    </div>
+                    {tramiteAFirmas.firma_presidencia ? (
+                      <div style={{ fontSize: '0.82rem', color: '#14532D', marginTop: '6px' }}>
+                        <div><strong>Firmado por:</strong> {tramiteAFirmas.firma_presidencia_usuario}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#15803D', marginTop: '3px' }}>
+                          📅 {formatFecha(tramiteAFirmas.firma_presidencia_fecha)}
+                        </div>
+                        <div style={{ marginTop: '8px', fontSize: '0.72rem', color: '#166534', fontStyle: 'italic' }}>
+                          Sello y rúbrica electrónica registrada conforme a Ley.
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '6px' }}>
+                        Firma reglamentaria de la Presidencia del Concejo Municipal pendiente de estampado.
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ marginTop: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleFirmar('PRESIDENCIA')}
+                      disabled={firmando}
+                      className="btn btn-sm"
+                      style={{
+                        width: '100%',
+                        backgroundColor: tramiteAFirmas.firma_presidencia ? '#059669' : '#0D9488',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        padding: '7px 12px',
+                        borderRadius: '4px',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {firmando ? <RefreshCw size={13} className="spin-animation" /> : <Stamp size={14} />}
+                      <span>{tramiteAFirmas.firma_presidencia ? 'Re-confirmar Firma Presidencia' : 'Estampar Firma Presidencia'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sello Secretaría General */}
+                <div
+                  style={{
+                    border: tramiteAFirmas.firma_secretaria ? '2px solid #10B981' : '2px dashed #CBD5E1',
+                    borderRadius: '8px',
+                    padding: '1.25rem',
+                    backgroundColor: tramiteAFirmas.firma_secretaria ? '#F0FDF4' : '#F8FAFC',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    minHeight: '190px',
+                    position: 'relative'
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#166534' }}>
+                        ✍️ SECRETARÍA GENERAL CMS
+                      </span>
+                      {tramiteAFirmas.firma_secretaria ? (
+                        <span className="badge" style={{ backgroundColor: '#10B981', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                          ✓ FIRMADO
+                        </span>
+                      ) : (
+                        <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '10px' }}>
+                          PENDIENTE
+                        </span>
+                      )}
+                    </div>
+                    {tramiteAFirmas.firma_secretaria ? (
+                      <div style={{ fontSize: '0.82rem', color: '#14532D', marginTop: '6px' }}>
+                        <div><strong>Firmado por:</strong> {tramiteAFirmas.firma_secretaria_usuario}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#15803D', marginTop: '3px' }}>
+                          📅 {formatFecha(tramiteAFirmas.firma_secretaria_fecha)}
+                        </div>
+                        <div style={{ marginTop: '8px', fontSize: '0.72rem', color: '#166534', fontStyle: 'italic' }}>
+                          Sello y rúbrica electrónica registrada conforme a Ley.
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '6px' }}>
+                        Firma reglamentaria de la Secretaría General del Concejo Municipal pendiente de estampado.
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ marginTop: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleFirmar('SECRETARIA')}
+                      disabled={firmando}
+                      className="btn btn-sm"
+                      style={{
+                        width: '100%',
+                        backgroundColor: tramiteAFirmas.firma_secretaria ? '#059669' : '#0D9488',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        padding: '7px 12px',
+                        borderRadius: '4px',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {firmando ? <RefreshCw size={13} className="spin-animation" /> : <Stamp size={14} />}
+                      <span>{tramiteAFirmas.firma_secretaria ? 'Re-confirmar Firma Secretaría' : 'Estampar Firma Secretaría'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Observaciones de Firma */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Observaciones adicionales de rúbrica (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={observacionesFirma}
+                  onChange={(e) => setObservacionesFirma(e.target.value)}
+                  placeholder="Ej: Suscrito en Sala de Sesiones con constancia de quórum reglamentario."
+                  className="form-control"
+                  style={{
+                    width: '100%',
+                    padding: '7px 10px',
+                    borderRadius: '4px',
+                    border: '1px solid #CBD5E1',
+                    fontSize: '0.85rem'
+                  }}
+                />
+              </div>
+
+              {/* Resumen de estado de firmas */}
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: '6px',
+                  backgroundColor: (tramiteAFirmas.firma_presidencia && tramiteAFirmas.firma_secretaria) ? '#ECFDF5' : '#FFFBEB',
+                  border: `1px solid ${(tramiteAFirmas.firma_presidencia && tramiteAFirmas.firma_secretaria) ? '#A7F3D0' : '#FDE68A'}`,
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                {(tramiteAFirmas.firma_presidencia && tramiteAFirmas.firma_secretaria) ? (
+                  <>
+                    <CheckCheck size={18} color="#059669" />
+                    <span style={{ color: '#065F46', fontWeight: 600 }}>
+                      ¡Firmas duales concurrentes 100% completas! El trámite se encuentra habilitado para el Despacho Final.
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle size={18} color="#D97706" />
+                    <span style={{ color: '#92400E' }}>
+                      Rúbricas incompletas ({tramiteAFirmas.firma_presidencia || tramiteAFirmas.firma_secretaria ? '1 de 2 registradas' : '0 de 2 registradas'}). El Despacho Final permanecerá bloqueado hasta estampar ambas firmas.
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {firmasError && (
+                <div style={{ backgroundColor: '#FEE2E2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '8px 12px', borderRadius: '4px', fontSize: '0.82rem' }}>
+                  {firmasError}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div
+              className="modal-footer"
+              style={{
+                padding: '1rem 1.5rem',
+                borderTop: '1px solid #E2E8F0',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '0.75rem',
+                backgroundColor: '#F8F9FA'
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setFirmasModalOpen(false)}
+                className="btn btn-secondary"
+              >
+                Cerrar
+              </button>
+              {tramiteAFirmas.firma_presidencia && tramiteAFirmas.firma_secretaria && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFirmasModalOpen(false);
+                    handleAbrirDespacho(tramiteAFirmas);
+                  }}
+                  className="btn btn-primary"
+                  style={{
+                    backgroundColor: '#7C3AED',
+                    borderColor: '#7C3AED',
+                    color: '#FFFFFF',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <FileCheck size={15} />
+                  <span>Proceder al Despacho Final</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          MODAL: DESPACHO FINAL AL EJECUTIVO O DESTINO EXTERNO CMS
+         ───────────────────────────────────────────────────────────── */}
+      {despachoModalOpen && tramiteADespacho && (
+        <div
+          className="modal-backdrop"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1060,
+            padding: '1rem'
+          }}
+        >
+          <div
+            className="modal-content"
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '8px',
+              maxWidth: '680px',
+              width: '100%',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #E2E8F0',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Header */}
+            <div
+              className="modal-header"
+              style={{
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid #E2E8F0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                backgroundColor: '#7C3AED',
+                color: '#FFFFFF'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <FileCheck size={22} color="#DDD6FE" />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#FFFFFF' }}>
+                    Despacho Final al Ejecutivo Municipal / Institución Externa
+                  </h3>
+                  <div style={{ fontSize: '0.78rem', color: '#EDE9FE', marginTop: '2px' }}>
+                    Trámite: <strong>{tramiteADespacho.numero_correlativo || tramiteADespacho.codigo}</strong> • Conclusión de Expediente CMS
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDespachoModalOpen(false)}
+                disabled={despachando}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  opacity: 0.8
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div
+              className="modal-body"
+              style={{
+                padding: '1.5rem',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.1rem'
+              }}
+            >
+              {/* Validación previa de firmas duales */}
+              {(!tramiteADespacho.firma_presidencia || !tramiteADespacho.firma_secretaria) ? (
+                <div
+                  style={{
+                    backgroundColor: '#FEF2F2',
+                    border: '1.5px solid #F87171',
+                    borderRadius: '8px',
+                    padding: '14px 16px',
+                    color: '#991B1B'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, marginBottom: '6px' }}>
+                    <AlertCircle size={20} color="#DC2626" />
+                    <span>DESPACHO FINAL BLOQUEADO POR NORMATIVA CMS</span>
+                  </div>
+                  <p style={{ margin: '0 0 10px', fontSize: '0.85rem' }}>
+                    De acuerdo con el Reglamento del Concejo Municipal de Sucre, ningún instrumento normativo saliente puede ser remitido al Alcalde Municipal sin contar con ambas firmas duales concurrentes.
+                  </p>
+                  <div style={{ fontSize: '0.8rem', display: 'flex', gap: '1rem', marginBottom: '10px' }}>
+                    <span>Presidencia CMS: {tramiteADespacho.firma_presidencia ? '🟢 FIRMADO' : '🔴 PENDIENTE'}</span>
+                    <span>Secretaría General CMS: {tramiteADespacho.firma_secretaria ? '🟢 FIRMADO' : '🔴 PENDIENTE'}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDespachoModalOpen(false);
+                      handleAbrirFirmas(tramiteADespacho);
+                    }}
+                    className="btn btn-sm"
+                    style={{
+                      backgroundColor: '#DC2626',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '5px 12px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Ir a Firmas Duales Ahora
+                  </button>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    backgroundColor: '#ECFDF5',
+                    border: '1px solid #A7F3D0',
+                    borderRadius: '6px',
+                    padding: '10px 14px',
+                    fontSize: '0.82rem',
+                    color: '#065F46',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <CheckCheck size={18} color="#059669" />
+                  <span>
+                    <strong>Firmas Duales Verificadas:</strong> Presidencia y Secretaría General han firmado reglamentariamente. El despacho está legalmente habilitado.
+                  </span>
+                </div>
+              )}
+
+              {/* CITE Oficial de Despacho */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#7C3AED', marginBottom: '4px' }}>
+                  CITE Oficial del Oficio Saliente del CMS *
+                </label>
+                <input
+                  type="text"
+                  value={citeDespacho}
+                  onChange={(e) => setCiteDespacho(e.target.value)}
+                  placeholder="Ej: CMS-DESP-0145/2026"
+                  className="form-control"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    border: '1px solid #CBD5E1',
+                    fontSize: '0.9rem'
+                  }}
+                />
+              </div>
+
+              {/* Destinatario Final */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#7C3AED', marginBottom: '4px' }}>
+                  Destinatario Final Institucional *
+                </label>
+                <input
+                  type="text"
+                  value={destinatarioFinal}
+                  onChange={(e) => setDestinatarioFinal(e.target.value)}
+                  placeholder="Ej: Dr. Enrique Leaño Palenque - Alcalde Municipal de Sucre"
+                  className="form-control"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    border: '1px solid #CBD5E1',
+                    fontSize: '0.9rem'
+                  }}
+                />
+                <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => setDestinatarioFinal('Dr. Enrique Leaño Palenque - Alcalde Municipal de Sucre')}
+                    style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '12px', border: '1px solid #DDD6FE', backgroundColor: '#F5F3FF', color: '#7C3AED', cursor: 'pointer' }}
+                  >
+                    + Alcalde Dr. Enrique Leaño
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDestinatarioFinal('Gobierno Autónomo Municipal de Sucre (GAMS) - Despacho del Ejecutivo')}
+                    style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '12px', border: '1px solid #DDD6FE', backgroundColor: '#F5F3FF', color: '#7C3AED', cursor: 'pointer' }}
+                  >
+                    + Despacho Ejecutivo GAMS
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDestinatarioFinal(tramiteADespacho.remitente || 'Institución Peticionaria Externa')}
+                    style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '12px', border: '1px solid #DDD6FE', backgroundColor: '#F5F3FF', color: '#7C3AED', cursor: 'pointer' }}
+                  >
+                    + Remitente Original ({tramiteADespacho.remitente || 'Peticionario'})
+                  </button>
+                </div>
+              </div>
+
+              {/* Proveído de Despacho */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#7C3AED', marginBottom: '4px' }}>
+                  Proveído o Texto de Remisión Saliente
+                </label>
+                <textarea
+                  rows={3}
+                  value={proveidoDespacho}
+                  onChange={(e) => setProveidoDespacho(e.target.value)}
+                  placeholder="Remisión formal de instrumento normativo aprobado por el Pleno Camaral del CMS para su cumplimiento..."
+                  className="form-control"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    border: '1px solid #CBD5E1',
+                    fontSize: '0.85rem',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+
+              {despachoError && (
+                <div style={{ backgroundColor: '#FEE2E2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '8px 12px', borderRadius: '4px', fontSize: '0.82rem' }}>
+                  {despachoError}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div
+              className="modal-footer"
+              style={{
+                padding: '1rem 1.5rem',
+                borderTop: '1px solid #E2E8F0',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '0.75rem',
+                backgroundColor: '#F8F9FA'
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setDespachoModalOpen(false)}
+                disabled={despachando}
+                className="btn btn-secondary"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmarDespacho}
+                disabled={
+                  despachando ||
+                  !citeDespacho ||
+                  !destinatarioFinal ||
+                  !tramiteADespacho.firma_presidencia ||
+                  !tramiteADespacho.firma_secretaria
+                }
+                className="btn btn-primary"
+                style={{
+                  backgroundColor: '#7C3AED',
+                  borderColor: '#7C3AED',
+                  color: '#FFFFFF',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  opacity: (!tramiteADespacho.firma_presidencia || !tramiteADespacho.firma_secretaria || !citeDespacho || !destinatarioFinal) ? 0.6 : 1,
+                  cursor: (!tramiteADespacho.firma_presidencia || !tramiteADespacho.firma_secretaria || !citeDespacho || !destinatarioFinal) ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {despachando ? <RefreshCw size={14} className="spin-animation" /> : <FileCheck size={15} />}
+                <span>Despachar Oficialmente y Concluir Trámite</span>
               </button>
             </div>
           </div>
