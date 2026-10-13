@@ -808,5 +808,84 @@ namespace GestionDocumental.Api.Data
             Console.WriteLine("  • TEmpleados : 10 funcionarios con CI y contacto");
             Console.WriteLine("============================================================\n");
         }
+
+        /// <summary>
+        /// db:seed:institucional / seed:cms - Poblamiento oficial e idempotente del Organigrama del CMS (Unidades y Cargos)
+        /// </summary>
+        public async Task SeedInstitucionalCMSAsync()
+        {
+            Console.WriteLine("\n============================================================");
+            Console.WriteLine($"🏛️  SEMBRANDO DATOS INSTITUCIONALES CMS: {_databaseName}");
+            Console.WriteLine("============================================================");
+
+            await EnsureDatabaseExistsAsync();
+
+            // Ubicar archivo scripts/seedInstitucionalCMS.sql
+            var candidatePaths = new[]
+            {
+                Path.Combine(Directory.GetCurrentDirectory(), "scripts", "seedInstitucionalCMS.sql"),
+                Path.Combine(Directory.GetCurrentDirectory(), "..", "scripts", "seedInstitucionalCMS.sql"),
+                Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "scripts", "seedInstitucionalCMS.sql"),
+                Path.Combine(AppContext.BaseDirectory, "scripts", "seedInstitucionalCMS.sql"),
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "scripts", "seedInstitucionalCMS.sql"),
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "scripts", "seedInstitucionalCMS.sql")
+            };
+
+            string? sqlFilePath = null;
+            foreach (var p in candidatePaths)
+            {
+                var full = Path.GetFullPath(p);
+                if (File.Exists(full))
+                {
+                    sqlFilePath = full;
+                    break;
+                }
+            }
+
+            if (sqlFilePath == null)
+            {
+                throw new FileNotFoundException("No se encontró el archivo scripts/seedInstitucionalCMS.sql en las rutas del proyecto.");
+            }
+
+            Console.WriteLine($"📄 Archivo de seed detectado: {sqlFilePath}");
+            var sql = await File.ReadAllTextAsync(sqlFilePath);
+
+            using var conn = GetDatabaseConnection();
+            await conn.OpenAsync();
+
+            var statements = Regex.Split(sql, @"^\s*GO\s*$", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+            foreach (var stmt in statements)
+            {
+                var trimmed = stmt.Trim();
+                // Omitir comandos USE
+                if (trimmed.StartsWith("USE ", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (!string.IsNullOrWhiteSpace(trimmed))
+                {
+                    using var cmd = new SqlCommand(trimmed, conn);
+                    cmd.CommandTimeout = 120;
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+
+            using (var verifyCmd = new SqlCommand(@"
+                SELECT 
+                    (SELECT COUNT(*) FROM dbo.TUnidad) AS TotalUnidades,
+                    (SELECT COUNT(*) FROM dbo.TCargo) AS TotalCargos,
+                    (SELECT COUNT(*) FROM dbo.ubicaciones_org) AS TotalUbicaciones;", conn))
+            using (var reader = await verifyCmd.ExecuteReaderAsync())
+            {
+                if (await reader.ReadAsync())
+                {
+                    Console.WriteLine("\n✅ ¡POBLAMIENTO INSTITUCIONAL CMS COMPLETADO CON ÉXITO!");
+                    Console.WriteLine($"   • Total Unidades en TUnidad:    {reader["TotalUnidades"]}");
+                    Console.WriteLine($"   • Total Ubicaciones Org:        {reader["TotalUbicaciones"]}");
+                    Console.WriteLine($"   • Total Cargos en TCargo:       {reader["TotalCargos"]}");
+                    Console.WriteLine("============================================================\n");
+                }
+            }
+        }
     }
 }
+

@@ -1,0 +1,25 @@
+{
+  "name": "gestion-documental-tramites",
+  "version": "1.0.0",
+  "description": "Sistema de Gestión Documental y Trámites Externos - Concejo Municipal de Sucre (CMS)",
+  "scripts": {
+    "db:seed": "npm run --prefix backend-dotnet db:seed",
+    "db:seed:institucional": "node scripts/seedInstitucionalCMS.js",
+    "seed:cms": "node scripts/seedInstitucionalCMS.js",
+    "migrate": "npm run --prefix backend-dotnet migrate",
+    "migrate:status": "npm run --prefix backend-dotnet migrate:status",
+    "migrate:reset": "npm run --prefix backend-dotnet migrate:reset",
+    "db:init": "npm run --prefix backend-dotnet db:init",
+    "dev:backend": "npm run --prefix backend-dotnet dev",
+    "dev:frontend": "npm run --prefix frontend dev",
+    "test:e2e": "npx playwright test --project=chromium"
+  },
+  "keywords": [
+    "concejo-municipal-sucre",
+    "gestion-documental",
+    "tramites-externos",
+    "comisiones-cms"
+  ],
+  "author": "Concejo Municipal de Sucre",
+  "license": "ISC"
+}

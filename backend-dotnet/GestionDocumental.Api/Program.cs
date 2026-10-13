@@ -23,6 +23,12 @@ if (args.Length > 0)
         await dbManager.InitDbAsync();
         return;
     }
+    if (cmd == "db:seed:institucional" || cmd == "seed:cms" || (cmd == "db" && (subCmd == "seed:institucional" || subCmd == "seed-cms")))
+    {
+        var dbManager = new DatabaseManager(builder.Configuration);
+        await dbManager.SeedInstitucionalCMSAsync();
+        return;
+    }
     if (cmd == "db:seed" || (cmd == "db" && subCmd == "seed"))
     {
         var dbManager = new DatabaseManager(builder.Configuration);

@@ -10,7 +10,9 @@
     "migrate:status": "dotnet run --project GestionDocumental.Api -- migrate status",
     "migrate:reset": "dotnet run --project GestionDocumental.Api -- migrate reset",
     "db:init": "dotnet run --project GestionDocumental.Api -- db init",
-    "db:seed": "dotnet run --project GestionDocumental.Api -- db seed"
+    "db:seed": "dotnet run --project GestionDocumental.Api -- db seed",
+    "db:seed:institucional": "dotnet run --project GestionDocumental.Api -- db:seed:institucional",
+    "seed:cms": "dotnet run --project GestionDocumental.Api -- seed:cms"
   },
   "keywords": [
     "tramites",
