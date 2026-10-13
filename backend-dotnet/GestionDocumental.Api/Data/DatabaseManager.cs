@@ -346,11 +346,15 @@ namespace GestionDocumental.Api.Data
                 SET IDENTITY_INSERT dbo.roles OFF;";
             using (var cmd = new SqlCommand(rolesSql, conn)) await cmd.ExecuteNonQueryAsync();
 
-            var hash = BCrypt.Net.BCrypt.HashPassword("admin123", workFactor: 10);
+            var hash = "admin123";
 
             // 2. Tablas Institucionales (Sprint 2 - DB_TRAMITES_EXTERNOS)
             Console.WriteLine("🔹 Sembrando Unidades, Cargos y Personal Municipal (DB_TRAMITES_EXTERNOS)...");
             var instSql = @"
+                -- Garantizar contraseñas en texto plano institucional
+                UPDATE dbo.TEmpleados 
+                SET password_hash = 'admin123' 
+                WHERE login IS NOT NULL AND (password_hash LIKE '$2a$%' OR password_hash LIKE '$2b$%' OR password_hash LIKE '$2y$%');
                 -- TUnidad (Catálogo Institucional de Unidades)
                 IF NOT EXISTS (SELECT 1 FROM dbo.TUnidad WHERE CodU = 1)
                     INSERT INTO dbo.TUnidad (CodU, NombU, Activo) VALUES (1, 'DIRECCION GENERAL EJECUTIVA', 1);

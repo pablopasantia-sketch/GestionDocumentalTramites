@@ -150,7 +150,7 @@ namespace GestionDocumental.Api.Controllers
             }
 
             string? passwordHash = !string.IsNullOrWhiteSpace(dto.Password) 
-                ? BCrypt.Net.BCrypt.HashPassword(dto.Password) 
+                ? dto.Password.Trim() 
                 : null;
 
             var outParam = new SqlParameter("@NuevoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
@@ -251,11 +251,11 @@ namespace GestionDocumental.Api.Controllers
 
                 if (!string.IsNullOrWhiteSpace(dto.Password))
                 {
-                    string newPasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password.Trim());
+                    string newPassword = dto.Password.Trim();
                     await _sp.ExecuteNonQueryAsync(
                         "dbo.usp_Usuarios_CambiarPassword",
                         new SqlParameter("@Id", SqlDbType.Int) { Value = id },
-                        new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 255) { Value = newPasswordHash }
+                        new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 255) { Value = newPassword }
                     );
                 }
 
@@ -283,11 +283,11 @@ namespace GestionDocumental.Api.Controllers
                 return BadRequest(ApiResponse.ErrorResult("La contraseña debe tener al menos 6 caracteres."));
             }
 
-            string newHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            string newPassword = dto.NewPassword.Trim();
             await _sp.ExecuteNonQueryAsync(
                 "dbo.usp_Usuarios_CambiarPassword",
                 new SqlParameter("@Id", SqlDbType.Int) { Value = id },
-                new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 255) { Value = newHash }
+                new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 255) { Value = newPassword }
             );
 
             return Ok(ApiResponse.SuccessResult($"Contraseña restablecida exitosamente para '{usuario.Login ?? "funcionario"}'."));

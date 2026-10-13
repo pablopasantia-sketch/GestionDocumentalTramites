@@ -69,13 +69,25 @@ namespace GestionDocumental.Api.Services
             }
 
             bool passwordValid = false;
-            try
+            var inputPassword = request.Password?.Trim();
+            var storedPassword = user.PasswordHash?.Trim();
+
+            // Comparación directa en texto plano (requerimiento institucional CMS)
+            if (!string.IsNullOrEmpty(storedPassword) && (storedPassword == inputPassword || storedPassword == request.Password))
             {
-                passwordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+                passwordValid = true;
             }
-            catch
+            else if (!string.IsNullOrEmpty(storedPassword))
             {
-                passwordValid = false;
+                // Fallback de compatibilidad por si existiese algún hash legacy
+                try
+                {
+                    passwordValid = BCrypt.Net.BCrypt.Verify(request.Password, storedPassword);
+                }
+                catch
+                {
+                    passwordValid = false;
+                }
             }
 
             if (!passwordValid)
@@ -258,7 +270,19 @@ namespace GestionDocumental.Api.Services
                 return ApiResponse.ErrorResult("Usuario no encontrado.");
             }
 
-            if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+            var storedPassword = user.PasswordHash?.Trim();
+            var currentInput = request.CurrentPassword?.Trim();
+            bool currentValid = (!string.IsNullOrEmpty(storedPassword) && (storedPassword == currentInput || storedPassword == request.CurrentPassword));
+            if (!currentValid && !string.IsNullOrEmpty(storedPassword))
+            {
+                try
+                {
+                    currentValid = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, storedPassword);
+                }
+                catch { }
+            }
+
+            if (!currentValid)
             {
                 return ApiResponse.ErrorResult("La contraseña actual no es correcta.");
             }
@@ -273,11 +297,12 @@ namespace GestionDocumental.Api.Services
                 return ApiResponse.ErrorResult("La contraseña debe contener al menos un número.");
             }
 
-            string newHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            // Guardar directamente en texto plano sin hash según requerimiento
+            string newPassword = request.NewPassword.Trim();
             await _sp.ExecuteNonQueryAsync(
                 "dbo.usp_Usuarios_CambiarPassword",
                 new SqlParameter("@Id", SqlDbType.Int) { Value = userId },
-                new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 255) { Value = newHash }
+                new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 255) { Value = newPassword }
             );
 
             return ApiResponse.SuccessResult("Contraseña actualizada exitosamente.");
