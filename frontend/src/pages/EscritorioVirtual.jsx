@@ -240,6 +240,9 @@ export default function EscritorioVirtual() {
   const [atenderModalOpen, setAtenderModalOpen] = useState(false);
   const [tramiteAAtender, setTramiteAAtender] = useState(null);
   const [instrumentoGeneradoAtencion, setInstrumentoGeneradoAtencion] = useState('INFORME');
+  const [instrumentosAtencion, setInstrumentosAtencion] = useState(['INFORME']);
+  const [diasPlazoAtencion, setDiasPlazoAtencion] = useState(10);
+  const [archivoPdfAtencion, setArchivoPdfAtencion] = useState(null);
   const [proveidoAtencion, setProveidoAtencion] = useState('');
   const [actividadNombreAtencion, setActividadNombreAtencion] = useState('Informe y dictamen técnico de comisión');
   const [atendiendo, setAtendiendo] = useState(false);
@@ -637,16 +640,32 @@ export default function EscritorioVirtual() {
   };
 
   // Abrir modal de Concluir Atención / Marcar Atendido (Sprint 3 & CMS)
+  const toggleInstrumentoAtencion = (id) => {
+    setInstrumentosAtencion(prev => {
+      const exists = prev.includes(id);
+      const updated = exists ? prev.filter(x => x !== id) : [...prev, id];
+      const result = updated.length > 0 ? updated : [id];
+      setInstrumentoGeneradoAtencion(result[0]);
+      if (PROVEIDOS_POR_INSTRUMENTO[id] && !exists) {
+        setProveidoAtencion(PROVEIDOS_POR_INSTRUMENTO[id]);
+      }
+      return result;
+    });
+  };
+
   const handleAbrirAtender = (tramite) => {
     setTramiteAAtender(tramite);
+    setInstrumentosAtencion(['INFORME']);
     setInstrumentoGeneradoAtencion('INFORME');
-    setProveidoAtencion(PROVEIDOS_POR_INSTRUMENTO.INFORME);
+    setDiasPlazoAtencion(10);
+    setArchivoPdfAtencion(null);
+    setProveidoAtencion(PROVEIDOS_POR_INSTRUMENTO.INFORME || '');
     setActividadNombreAtencion('Informe y dictamen técnico de comisión');
     setAtenderError(null);
     setAtenderModalOpen(true);
   };
 
-  // Confirmar conclusión de atención técnica (cambio a ATENDIDO con Instrumento Legislativo)
+  // Confirmar conclusión de atención técnica (cambio a ATENDIDO con Instrumentos Legislativos y PDF opcional)
   const handleConfirmarAtender = async () => {
     if (!tramiteAAtender) return;
 
@@ -659,17 +678,29 @@ export default function EscritorioVirtual() {
     setAtenderError(null);
 
     try {
+      // 1. Adjuntar archivo PDF de informe/proyecto normativo si fue provisto
+      if (archivoPdfAtencion) {
+        const formData = new FormData();
+        formData.append('archivo', archivoPdfAtencion);
+        await adjuntosService.upload(tramiteAAtender.id, formData);
+      }
+
+      // 2. Registrar marcación de atención técnica con instrumentos y plazo SLA
+      const instrumentosStr = instrumentosAtencion.length > 0 ? instrumentosAtencion.join(',') : (instrumentoGeneradoAtencion || 'INFORME');
       const payload = {
         proveido: proveidoAtencion.trim(),
         actividad_nombre: actividadNombreAtencion.trim() || 'Informe y atención técnica concluida',
-        instrumento_generado: instrumentoGeneradoAtencion || null
+        instrumento_generado: instrumentosAtencion[0] || 'INFORME',
+        instrumentos_generados: instrumentosStr,
+        dias_plazo: diasPlazoAtencion ? parseInt(diasPlazoAtencion, 10) : null
       };
 
       await tramitesService.marcarAtendido(tramiteAAtender.id, payload);
 
-      setAlertSuccess(`¡Trámite ${tramiteAAtender.numero_correlativo} marcado como ATENDIDO exitosamente con instrumento ${instrumentoGeneradoAtencion}! Listo para ser despachado a la siguiente instancia.`);
+      setAlertSuccess(`¡Trámite ${tramiteAAtender.numero_correlativo} marcado como ATENDIDO exitosamente con instrumento(s) [${instrumentosStr}]! Listo para ser despachado.`);
       setAtenderModalOpen(false);
       setTramiteAAtender(null);
+      setArchivoPdfAtencion(null);
       if (detalleModalOpen) {
         setDetalleModalOpen(false);
       }
@@ -1509,9 +1540,8 @@ export default function EscritorioVirtual() {
               onChange={(e) => setFiltroCategoria(e.target.value)}
               style={{ width: '100%' }}
             >
-              <option value="TODOS">Todos los tipos</option>
-              <option value="CORRESPONDENCIA">Correspondencia Oficial Externa</option>
-              <option value="TRAMITE">Trámites Internos</option>
+              <option value="TODOS">Todos los Trámites Externos</option>
+              <option value="CORRESPONDENCIA">Correspondencia Oficial Externa (CM, CDE, CDH)</option>
             </select>
           </div>
 
@@ -3077,45 +3107,82 @@ export default function EscritorioVirtual() {
                                   </div>
                                 )}
 
-                                {/* Producto Normativo Generado (CMS) */}
-                                {mov.instrumento_generado && (
+                                {/* Producto(s) Normativo(s) Generado(s) (CMS) */}
+                                {(mov.instrumentos_generados || mov.instrumento_generado) && (
+                                  <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    {(mov.instrumentos_generados || mov.instrumento_generado)
+                                      .split(',')
+                                      .map(s => s.trim())
+                                      .filter(Boolean)
+                                      .map((instCod, cIdx) => {
+                                        const info = getInstrumentoInfo(instCod);
+                                        return (
+                                          <div
+                                            key={cIdx}
+                                            style={{
+                                              backgroundColor: info?.bg || '#FFF5F5',
+                                              border: `1.5px solid ${info?.border || '#FECACA'}`,
+                                              borderRadius: '6px',
+                                              padding: '8px 12px',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'space-between',
+                                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+                                            }}
+                                          >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                              <span style={{ fontSize: '1.2rem' }}>
+                                                {info?.icono || '📄'}
+                                              </span>
+                                              <div>
+                                                <span style={{ fontSize: '0.66rem', fontWeight: 800, color: info?.color, textTransform: 'uppercase', display: 'block' }}>
+                                                  Instrumento Normativo Generado (CMS)
+                                                </span>
+                                                <strong style={{ fontSize: '0.84rem', color: info?.color }}>
+                                                  {info?.nombre || instCod}
+                                                </strong>
+                                              </div>
+                                            </div>
+                                            <span
+                                              className="badge"
+                                              style={{
+                                                backgroundColor: info?.color || '#800000',
+                                                color: '#FFFFFF',
+                                                fontSize: '0.72rem',
+                                                padding: '3px 8px',
+                                                fontWeight: 700
+                                              }}
+                                            >
+                                              {info?.sigla || instCod}
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                  </div>
+                                )}
+
+                                {/* Plazo Reglamentario Otorgado en este Movimiento */}
+                                {(mov.fecha_limite_respuesta || (mov.tiempo_estimado_minutos && mov.tiempo_estimado_minutos > 0)) && (
                                   <div
                                     style={{
-                                      backgroundColor: getInstrumentoInfo(mov.instrumento_generado)?.bg || '#FFF5F5',
-                                      border: `1.5px solid ${getInstrumentoInfo(mov.instrumento_generado)?.border || '#FECACA'}`,
-                                      borderRadius: '6px',
-                                      padding: '9px 12px',
-                                      marginTop: '8px',
-                                      display: 'flex',
+                                      marginTop: '6px',
+                                      fontSize: '0.74rem',
+                                      color: '#92400E',
+                                      backgroundColor: '#FEF3C7',
+                                      border: '1px solid #FCD34D',
+                                      padding: '4px 8px',
+                                      borderRadius: '4px',
+                                      display: 'inline-flex',
                                       alignItems: 'center',
-                                      justifyContent: 'space-between',
-                                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+                                      gap: '6px'
                                     }}
                                   >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                      <span style={{ fontSize: '1.25rem' }}>
-                                        {getInstrumentoInfo(mov.instrumento_generado)?.icono || '📄'}
-                                      </span>
-                                      <div>
-                                        <span style={{ fontSize: '0.68rem', fontWeight: 800, color: getInstrumentoInfo(mov.instrumento_generado)?.color, textTransform: 'uppercase', display: 'block' }}>
-                                          Producto Normativo Saliente (CMS)
-                                        </span>
-                                        <strong style={{ fontSize: '0.86rem', color: getInstrumentoInfo(mov.instrumento_generado)?.color }}>
-                                          {getInstrumentoInfo(mov.instrumento_generado)?.nombre}
-                                        </strong>
-                                      </div>
-                                    </div>
-                                    <span
-                                      className="badge"
-                                      style={{
-                                        backgroundColor: getInstrumentoInfo(mov.instrumento_generado)?.color,
-                                        color: '#FFFFFF',
-                                        fontSize: '0.72rem',
-                                        padding: '3px 8px',
-                                        fontWeight: 700
-                                      }}
-                                    >
-                                      {getInstrumentoInfo(mov.instrumento_generado)?.sigla}
+                                    <Clock size={12} color="#D97706" />
+                                    <span>
+                                      Plazo otorgado: <strong>{mov.tiempo_estimado_minutos ? `${Math.round(mov.tiempo_estimado_minutos / 1440)} días` : 'Conforme a norma'}</strong>
+                                      {mov.fecha_limite_respuesta && (
+                                        <> | Fecha Límite: <strong>{new Date(mov.fecha_limite_respuesta).toLocaleDateString('es-BO')}</strong></>
+                                      )}
                                     </span>
                                   </div>
                                 )}
@@ -4458,7 +4525,7 @@ export default function EscritorioVirtual() {
                 </p>
               </div>
 
-              {/* Selector de Producto Normativo / Instrumento Legislativo Saliente CMS */}
+              {/* Checkboxes de Instrumentos Normativos Generados CMS */}
               <div>
                 <label
                   style={{
@@ -4472,41 +4539,45 @@ export default function EscritorioVirtual() {
                   }}
                 >
                   <FileText size={16} color="#800000" />
-                  <span>Producto Normativo / Instrumento Legislativo Generado:</span>
+                  <span>Instrumentos Normativos Generados en Comisión (Selección Múltiple):</span>
                 </label>
                 <p style={{ fontSize: '0.74rem', color: '#64748B', margin: '0 0 8px 0' }}>
-                  Seleccione el tipo de producto oficial que emite la comisión o despacho para este trámite:
+                  Marque uno o varios instrumentos técnicos/legislativos resultantes de la labor de la comisión:
                 </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: '4px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: '10px' }}>
                   {INSTRUMENTOS_LEGISLATIVOS_CMS.map((inst) => {
-                    const isSelected = instrumentoGeneradoAtencion === inst.id;
+                    const isChecked = instrumentosAtencion.includes(inst.id);
                     return (
                       <div
                         key={inst.id}
-                        onClick={() => {
-                          setInstrumentoGeneradoAtencion(inst.id);
-                          setProveidoAtencion(PROVEIDOS_POR_INSTRUMENTO[inst.id] || proveidoAtencion);
-                          setActividadNombreAtencion(`Elaboración de ${inst.nombre}`);
-                        }}
+                        onClick={() => toggleInstrumentoAtencion(inst.id)}
                         style={{
                           padding: '9px 11px',
                           borderRadius: '6px',
-                          border: isSelected ? `2px solid ${inst.color}` : '1px solid #CBD5E1',
-                          backgroundColor: isSelected ? inst.bg : '#FFFFFF',
+                          border: isChecked ? `2px solid ${inst.color}` : '1px solid #CBD5E1',
+                          backgroundColor: isChecked ? inst.bg : '#FFFFFF',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
                           display: 'flex',
                           flexDirection: 'column',
                           gap: '2px',
-                          boxShadow: isSelected ? `0 2px 6px ${inst.color}25` : 'none'
+                          boxShadow: isChecked ? `0 2px 6px ${inst.color}25` : 'none'
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontWeight: 800, fontSize: '0.82rem', color: isSelected ? inst.color : '#1E293B' }}>
-                            {inst.icono} {inst.sigla}
-                          </span>
-                          {isSelected && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {}} // Manejado por onClick del contenedor
+                              style={{ accentColor: inst.color, cursor: 'pointer' }}
+                            />
+                            <span style={{ fontWeight: 800, fontSize: '0.82rem', color: isChecked ? inst.color : '#1E293B' }}>
+                              {inst.icono} {inst.sigla}
+                            </span>
+                          </div>
+                          {isChecked && (
                             <span
                               style={{
                                 fontSize: '0.62rem',
@@ -4517,11 +4588,11 @@ export default function EscritorioVirtual() {
                                 borderRadius: '6px'
                               }}
                             >
-                              SELECCIONADO
+                              GENERADO
                             </span>
                           )}
                         </div>
-                        <div style={{ fontSize: '0.77rem', fontWeight: 600, color: isSelected ? inst.color : '#334155' }}>
+                        <div style={{ fontSize: '0.77rem', fontWeight: 600, color: isChecked ? inst.color : '#334155' }}>
                           {inst.nombre}
                         </div>
                         <div style={{ fontSize: '0.68rem', color: '#64748B', lineHeight: 1.25 }}>
@@ -4531,6 +4602,95 @@ export default function EscritorioVirtual() {
                     );
                   })}
                 </div>
+              </div>
+
+              {/* Selector Rápido de Plazo Normativo SLA de Comisión */}
+              <div
+                style={{
+                  backgroundColor: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '6px',
+                  padding: '10px 14px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                  <Clock size={15} color="#800000" />
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
+                    Plazo Normativo SLA para Informe / Respuesta (Normativa CMS):
+                  </label>
+                </div>
+
+                {/* Botones Presets [5 días], [10 días], [15 días] */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '8px' }}>
+                  {PLAZOS_REGLAMENTARIOS_CMS.map((p) => {
+                    const isSelected = parseInt(diasPlazoAtencion, 10) === p.dias;
+                    return (
+                      <button
+                        key={p.dias}
+                        type="button"
+                        onClick={() => setDiasPlazoAtencion(p.dias)}
+                        style={{
+                          padding: '6px 4px',
+                          borderRadius: '6px',
+                          border: isSelected ? `2px solid ${p.color}` : '1px solid #CBD5E1',
+                          backgroundColor: isSelected ? p.bg : '#FFFFFF',
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: isSelected ? p.color : '#334155' }}>
+                          {p.label}
+                        </div>
+                        <div style={{ fontSize: '0.67rem', color: isSelected ? p.color : '#64748B' }}>
+                          {p.subtitulo}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '0.78rem', color: '#64748B' }}>Días hábiles:</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="90"
+                      className="form-control"
+                      style={{ fontSize: '0.82rem', width: '70px', padding: '2px 6px' }}
+                      value={diasPlazoAtencion}
+                      onChange={(e) => setDiasPlazoAtencion(e.target.value)}
+                    />
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: '#475569' }}>
+                    Fecha límite calculada:{' '}
+                    <strong style={{ color: '#800000' }}>
+                      {new Date(Date.now() + (parseInt(diasPlazoAtencion || 10, 10) * 86400000)).toLocaleDateString('es-BO')}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Adjuntar PDF del Informe o Proyecto de Norma */}
+              <div>
+                <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                  <Paperclip size={15} color="#800000" />
+                  <span>Adjuntar PDF del Informe o Proyecto de Norma (Opcional):</span>
+                </label>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  className="form-control"
+                  style={{ fontSize: '0.82rem' }}
+                  onChange={(e) => setArchivoPdfAtencion(e.target.files?.[0] || null)}
+                />
+                {archivoPdfAtencion && (
+                  <div style={{ marginTop: '5px', fontSize: '0.74rem', color: '#0F766E', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CheckCircle2 size={13} />
+                    <span>PDF cargado: {archivoPdfAtencion.name} ({(archivoPdfAtencion.size / 1024).toFixed(1)} KB)</span>
+                  </div>
+                )}
               </div>
 
               {/* Nombre de la actividad o informe opcional */}

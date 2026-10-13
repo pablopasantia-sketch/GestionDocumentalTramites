@@ -44,8 +44,8 @@ export const CANALES_CMS = {
   EXTERNA: {
     id: 'EXTERNA',
     tipoCorres: 'EXTERNA',
-    label: 'Notas Externas',
-    titulo: 'Canal Político-Legislativo (Notas Externas)',
+    label: 'Trámites Externos',
+    titulo: 'Canal Político-Legislativo (Trámites Externos)',
     badge: 'CANAL POLÍTICO-LEGISLATIVO',
     color: '#800000',
     colorBg: '#FFF5F5',
@@ -60,27 +60,6 @@ export const CANALES_CMS = {
       ci_empleado: '4000004',
       nombre: 'ENRIQUE LEAÑO PALENQUE (PRESIDENCIA CMS)',
       instruccion: 'Para su análisis político-normativo y asignación a Comisiones del Concejo Municipal de Sucre.'
-    }
-  },
-  INTERNA: {
-    id: 'INTERNA',
-    tipoCorres: 'INTERNA',
-    label: 'Notas Internas',
-    titulo: 'Canal Operativo-Administrativo (Notas Internas)',
-    badge: 'CANAL OPERATIVO-ADMINISTRATIVO',
-    color: '#1B365D',
-    colorBg: '#F0F4F8',
-    colorBorder: '#BFDBFE',
-    descripcion: 'Solicitudes de personal, compras, suministros, informes y correspondencia entre dependencias internas.',
-    circuitoTexto: 'Sugerencia oficial CMS: Remisión a Secretaría Administrativa para distribución operativa a dependencias internas.',
-    destinatarioDefault: {
-      cod_u: 2,
-      unidad: 'SECRETARIA GENERAL',
-      cod_cargo: 2,
-      cargo: 'SECRETARIO GENERAL',
-      ci_empleado: '',
-      nombre: 'SECRETARÍA ADMINISTRATIVA CMS',
-      instruccion: 'Para análisis operativo y distribución interna a dependencias correspondientes.'
     }
   }
 };
@@ -492,86 +471,46 @@ export default function VentanillaUnica() {
             {/* COLUMNA IZQUIERDA: FORMULARIO PRINCIPAL */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-              {/* BLOQUE 1: MACRO-BIFURCACIÓN OPERATIVA OFICIAL CMS */}
+              {/* BLOQUE 1: ÁMBITO INSTITUCIONAL CMS (TRÁMITES EXTERNOS) */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: `4px solid ${CANALES_CMS[canalActivo].color}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Landmark size={18} color={CANALES_CMS[canalActivo].color} />
+                    <Landmark size={20} color={CANALES_CMS[canalActivo].color} />
                     <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                      1. Canal Operativo Oficial CMS
+                      1. Ámbito Institucional: Trámites Externos del Concejo Municipal de Sucre
                     </h3>
                   </div>
+                  <span className="badge" style={{ background: '#800000', color: 'white', fontSize: '0.72rem', padding: '4px 8px' }}>
+                    ALCANCE ESTRICTO: TRÁMITES EXTERNOS CMS
+                  </span>
                 </div>
 
-                <p style={{ fontSize: '0.84rem', color: '#6C757D', marginBottom: '1rem' }}>
-                  Seleccione la procedencia oficial del documento. El sistema aplicará la ruta reglamentaria correspondiente del Concejo Municipal de Sucre:
-                </p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', marginBottom: '0.5rem' }}>
-                  {/* Tarjeta Notas Externas */}
-                  <div
-                    onClick={() => handleSelectCanal('EXTERNA')}
-                    style={{
-                      padding: '16px',
-                      borderRadius: '8px',
-                      border: canalActivo === 'EXTERNA' ? '2.5px solid #800000' : '1px solid #D1D5DB',
-                      background: canalActivo === 'EXTERNA' ? '#FFF5F5' : 'white',
-                      cursor: 'pointer',
-                      boxShadow: canalActivo === 'EXTERNA' ? '0 4px 12px rgba(128, 0, 0, 0.15)' : 'none',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '6px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#800000', fontSize: '1rem' }}>
-                        <Landmark size={20} />
-                        <span>Notas Externas</span>
-                      </div>
-                      <span className="badge" style={{ background: '#800000', color: 'white', fontSize: '0.68rem' }}>
-                        POLÍTICO-LEGISLATIVO
-                      </span>
+                <div
+                  style={{
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '2px solid #800000',
+                    background: '#FFF5F5',
+                    boxShadow: '0 2px 8px rgba(128, 0, 0, 0.08)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#800000', fontSize: '1rem' }}>
+                      <Landmark size={20} />
+                      <span>Trámites Externos (Canal Político-Legislativo)</span>
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#4B5563', lineHeight: 1.35 }}>
-                      Ingreso de memoriales, solicitudes ciudadanas, juntas vecinales, instituciones y Alcalde Municipal.
-                    </div>
-                    <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed #FECACA', fontSize: '0.74rem', color: '#991B1B', fontWeight: 600 }}>
-                      🏛️ Sugerencia oficial: <strong>Presidencia del CMS</strong> para análisis y asignación a Comisiones.
-                    </div>
+                    <span className="badge" style={{ background: '#800000', color: 'white', fontSize: '0.7rem' }}>
+                      POLÍTICO-LEGISLATIVO
+                    </span>
                   </div>
-
-                  {/* Tarjeta Notas Internas */}
-                  <div
-                    onClick={() => handleSelectCanal('INTERNA')}
-                    style={{
-                      padding: '16px',
-                      borderRadius: '8px',
-                      border: canalActivo === 'INTERNA' ? '2.5px solid #1B365D' : '1px solid #D1D5DB',
-                      background: canalActivo === 'INTERNA' ? '#F0F4F8' : 'white',
-                      cursor: 'pointer',
-                      boxShadow: canalActivo === 'INTERNA' ? '0 4px 12px rgba(27, 54, 93, 0.15)' : 'none',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '6px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#1B365D', fontSize: '1rem' }}>
-                        <Building2 size={20} />
-                        <span>Notas Internas</span>
-                      </div>
-                      <span className="badge" style={{ background: '#1B365D', color: 'white', fontSize: '0.68rem' }}>
-                        ADMINISTRATIVO-OPERATIVO
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: '#4B5563', lineHeight: 1.35 }}>
-                      Solicitudes de personal, compras, suministros, informes y trámites entre dependencias internas.
-                    </div>
-                    <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed #BFDBFE', fontSize: '0.74rem', color: '#1E40AF', fontWeight: 600 }}>
-                      📋 Sugerencia oficial: <strong>Secretaría Administrativa</strong> para distribución operativa.
-                    </div>
+                  <div style={{ fontSize: '0.84rem', color: '#4B5563', lineHeight: 1.4 }}>
+                    Recepción oficial de correspondencia de ciudadanos, juntas vecinales, organizaciones sociales, instituciones públicas/privadas y despacho del Alcalde Municipal con emisión de Hoja de Ruta matriz.
+                  </div>
+                  <div style={{ marginTop: '6px', paddingTop: '8px', borderTop: '1px dashed #FECACA', fontSize: '0.78rem', color: '#991B1B', fontWeight: 600 }}>
+                    🏛️ Destino reglamentario predeterminado: <strong>Presidencia del CMS</strong> para análisis de admisibilidad y derivación a Comisiones Permanentes.
                   </div>
                 </div>
               </div>
@@ -581,7 +520,7 @@ export default function VentanillaUnica() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
                   <Tag size={18} color="#800000" />
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                    2. Clasificación de Correspondencia Oficial ({CANALES_CMS[canalActivo].label})
+                    2. Catálogo Oficial de Trámites Externos CMS (Hojas de Ruta CM, CDE1, CDE2, CDH1)
                   </h3>
                 </div>
 
@@ -1138,15 +1077,9 @@ export default function VentanillaUnica() {
                         </strong>
                       </td>
                       <td>
-                        {(t.tipoCorres === 'INTERNA' || t.tipo_corres === 'INTERNA') ? (
-                          <span className="badge" style={{ background: '#1B365D', color: 'white', fontSize: '0.7rem' }}>
-                            Nota Interna
-                          </span>
-                        ) : (
-                          <span className="badge" style={{ background: '#800000', color: 'white', fontSize: '0.7rem' }}>
-                            Nota Externa
-                          </span>
-                        )}
+                        <span className="badge" style={{ background: '#800000', color: 'white', fontSize: '0.7rem' }}>
+                          Trámite Externo CMS
+                        </span>
                       </td>
                       <td>
                         <span className="badge" style={{ background: '#F1F5F9', color: '#1B365D', fontWeight: 600 }}>

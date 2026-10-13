@@ -20,30 +20,19 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     await page.waitForURL('**/');
   });
 
-  test('1. Ventanilla Única CMS: Macro-Bifurcación y Emisión de Hoja de Ruta Externa con Sugerencia a Presidencia', async ({ page }) => {
+  test('1. Ventanilla Única CMS: Emisión de Hoja de Ruta Externa con Sugerencia Reglamentaria a Presidencia CMS', async ({ page }) => {
     test.setTimeout(60000);
 
     // Navegar a Ventanilla Única
     await page.goto('/ventanilla');
     await expect(page.locator('h1')).toContainText('Recepción y Emisión de Hojas de Ruta Externas');
 
-    // 1.1 Verificar Macro-Bifurcación: Notas Externas (Canal Político-Legislativo)
-    const cardNotasExternas = page.locator('div:has-text("Notas Externas"):has-text("POLÍTICO-LEGISLATIVO")').first();
-    await expect(cardNotasExternas).toBeVisible();
-    await cardNotasExternas.click();
-
-    // Validar sugerencia oficial CMS a Presidencia del Concejo Municipal
+    // 1.1 Validar que el alcance institucional sea estrictamente Trámites Externos
+    await expect(page.locator('text=ALCANCE ESTRICTO: TRÁMITES EXTERNOS CMS')).toBeVisible();
     await expect(page.locator('text=Presidencia del CMS').first()).toBeVisible();
 
-    // 1.2 Verificar cambio a Notas Internas y luego regresar a Notas Externas
-    const cardNotasInternas = page.locator('div:has-text("Notas Internas"):has-text("ADMINISTRATIVO-OPERATIVO")').first();
-    await expect(cardNotasInternas).toBeVisible();
-    await cardNotasInternas.click();
-    await expect(page.locator('text=Secretaría Administrativa').first()).toBeVisible();
-
-    // Re-seleccionar canal de Notas Externas
-    await cardNotasExternas.click();
-    await expect(page.locator('text=Presidencia del CMS').first()).toBeVisible();
+    // 1.2 Verificar ausencia estricta de cualquier selector o tarjeta de Notas Internas
+    await expect(page.locator('text=Notas Internas')).toHaveCount(0);
 
     // 1.3 Seleccionar Tipo de Trámite Externo oficial (CM)
     const tipoCM = page.locator('div:has-text("CM"):has-text("Correspondencia Municipal Externa")').first();
@@ -149,8 +138,8 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     const modalAtender = page.locator('.modal-backdrop');
     await expect(modalAtender.locator('h3:has-text("Concluir Atención Técnica")')).toBeVisible({ timeout: 5000 });
 
-    // Validar el catálogo de los 5 Instrumentos Legislativos Salientes del CMS
-    await expect(modalAtender.locator('text=Producto Normativo / Instrumento Legislativo Generado:')).toBeVisible();
+    // Validar el catálogo de Instrumentos Legislativos Salientes del CMS
+    await expect(modalAtender.locator('text=Instrumentos Normativos Generados en Comisión')).toBeVisible();
     await expect(modalAtender.locator('text=Petición de Informe Escrito (PIE)').first()).toBeVisible();
     await expect(modalAtender.locator('text=Petición de Informe Oral (PIO)').first()).toBeVisible();
     await expect(modalAtender.locator('text=Minuta de Comunicación').first()).toBeVisible();
@@ -326,9 +315,8 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     await page.goto('/ventanilla');
     await expect(page.locator('h1')).toContainText('Recepción y Emisión de Hojas de Ruta Externas');
 
-    // Seleccionar canal externo
-    const cardNotasExternas = page.locator('div:has-text("Notas Externas"):has-text("POLÍTICO-LEGISLATIVO")').first();
-    await cardNotasExternas.click();
+    // Validar ámbito exclusivo de Trámites Externos
+    await expect(page.locator('text=ALCANCE ESTRICTO: TRÁMITES EXTERNOS CMS')).toBeVisible();
 
     // Seleccionar tipo de trámite CM
     const tipoCM = page.locator('div:has-text("CM"):has-text("Correspondencia Municipal Externa")').first();

@@ -106,6 +106,12 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("instrumento_generado")]
         public string? InstrumentoGenerado { get; set; }
 
+        [JsonPropertyName("instrumentos_generados")]
+        public string? InstrumentosGenerados { get; set; }
+
+        [JsonPropertyName("fecha_limite_respuesta")]
+        public DateTime? FechaLimiteRespuesta { get; set; }
+
         [JsonPropertyName("fecha_envio")]
         public DateTime? FechaEnvio { get; set; }
 
@@ -526,6 +532,9 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("ultimo_instrumento_generado")]
         public string? UltimoInstrumentoGenerado { get; set; }
 
+        [JsonPropertyName("ult_instrumentos_generados")]
+        public string? UltInstrumentosGenerados { get; set; }
+
         [JsonPropertyName("sesion_pleno_nro")]
         public string? SesionPlenoNro { get; set; }
 
@@ -644,6 +653,9 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("instrumento_generado")]
         public string? InstrumentoGenerado { get; set; }
 
+        [JsonPropertyName("instrumentos_generados")]
+        public string? InstrumentosGenerados { get; set; }
+
         [JsonPropertyName("es_conclusion")]
         public bool EsConclusion { get; set; } = false;
 
@@ -674,6 +686,12 @@ namespace GestionDocumental.Api.DTOs.Tramites
 
         [JsonPropertyName("instrumento_generado")]
         public string? InstrumentoGenerado { get; set; }
+
+        [JsonPropertyName("instrumentos_generados")]
+        public string? InstrumentosGenerados { get; set; }
+
+        [JsonPropertyName("dias_plazo")]
+        public int? DiasPlazo { get; set; }
     }
 
     public class RegistrarAprobacionPlenoDto
