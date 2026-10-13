@@ -1850,25 +1850,6 @@ export default function AdminHub() {
 
             <form onSubmit={handleSaveUbicacion}>
               <div className="modal-body">
-                {/* Banner de Sincronización Automática */}
-                <div style={{
-                  marginBottom: '1rem',
-                  padding: '10px 14px',
-                  borderRadius: '6px',
-                  background: '#E8F0FE',
-                  border: '1px solid #D2E3FC',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  fontSize: '0.84rem',
-                  color: '#1A73E8'
-                }}>
-                  <Building2 size={18} style={{ flexShrink: 0 }} />
-                  <span>
-                    <strong>Sincronización Automática:</strong> Esta unidad se guardará simultáneamente en la estructura jerárquica y en el <strong>Directorio Institucional Oficial</strong> para correspondencia.
-                  </span>
-                </div>
-
                 {ubicacionModalError && (
                   <div style={{
                     marginBottom: '1rem', padding: '10px 14px', borderRadius: '4px',

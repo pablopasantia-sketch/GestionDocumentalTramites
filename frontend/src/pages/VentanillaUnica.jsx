@@ -491,19 +491,16 @@ export default function VentanillaUnica() {
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '1.5rem' }}>
             {/* COLUMNA IZQUIERDA: FORMULARIO PRINCIPAL */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              
+
               {/* BLOQUE 1: MACRO-BIFURCACIÓN OPERATIVA OFICIAL CMS */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: `4px solid ${CANALES_CMS[canalActivo].color}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Landmark size={18} color={CANALES_CMS[canalActivo].color} />
                     <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                      1. Canal Operativo Oficial CMS (Macro-Bifurcación de Entrada)
+                      1. Canal Operativo Oficial CMS
                     </h3>
                   </div>
-                  <span className="badge badge-sucre" style={{ fontSize: '0.72rem' }}>
-                    MODELO OPERATIVO CMS
-                  </span>
                 </div>
 
                 <p style={{ fontSize: '0.84rem', color: '#6C757D', marginBottom: '1rem' }}>
@@ -934,7 +931,7 @@ export default function VentanillaUnica() {
 
             {/* COLUMNA DERECHA: TARJETA DE RESUMEN Y BOTÓN DE EMISIÓN */}
             <div style={{ position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '1.5rem', alignSelf: 'start' }}>
-              
+
               {/* TARJETA CORRELATIVO EN VIVO */}
               <div
                 className="card"

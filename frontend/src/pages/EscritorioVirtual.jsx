@@ -737,18 +737,27 @@ export default function EscritorioVirtual() {
   const handleAbrirFirmas = async (tramite) => {
     setTramiteAFirmas(tramite);
     setObservacionesFirma('');
+    const norm = {
+      ...tramite,
+      firma_presidencia: Boolean(tramite.firma_presidencia ?? tramite.firmaPresidencia),
+      firma_secretaria: Boolean(tramite.firma_secretaria ?? tramite.firmaSecretaria)
+    };
+    setTramiteAFirmas(norm);
+    setObservacionesFirma('');
     setFirmasError(null);
     setFirmasModalOpen(true);
-    // Si no tiene datos completos de firmas, refrescar por getById
-    if (tramite.firma_presidencia === undefined) {
-      try {
-        const res = await tramitesService.getById(tramite.id);
-        if (res && res.data) {
-          setTramiteAFirmas(res.data);
-        }
-      } catch (e) {
-        console.error('Error al cargar detalle de firmas:', e);
+    try {
+      const res = await tramitesService.getById(tramite.id);
+      if (res && res.data) {
+        const d = res.data;
+        setTramiteAFirmas({
+          ...d,
+          firma_presidencia: Boolean(d.firma_presidencia ?? d.firmaPresidencia),
+          firma_secretaria: Boolean(d.firma_secretaria ?? d.firmaSecretaria)
+        });
       }
+    } catch (e) {
+      console.error('Error al cargar detalle de firmas:', e);
     }
   };
 
@@ -764,9 +773,15 @@ export default function EscritorioVirtual() {
       await tramitesService.registrarFirmaDual(tramiteAFirmas.id, payload);
       const res = await tramitesService.getById(tramiteAFirmas.id);
       if (res && res.data) {
-        setTramiteAFirmas(res.data);
+        const d = res.data;
+        const norm = {
+          ...d,
+          firma_presidencia: Boolean(d.firma_presidencia ?? d.firmaPresidencia),
+          firma_secretaria: Boolean(d.firma_secretaria ?? d.firmaSecretaria)
+        };
+        setTramiteAFirmas(norm);
         if (detalleModalOpen && tramiteDetalle?.id === tramiteAFirmas.id) {
-          setTramiteDetalle(res.data);
+          setTramiteDetalle(norm);
         }
       }
       const cargoTexto = tipoFirma === 'PRESIDENCIA' ? 'Presidencia del CMS' : 'Secretaría General del CMS';
@@ -783,14 +798,32 @@ export default function EscritorioVirtual() {
   };
 
   // Handlers para Despacho Final al Ejecutivo
-  const handleAbrirDespacho = (tramite) => {
-    setTramiteADespacho(tramite);
+  const handleAbrirDespacho = async (tramite) => {
+    const norm = {
+      ...tramite,
+      firma_presidencia: Boolean(tramite.firma_presidencia ?? tramite.firmaPresidencia),
+      firma_secretaria: Boolean(tramite.firma_secretaria ?? tramite.firmaSecretaria)
+    };
+    setTramiteADespacho(norm);
     const yr = new Date().getFullYear();
     setCiteDespacho(`CMS-DESP-0${tramite.id}/${yr}`);
     setDestinatarioFinal('Dr. Enrique Leaño Palenque - Alcalde Municipal de Sucre');
     setProveidoDespacho('Remisión formal de instrumento normativo aprobado por el Pleno Camaral del CMS para su promulgación y estricto cumplimiento.');
     setDespachoError(null);
     setDespachoModalOpen(true);
+    try {
+      const res = await tramitesService.getById(tramite.id);
+      if (res && res.data) {
+        const d = res.data;
+        setTramiteADespacho({
+          ...d,
+          firma_presidencia: Boolean(d.firma_presidencia ?? d.firmaPresidencia),
+          firma_secretaria: Boolean(d.firma_secretaria ?? d.firmaSecretaria)
+        });
+      }
+    } catch (e) {
+      console.error('Error al refrescar estado de firmas para despacho:', e);
+    }
   };
 
   const handleConfirmarDespacho = async () => {
@@ -803,7 +836,9 @@ export default function EscritorioVirtual() {
       setDespachoError('Debe especificar el destinatario final institucional.');
       return;
     }
-    if (!tramiteADespacho.firma_presidencia || !tramiteADespacho.firma_secretaria) {
+    const fp = Boolean(tramiteADespacho.firma_presidencia ?? tramiteADespacho.firmaPresidencia);
+    const fs = Boolean(tramiteADespacho.firma_secretaria ?? tramiteADespacho.firmaSecretaria);
+    if (!fp || !fs) {
       setDespachoError('DESPACHO BLOQUEADO: Se requiere el registro concurrente de ambas firmas duales (Presidencia y Secretaría General) antes de proceder con el despacho.');
       return;
     }
