@@ -268,17 +268,96 @@ WHEN NOT MATCHED THEN
 GO
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- 4. VERIFICACIÓN FINAL Y REPORTE
+-- 4. ROLES DEL SISTEMA Y USUARIO ADMINISTRADOR CMS (dbo.roles, dbo.TEmpleados, dbo.usuario_roles)
+--    Garantiza acceso inmediato con credenciales institucionales: admin / admin123
 -- ─────────────────────────────────────────────────────────────────────────────
-DECLARE @TotalUnidades INT, @TotalCargos INT, @TotalUbicaciones INT;
+PRINT '🔹 Sembrando Roles del Sistema en dbo.roles...';
+
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+
+SET IDENTITY_INSERT dbo.roles ON;
+IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE id = 1)
+    INSERT INTO dbo.roles (id, codigo, nombre, descripcion, activo) 
+    VALUES (1, 'ADMIN_SISTEMA', 'Administrador de Sistema', 'Gestión de usuarios, personas, organigrama y parámetros base del sistema', 1);
+IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE id = 2)
+    INSERT INTO dbo.roles (id, codigo, nombre, descripcion, activo) 
+    VALUES (2, 'ADMIN_TRAMITES', 'Administrador de Trámites', 'Gestión operativa de trámites, anulación, redirección y reportes de transparencia', 1);
+IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE id = 3)
+    INSERT INTO dbo.roles (id, codigo, nombre, descripcion, activo) 
+    VALUES (3, 'VENTANILLA_UNICA', 'Ventanilla Única', 'Recepción de trámites, registro de correspondencias, emisión de hojas de ruta y bloqueo', 1);
+IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE id = 4)
+    INSERT INTO dbo.roles (id, codigo, nombre, descripcion, activo) 
+    VALUES (4, 'FUNCIONARIO', 'Funcionario', 'Atención de trámites, proveídos, adjuntos y derivación en escritorio virtual', 1);
+SET IDENTITY_INSERT dbo.roles OFF;
+GO
+
+PRINT '🔹 Sembrando Usuario Administrador en dbo.TEmpleados...';
+
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+
+IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE login = 'admin' OR CI = 1000001)
+BEGIN
+    INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo, created_at, updated_at)
+    VALUES (1000001, 'SISTEMA GENERAL', 'ADMINISTRADOR', 'Plaza 25 de Mayo #1 (CMS)', 70012345, 'admin@cms.gob.bo', 1, 'admin', 'admin123', 'Administrador General CMS', 1, 1, SYSDATETIME(), SYSDATETIME());
+END
+ELSE
+BEGIN
+    UPDATE dbo.TEmpleados
+    SET login = 'admin',
+        password_hash = 'admin123',
+        Activo = 1,
+        cargo_nombre = 'Administrador General CMS',
+        cod_u = 1,
+        cod_cargo = 1,
+        updated_at = SYSDATETIME()
+    WHERE login = 'admin' OR CI = 1000001;
+END
+GO
+
+PRINT '🔹 Asignando Roles Institucionales al Administrador en dbo.usuario_roles...';
+
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+
+DECLARE @AdminId INT, @PresidenciaUbiId INT;
+SELECT TOP 1 @AdminId = id FROM dbo.TEmpleados WHERE login = 'admin';
+SELECT TOP 1 @PresidenciaUbiId = id FROM dbo.ubicaciones_org WHERE codU = 1;
+IF @PresidenciaUbiId IS NULL SET @PresidenciaUbiId = 1;
+
+IF @AdminId IS NOT NULL
+BEGIN
+    -- Rol ADMIN_SISTEMA (1)
+    IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE usuario_id = @AdminId AND rol_id = 1)
+    BEGIN
+        INSERT INTO dbo.usuario_roles (usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo, created_at, updated_at)
+        VALUES (@AdminId, 1, @PresidenciaUbiId, 'CONTROL_TOTAL', '2030-12-31', 1, 1, SYSDATETIME(), SYSDATETIME());
+    END
+
+    -- Rol ADMIN_TRAMITES (2)
+    IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE usuario_id = @AdminId AND rol_id = 2)
+    BEGIN
+        INSERT INTO dbo.usuario_roles (usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo, created_at, updated_at)
+        VALUES (@AdminId, 2, @PresidenciaUbiId, 'CONTROL_TOTAL', '2030-12-31', 0, 1, SYSDATETIME(), SYSDATETIME());
+    END
+END
+GO
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 5. VERIFICACIÓN FINAL Y REPORTE
+-- ─────────────────────────────────────────────────────────────────────────────
+DECLARE @TotalUnidades INT, @TotalCargos INT, @TotalUbicaciones INT, @AdminUsuario VARCHAR(50);
 SELECT @TotalUnidades = COUNT(*) FROM dbo.TUnidad;
 SELECT @TotalCargos = COUNT(*) FROM dbo.TCargo;
 SELECT @TotalUbicaciones = COUNT(*) FROM dbo.ubicaciones_org;
+SELECT @AdminUsuario = login FROM dbo.TEmpleados WHERE login = 'admin';
 
 PRINT ' ';
 PRINT '✅ POBLAMIENTO INSTITUCIONAL CMS COMPLETADO CON ÉXITO:';
 PRINT '   - Total Unidades en TUnidad:       ' + CAST(@TotalUnidades AS VARCHAR(10));
 PRINT '   - Total Ubicaciones Org:           ' + CAST(@TotalUbicaciones AS VARCHAR(10));
 PRINT '   - Total Cargos en TCargo:          ' + CAST(@TotalCargos AS VARCHAR(10));
+PRINT '   - Usuario Administrador Habilitado: ' + ISNULL(@AdminUsuario, 'NO ENCONTRADO') + ' (Clave: admin123)';
 PRINT '=============================================================================';
 GO

@@ -877,7 +877,8 @@ namespace GestionDocumental.Api.Data
                 SELECT 
                     (SELECT COUNT(*) FROM dbo.TUnidad) AS TotalUnidades,
                     (SELECT COUNT(*) FROM dbo.TCargo) AS TotalCargos,
-                    (SELECT COUNT(*) FROM dbo.ubicaciones_org) AS TotalUbicaciones;", conn))
+                    (SELECT COUNT(*) FROM dbo.ubicaciones_org) AS TotalUbicaciones,
+                    (SELECT TOP 1 login FROM dbo.TEmpleados WHERE login = 'admin') AS AdminUsuario;", conn))
             using (var reader = await verifyCmd.ExecuteReaderAsync())
             {
                 if (await reader.ReadAsync())
@@ -886,6 +887,7 @@ namespace GestionDocumental.Api.Data
                     Console.WriteLine($"   • Total Unidades en TUnidad:    {reader["TotalUnidades"]}");
                     Console.WriteLine($"   • Total Ubicaciones Org:        {reader["TotalUbicaciones"]}");
                     Console.WriteLine($"   • Total Cargos en TCargo:       {reader["TotalCargos"]}");
+                    Console.WriteLine($"   • Usuario Administrador:        {reader["AdminUsuario"]} (Clave: admin123)");
                     Console.WriteLine("============================================================\n");
                 }
             }

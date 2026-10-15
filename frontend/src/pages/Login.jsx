@@ -144,45 +144,6 @@ export default function Login() {
               )}
             </button>
           </form>
-
-          {/* Cuentas de Demostración Sembradas */}
-          <div style={{ marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#6C757D', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Cuentas Demo Sembradas (Seed):
-            </div>
-
-            <div style={{ display: 'grid', gap: '6px' }}>
-              <button
-                type="button"
-                onClick={() => handleQuickFill('admin', 'admin123')}
-                className="btn btn-secondary btn-sm"
-                style={{ justifyContent: 'space-between', width: '100%', fontSize: '0.8rem', padding: '8px 12px' }}
-              >
-                <span><strong>admin</strong> (Admin de Sistema)</span>
-                <span style={{ color: '#6C757D' }}>admin123</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickFill('mfernandez', 'password123')}
-                className="btn btn-secondary btn-sm"
-                style={{ justifyContent: 'space-between', width: '100%', fontSize: '0.8rem', padding: '8px 12px' }}
-              >
-                <span><strong>mfernandez</strong> (Ventanilla Única)</span>
-                <span style={{ color: '#6C757D' }}>admin123</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickFill('cmamani', 'password123')}
-                className="btn btn-secondary btn-sm"
-                style={{ justifyContent: 'space-between', width: '100%', fontSize: '0.8rem', padding: '8px 12px' }}
-              >
-                <span><strong>cmamani</strong> (Funcionario)</span>
-                <span style={{ color: '#6C757D' }}>admin123</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
