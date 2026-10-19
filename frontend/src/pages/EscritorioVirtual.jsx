@@ -1699,7 +1699,12 @@ export default function EscritorioVirtual() {
                 const isVencido = item.es_vencido || (item.dias_restantes != null && item.dias_restantes < 0);
                 const isCritico = !isVencido && item.dias_restantes != null && item.dias_restantes <= 2;
                 const isAtencion = !isVencido && item.dias_restantes != null && item.dias_restantes > 2 && item.dias_restantes <= 5;
-                const esPorRecibir = item.estado === 'POR_RECIBIR' || item.estado === 'EN_TRANSITO';
+                const esPorRecibir = item.estado === 'POR_RECIBIR' || item.estado === 'EN_TRANSITO' || item.estado === 'CREADO';
+                const esEnAtencion = item.estado === 'EN_ATENCION';
+                const esAtendido = item.estado === 'ATENDIDO';
+                const esConcluido = item.estado === 'CONCLUIDO' || item.estado === 'ANULADO' || item.estado === 'BLOQUEADO';
+                const tienePleno = Boolean(item.sesion_pleno_nro || item.sesion_pleno_resultado);
+                const tieneFirmasDuales = Boolean(item.firma_presidencia && item.firma_secretaria);
 
                 return (
                   <tr
@@ -1907,224 +1912,177 @@ export default function EscritorioVirtual() {
                     {/* Columna 8: Acciones */}
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
-                        {/* 1. Acción: Recepcionar (si está por recibir) */}
-                        {bandejaActiva === 'RECIBIDOS' && esPorRecibir && (
-                          <button
-                            onClick={() => handleAbrirRecepcionar(item)}
-                            className="btn btn-sm"
-                            style={{
-                              backgroundColor: '#28A745',
-                              color: '#FFFFFF',
-                              padding: '5px 9px',
-                              fontSize: '0.78rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              borderRadius: '4px',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                            title="Confirmar recepción digital del documento y tomar custodia"
-                          >
-                            <UserCheck size={13} />
-                            <span>Recepcionar</span>
-                          </button>
-                        )}
+                        {/* En BANDEJA DE ENVIADOS (DESPACHADOS): NUNCA hay acciones mutativas, solo VER seguimiento */}
+                        {bandejaActiva !== 'DESPACHADOS' && (
+                          <>
+                            {/* 1. Etapa: Recepcionar (solo si está por recibir en mis pendientes) */}
+                            {bandejaActiva === 'RECIBIDOS' && esPorRecibir && (
+                              <button
+                                onClick={() => handleAbrirRecepcionar(item)}
+                                className="btn btn-sm"
+                                style={{
+                                  backgroundColor: '#28A745',
+                                  color: '#FFFFFF',
+                                  padding: '5px 9px',
+                                  fontSize: '0.78rem',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  borderRadius: '4px',
+                                  border: 'none',
+                                  cursor: 'pointer'
+                                }}
+                                title="Confirmar recepción digital del documento y tomar custodia"
+                              >
+                                <UserCheck size={13} />
+                                <span>Recepcionar</span>
+                              </button>
+                            )}
 
-                        {/* 2. Acción: Atender (solo si está EN_ATENCION, tras haber recepcionado) */}
-                        {bandejaActiva === 'RECIBIDOS' && item.estado === 'EN_ATENCION' && (
-                          <button
-                            onClick={() => handleAbrirAtender(item)}
-                            className="btn btn-sm"
-                            style={{
-                              backgroundColor: '#0D9488',
-                              color: '#FFFFFF',
-                              padding: '5px 9px',
-                              fontSize: '0.78rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              borderRadius: '4px',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                            title="Registrar informe técnico/dictamen y marcar como ATENDIDO listo para despachar"
-                          >
-                            <CheckCircle2 size={13} />
-                            <span>Atender</span>
-                          </button>
-                        )}
+                            {/* 2. Etapa: Atender (solo si está EN_ATENCION en mis pendientes) */}
+                            {bandejaActiva === 'RECIBIDOS' && esEnAtencion && (
+                              <button
+                                onClick={() => handleAbrirAtender(item)}
+                                className="btn btn-sm"
+                                style={{
+                                  backgroundColor: '#0D9488',
+                                  color: '#FFFFFF',
+                                  padding: '5px 9px',
+                                  fontSize: '0.78rem',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  borderRadius: '4px',
+                                  border: 'none',
+                                  cursor: 'pointer'
+                                }}
+                                title="Registrar informe técnico/dictamen y marcar como ATENDIDO listo para Pleno o Despacho"
+                              >
+                                <CheckCircle2 size={13} />
+                                <span>Atender</span>
+                              </button>
+                            )}
 
-                        {/* 3. Acción: Avanzar / Derivar Libre (solo cuando ya ha sido ATENDIDO) */}
-                        {bandejaActiva === 'RECIBIDOS' && item.estado === 'ATENDIDO' && (
-                          <button
-                            onClick={() => handleAbrirDerivar(item)}
-                            className="btn btn-sm"
-                            style={{
-                              backgroundColor: '#800000',
-                              color: '#FFFFFF',
-                              padding: '5px 9px',
-                              fontSize: '0.78rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              borderRadius: '4px',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                            title="Derivación libre institucional (Avanzar trámite a otro destinatario)"
-                          >
-                            <Send size={13} />
-                            <span>Avanzar</span>
-                          </button>
-                        )}
+                            {/* 3. Etapa: Avanzar / Derivar Libre (solo cuando está ATENDIDO o en Supervisión, antes de Pleno) */}
+                            {!esConcluido && !tienePleno && ((bandejaActiva === 'RECIBIDOS' && esAtendido) || (bandejaActiva === 'SUPERVISION')) && (
+                              <button
+                                onClick={() => handleAbrirDerivar(item)}
+                                className="btn btn-sm"
+                                style={{
+                                  backgroundColor: '#800000',
+                                  color: '#FFFFFF',
+                                  padding: '5px 9px',
+                                  fontSize: '0.78rem',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  borderRadius: '4px',
+                                  border: 'none',
+                                  cursor: 'pointer'
+                                }}
+                                title="Derivación libre institucional (Avanzar trámite a otro destinatario)"
+                              >
+                                <Send size={13} />
+                                <span>{bandejaActiva === 'SUPERVISION' ? 'Derivar' : 'Avanzar'}</span>
+                              </button>
+                            )}
 
-                        {/* 4. Acción: Retroceder Proceso (siempre disponible mientras el trámite no esté concluido) */}
-                        {bandejaActiva === 'RECIBIDOS' && item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && item.estado !== 'BLOQUEADO' && (
-                          <button
-                            onClick={() => handleAbrirRetroceder(item)}
-                            className="btn btn-sm"
-                            style={{
-                              backgroundColor: '#D97706',
-                              color: '#FFFFFF',
-                              padding: '5px 9px',
-                              fontSize: '0.78rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              borderRadius: '4px',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                            title="Retroceder proceso con justificación a la unidad anterior"
-                          >
-                            <RotateCcw size={13} />
-                            <span>Retroceder</span>
-                          </button>
-                        )}
+                            {/* 4. Etapa: Retroceder Proceso (disponible en mesa de trabajo o supervisión antes de Pleno) */}
+                            {!esConcluido && !tienePleno && ((bandejaActiva === 'RECIBIDOS' && (esEnAtencion || esAtendido)) || (bandejaActiva === 'SUPERVISION')) && (
+                              <button
+                                onClick={() => handleAbrirRetroceder(item)}
+                                className="btn btn-sm"
+                                style={{
+                                  backgroundColor: '#D97706',
+                                  color: '#FFFFFF',
+                                  padding: '5px 9px',
+                                  fontSize: '0.78rem',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  borderRadius: '4px',
+                                  border: 'none',
+                                  cursor: 'pointer'
+                                }}
+                                title="Retroceder proceso con justificación a la unidad anterior"
+                              >
+                                <RotateCcw size={13} />
+                                <span>Retroceder</span>
+                              </button>
+                            )}
 
-                        {/* Supervisión: Retroceder administrativamente */}
-                        {bandejaActiva === 'SUPERVISION' && item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && item.estado !== 'BLOQUEADO' && (
-                          <button
-                            onClick={() => handleAbrirRetroceder(item)}
-                            className="btn btn-sm"
-                            style={{
-                              backgroundColor: '#D97706',
-                              color: '#FFFFFF',
-                              padding: '5px 9px',
-                              fontSize: '0.78rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              borderRadius: '4px',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                            title="Supervisión: Retroceder trámite a la unidad anterior"
-                          >
-                            <RotateCcw size={13} />
-                            <span>Retroceder</span>
-                          </button>
-                        )}
+                            {/* 5. Etapa CMS: Sesión Plenario (solo cuando YA ESTÁ ATENDIDO con informe en RECIBIDOS, o en Supervisión) */}
+                            {!esConcluido && !tienePleno && ((bandejaActiva === 'RECIBIDOS' && esAtendido) || (bandejaActiva === 'SUPERVISION')) && (
+                              <button
+                                onClick={() => handleAbrirPleno(item)}
+                                className="btn btn-sm"
+                                style={{
+                                  backgroundColor: '#1E3A8A',
+                                  color: '#FFFFFF',
+                                  padding: '5px 8px',
+                                  fontSize: '0.78rem',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                  borderRadius: '4px',
+                                  border: 'none',
+                                  cursor: 'pointer'
+                                }}
+                                title="Constancia de Aprobación en Sesión del Pleno del CMS"
+                              >
+                                <Award size={13} />
+                                <span>Pleno</span>
+                              </button>
+                            )}
 
-                        {/* Supervisión: Derivar administrativamente */}
-                        {bandejaActiva === 'SUPERVISION' && item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && item.estado !== 'BLOQUEADO' && (
-                          <button
-                            onClick={() => handleAbrirDerivar(item)}
-                            className="btn btn-sm"
-                            style={{
-                              backgroundColor: '#1B365D',
-                              color: '#FFFFFF',
-                              padding: '5px 9px',
-                              fontSize: '0.78rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              borderRadius: '4px',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                            title="Supervisión: Derivar trámite a otra unidad"
-                          >
-                            <Send size={13} />
-                            <span>Derivar</span>
-                          </button>
-                        )}
+                            {/* 6. Etapa CMS: Firmas Duales (solo tras registrar el Pleno) */}
+                            {!esConcluido && tienePleno && (
+                              <button
+                                onClick={() => handleAbrirFirmas(item)}
+                                className="btn btn-sm"
+                                style={{
+                                  backgroundColor: tieneFirmasDuales ? '#059669' : (item.firma_presidencia || item.firma_secretaria) ? '#0284C7' : '#0369A1',
+                                  color: '#FFFFFF',
+                                  padding: '5px 8px',
+                                  fontSize: '0.78rem',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                  borderRadius: '4px',
+                                  border: 'none',
+                                  cursor: 'pointer'
+                                }}
+                                title="Rúbricas Duales Concurrentes: Presidencia CMS y Secretaría General CMS"
+                              >
+                                <Stamp size={13} />
+                                <span>Firmas {tieneFirmasDuales ? '✓' : (item.firma_presidencia || item.firma_secretaria) ? '(1/2)' : '(0/2)'}</span>
+                              </button>
+                            )}
 
-                        {/* 5. Acción CMS: Sesión Plenario */}
-                        {item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && (
-                          <button
-                            onClick={() => handleAbrirPleno(item)}
-                            className="btn btn-sm"
-                            style={{
-                              backgroundColor: '#1E3A8A',
-                              color: '#FFFFFF',
-                              padding: '5px 8px',
-                              fontSize: '0.78rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '3px',
-                              borderRadius: '4px',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                            title="Constancia de Aprobación en Sesión del Pleno del CMS"
-                          >
-                            <Award size={13} />
-                            <span>Pleno</span>
-                          </button>
-                        )}
-
-                        {/* 6. Acción CMS: Firmas Duales Concurrentes */}
-                        {item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && (
-                          <button
-                            onClick={() => handleAbrirFirmas(item)}
-                            className="btn btn-sm"
-                            style={{
-                              backgroundColor: (item.firma_presidencia && item.firma_secretaria) ? '#059669' : '#0284C7',
-                              color: '#FFFFFF',
-                              padding: '5px 8px',
-                              fontSize: '0.78rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '3px',
-                              borderRadius: '4px',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                            title="Rúbricas Duales Concurrentes: Presidencia CMS y Secretaría General CMS"
-                          >
-                            <Stamp size={13} />
-                            <span>Firmas {item.firma_presidencia && item.firma_secretaria ? '✓' : ''}</span>
-                          </button>
-                        )}
-
-                        {/* 7. Acción CMS: Despacho Final al Ejecutivo */}
-                        {item.estado !== 'CONCLUIDO' && item.estado !== 'ANULADO' && (
-                          <button
-                            onClick={() => handleAbrirDespacho(item)}
-                            className="btn btn-sm"
-                            style={{
-                              backgroundColor: (item.firma_presidencia && item.firma_secretaria) ? '#7C3AED' : '#9CA3AF',
-                              color: '#FFFFFF',
-                              padding: '5px 8px',
-                              fontSize: '0.78rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '3px',
-                              borderRadius: '4px',
-                              border: 'none',
-                              cursor: (item.firma_presidencia && item.firma_secretaria) ? 'pointer' : 'default'
-                            }}
-                            title={
-                              item.firma_presidencia && item.firma_secretaria
-                                ? 'Despacho Final al Alcalde Municipal o entidades externas'
-                                : 'Despacho Final bloqueado: requiere firmas duales concurrentes (Presidencia y Secretaría General)'
-                            }
-                          >
-                            <FileCheck size={13} />
-                            <span>Despacho</span>
-                          </button>
+                            {/* 7. Etapa CMS: Despacho Final (solo tras firmas duales completas) */}
+                            {!esConcluido && tienePleno && tieneFirmasDuales && (
+                              <button
+                                onClick={() => handleAbrirDespacho(item)}
+                                className="btn btn-sm"
+                                style={{
+                                  backgroundColor: '#7C3AED',
+                                  color: '#FFFFFF',
+                                  padding: '5px 8px',
+                                  fontSize: '0.78rem',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                  borderRadius: '4px',
+                                  border: 'none',
+                                  cursor: 'pointer'
+                                }}
+                                title="Despacho Final al Ejecutivo Municipal (GAMS) / Notificación externa"
+                              >
+                                <FileCheck size={13} />
+                                <span>Despacho</span>
+                              </button>
+                            )}
+                          </>
                         )}
 
                         {/* Botón Ver Detalle / Formulario */}

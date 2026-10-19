@@ -129,6 +129,16 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     await page.goto('/escritorio');
     await expect(page.locator('h1')).toContainText('Escritorio Virtual');
 
+    // Si el trámite está pendiente de recepción, recepcionarlo para habilitar la atención técnica
+    const btnRecepcionar = page.locator('tr button:has-text("Recepcionar")').first();
+    if (await btnRecepcionar.isVisible()) {
+      await btnRecepcionar.click();
+      const btnConfirmarRec = page.locator('.modal-backdrop button:has-text("Confirmar y Recepcionar")');
+      await expect(btnConfirmarRec).toBeVisible({ timeout: 5000 });
+      await btnConfirmarRec.click();
+      await page.waitForTimeout(1500);
+    }
+
     // Buscar una fila con botón "Atender" o "Informe"
     const btnAtender = page.locator('tr button:has-text("Atender"), tr button:has-text("Informe")').first();
     await expect(btnAtender).toBeVisible({ timeout: 15000 });
@@ -157,9 +167,11 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     const cardMinuta = modalAtender.locator('div:has-text("Minuta de Comunicación")').last();
     await cardMinuta.click();
 
-    // Cerrar modal
-    await modalAtender.locator('button:has-text("Cancelar")').click();
-    await expect(modalAtender).not.toBeVisible();
+    // Concluir atención técnica marcando como ATENDIDO con instrumento Minuta
+    const btnConcluir = modalAtender.locator('button:has-text("Concluir Atención")');
+    await expect(btnConcluir).toBeVisible();
+    await btnConcluir.click();
+    await expect(modalAtender).not.toBeVisible({ timeout: 10000 });
   });
 
   test('4. Circuito Plenario CMS: Constancia de Aprobación en Sesión del Pleno', async ({ page }) => {

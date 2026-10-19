@@ -32,14 +32,6 @@ import InstitucionalSelectors from '../components/institucional/InstitucionalSel
 import EmpleadoSearchAutocomplete from '../components/institucional/EmpleadoSearchAutocomplete';
 import PdfUploader from '../components/common/PdfUploader';
 
-const INSTRUCCIONES_SUGERIDAS = [
-  'Para su atención y trámite correspondiente según normativa',
-  'Para informe técnico y recomendación legal pertinente',
-  'Para su conocimiento, análisis y archivo correspondiente',
-  'Para verificación de antecedentes y emisión de criterio',
-  'Con carácter de urgencia para respuesta inmediata'
-];
-
 export const CANALES_CMS = {
   EXTERNA: {
     id: 'EXTERNA',
@@ -54,12 +46,12 @@ export const CANALES_CMS = {
     circuitoTexto: 'Sugerencia oficial CMS: Remisión a Presidencia del Concejo Municipal para análisis político y asignación a comisiones permanentes.',
     destinatarioDefault: {
       cod_u: 1,
-      unidad: 'DIRECCION GENERAL EJECUTIVA',
+      unidad: 'Presidencia del Concejo Municipal',
       cod_cargo: 1,
       cargo: 'DIRECTOR GENERAL EJECUTIVO',
       ci_empleado: '4000004',
       nombre: 'ENRIQUE LEAÑO PALENQUE (PRESIDENCIA CMS)',
-      instruccion: 'Para su análisis político-normativo y asignación a Comisiones del Concejo Municipal de Sucre.'
+      instruccion: 'Para su análisis y asignación a Comisiones del Concejo Municipal de Sucre.'
     }
   }
 };
@@ -403,17 +395,20 @@ export default function VentanillaUnica() {
               <Inbox size={28} />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
                 <span className="badge badge-sucre" style={{ fontSize: '0.72rem', letterSpacing: '0.5px' }}>
                   VENTANILLA ÚNICA Y DESPACHOS MUNICIPALES
                 </span>
-                <span className="badge" style={{ background: '#1B365D', color: 'white', fontSize: '0.72rem' }}>
-                  CORRESPONDENCIA EXTERNA
+                <span className="badge" style={{ background: '#800000', color: 'white', fontSize: '0.72rem' }}>
+                  ALCANCE ESTRICTO: TRÁMITES EXTERNOS CMS
                 </span>
               </div>
               <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1B365D', margin: 0 }}>
                 Recepción y Emisión de Hojas de Ruta Externas
               </h1>
+              <div style={{ fontSize: '0.8rem', color: '#6B7280', marginTop: '2px' }}>
+                Recepción oficial con derivación predeterminada a <strong>Presidencia del CMS</strong> para tratamiento en Comisiones.
+              </div>
             </div>
           </div>
 
@@ -471,56 +466,12 @@ export default function VentanillaUnica() {
             {/* COLUMNA IZQUIERDA: FORMULARIO PRINCIPAL */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-              {/* BLOQUE 1: ÁMBITO INSTITUCIONAL CMS (TRÁMITES EXTERNOS) */}
-              <div className="card" style={{ padding: '1.5rem', borderLeft: `4px solid ${CANALES_CMS[canalActivo].color}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Landmark size={20} color={CANALES_CMS[canalActivo].color} />
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                      1. Ámbito Institucional: Trámites Externos del Concejo Municipal de Sucre
-                    </h3>
-                  </div>
-                  <span className="badge" style={{ background: '#800000', color: 'white', fontSize: '0.72rem', padding: '4px 8px' }}>
-                    ALCANCE ESTRICTO: TRÁMITES EXTERNOS CMS
-                  </span>
-                </div>
-
-                <div
-                  style={{
-                    padding: '16px',
-                    borderRadius: '8px',
-                    border: '2px solid #800000',
-                    background: '#FFF5F5',
-                    boxShadow: '0 2px 8px rgba(128, 0, 0, 0.08)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '6px'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#800000', fontSize: '1rem' }}>
-                      <Landmark size={20} />
-                      <span>Trámites Externos (Canal Político-Legislativo)</span>
-                    </div>
-                    <span className="badge" style={{ background: '#800000', color: 'white', fontSize: '0.7rem' }}>
-                      POLÍTICO-LEGISLATIVO
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '0.84rem', color: '#4B5563', lineHeight: 1.4 }}>
-                    Recepción oficial de correspondencia de ciudadanos, juntas vecinales, organizaciones sociales, instituciones públicas/privadas y despacho del Alcalde Municipal con emisión de Hoja de Ruta matriz.
-                  </div>
-                  <div style={{ marginTop: '6px', paddingTop: '8px', borderTop: '1px dashed #FECACA', fontSize: '0.78rem', color: '#991B1B', fontWeight: 600 }}>
-                    🏛️ Destino reglamentario predeterminado: <strong>Presidencia del CMS</strong> para análisis de admisibilidad y derivación a Comisiones Permanentes.
-                  </div>
-                </div>
-              </div>
-
-              {/* BLOQUE 2: TIPO DE TRÁMITE EXTERNO */}
+              {/* BLOQUE 1: TIPO DE TRÁMITE EXTERNO */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #800000' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
                   <Tag size={18} color="#800000" />
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                    2. Catálogo Oficial de Trámites Externos CMS (Hojas de Ruta CM, CDE1, CDE2, CDH1)
+                    1. Catálogo Oficial de Trámites Externos CMS
                   </h3>
                 </div>
 
@@ -573,12 +524,12 @@ export default function VentanillaUnica() {
                 )}
               </div>
 
-              {/* BLOQUE 3: REMITENTE EXTERNO */}
+              {/* BLOQUE 2: REMITENTE EXTERNO */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #1B365D' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
                   <User size={18} color="#1B365D" />
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                    3. Procedencia y Remitente ({CANALES_CMS[canalActivo].label})
+                    2. Procedencia y Remitente
                   </h3>
                 </div>
 
@@ -625,12 +576,12 @@ export default function VentanillaUnica() {
                 </div>
               </div>
 
-              {/* BLOQUE 4: ASUNTO Y DOCUMENTACIÓN */}
+              {/* BLOQUE 3: ASUNTO Y DOCUMENTACIÓN */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #800000' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
                   <FileText size={18} color="#800000" />
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                    4. Asunto, Hojas y Nivel de Prioridad
+                    3. Asunto, Hojas y Nivel de Prioridad
                   </h3>
                 </div>
 
@@ -693,13 +644,13 @@ export default function VentanillaUnica() {
                 </div>
               </div>
 
-              {/* BLOQUE 5: DESTINATARIO INSTITUCIONAL (DB_TRAMITES_EXTERNOS) */}
+              {/* BLOQUE 4: DESTINATARIO INSTITUCIONAL (DB_TRAMITES_EXTERNOS) */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #1B365D' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Building2 size={18} color="#1B365D" />
                     <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                      5. Asignación y Destinatario Institucional
+                      4. Asignación y Destinatario Institucional
                     </h3>
                   </div>
                   <span className="badge badge-sucre" style={{ fontSize: '0.72rem' }}>
@@ -786,12 +737,12 @@ export default function VentanillaUnica() {
                 </div>
               </div>
 
-              {/* BLOQUE 6: PROVEÍDO INICIAL E INSTRUCCIÓN */}
+              {/* BLOQUE 5: PROVEÍDO INICIAL E INSTRUCCIÓN */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #800000' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
                   <Send size={18} color="#800000" />
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                    6. Instrucción Municipal y Proveído Inicial de Recepción
+                    5. Instrucción Municipal y Proveído Inicial de Recepción
                   </h3>
                 </div>
 
@@ -799,28 +750,11 @@ export default function VentanillaUnica() {
                   <label className="form-label" style={{ fontWeight: 600 }}>
                     Instrucción / Decreto Estándar de Despacho:
                   </label>
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                    {INSTRUCCIONES_SUGERIDAS.map((inst, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        className="btn btn-outline-secondary btn-sm"
-                        style={{
-                          fontSize: '0.75rem',
-                          background: formData.instruccion === inst ? '#1B365D' : 'white',
-                          color: formData.instruccion === inst ? 'white' : '#1B365D',
-                          borderColor: '#1B365D'
-                        }}
-                        onClick={() => setFormData({ ...formData, instruccion: inst })}
-                      >
-                        {inst}
-                      </button>
-                    ))}
-                  </div>
                   <input
                     type="text"
                     className="form-control"
-                    value={formData.instruccion}
+                    placeholder="Instrucciones o Decreto Estándar de Despacho"
+                    value={formData.instruccion || ''}
                     onChange={e => setFormData({ ...formData, instruccion: e.target.value })}
                   />
                 </div>
@@ -839,13 +773,13 @@ export default function VentanillaUnica() {
                 </div>
               </div>
 
-              {/* BLOQUE 7: DOCUMENTACIÓN DIGITAL ADJUNTA */}
+              {/* BLOQUE 6: DOCUMENTACIÓN DIGITAL ADJUNTA */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #1B365D' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Paperclip size={18} color="#1B365D" />
                     <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                      7. Documentos Digitales Adjuntos (Archivos PDF de Respaldo)
+                      6. Documentos Digitales Adjuntos (Archivos PDF de Respaldo)
                     </h3>
                   </div>
                   <span className="badge badge-secondary" style={{ fontSize: '0.72rem' }}>
@@ -985,7 +919,7 @@ export default function VentanillaUnica() {
                   <span>Seguridad y Validez Oficial</span>
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#64748B', lineHeight: 1.4 }}>
-                  Cada Hoja de Ruta registrada en Ventanilla Única cuenta con correlativo protegido y trazabilidad histórica auditada en SQL Server (DB_TRAMITES_EXTERNOS).
+                  Cada Hoja de Ruta registrada en Ventanilla Única cuenta con correlativo protegido y trazabilidad histórica.
                 </div>
               </div>
 
