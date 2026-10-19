@@ -496,6 +496,48 @@ namespace GestionDocumental.Api.Controllers
         }
 
         /// <summary>
+        /// Iniciar formalmente la elaboración de informe de comisión con plazo de 5 a 15 días reglamentarios
+        /// </summary>
+        [Authorize]
+        [HttpPost("{id}/iniciar-informe")]
+        public async Task<IActionResult> IniciarInformeComision(int id, [FromBody] IniciarInformeComisionDto dto)
+        {
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            if (dto.DiasPlazo < 5 || dto.DiasPlazo > 15)
+            {
+                return BadRequest(ApiResponse.ErrorResult("El plazo reglamentario para la elaboración del informe debe ser entre 5 y 15 días hábiles."));
+            }
+
+            var outNuevoMovimientoId = new SqlParameter("@NuevoMovimientoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_IniciarInformeComision",
+                    new SqlParameter("@TramiteId", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@DiasPlazo", SqlDbType.Int) { Value = dto.DiasPlazo },
+                    new SqlParameter("@Proveido", SqlDbType.NVarChar, -1) { Value = (object?)dto.Proveido?.Trim() ?? DBNull.Value },
+                    outNuevoMovimientoId
+                );
+
+                int movId = outNuevoMovimientoId.Value != DBNull.Value ? (int)outNuevoMovimientoId.Value : 0;
+
+                return Ok(ApiResponse<object>.Ok(
+                    new { tramiteId = id, movimientoId = movId, diasPlazo = dto.DiasPlazo },
+                    $"Elaboración de informe iniciada exitosamente con plazo reglamentario de {dto.DiasPlazo} días hábiles."
+                ));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+        }
+
+        /// <summary>
         /// Constancia de Aprobación en Sesión del Pleno del CMS
         /// </summary>
         [Authorize]
@@ -716,6 +758,8 @@ namespace GestionDocumental.Api.Controllers
                             FechaCreacion = reader.GetSafeDateTime("fecha_creacion"),
                             FechaConclusion = reader.GetNullableDateTime("fecha_conclusion"),
                             FechaLimiteRespuesta = reader.GetNullableDateTime("fecha_limite_respuesta"),
+                            FechaInicioInforme = reader.GetNullableDateTime("fecha_inicio_informe"),
+                            DiasPlazoInforme = reader.GetNullableInt32("dias_plazo_informe"),
                             TiempoEstimadoHoras = reader.GetSafeInt32("tiempo_estimado_horas", 24),
                             CreadoPorUsuario = reader.GetSafeString("creado_por_usuario"),
                             UnidadOrigen = reader.GetSafeString("unidad_origen"),

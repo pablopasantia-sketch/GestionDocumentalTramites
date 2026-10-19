@@ -382,6 +382,12 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("fecha_limite_respuesta")]
         public DateTime? FechaLimiteRespuesta { get; set; }
 
+        [JsonPropertyName("fecha_inicio_informe")]
+        public DateTime? FechaInicioInforme { get; set; }
+
+        [JsonPropertyName("dias_plazo_informe")]
+        public int? DiasPlazoInforme { get; set; }
+
         [JsonPropertyName("tiempo_estimado_horas")]
         public int TiempoEstimadoHoras { get; set; }
 
@@ -733,6 +739,17 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [Required(ErrorMessage = "Debe especificar el destinatario final oficial.")]
         [JsonPropertyName("destinatario_final")]
         public string DestinatarioFinal { get; set; } = string.Empty;
+
+        [JsonPropertyName("proveido")]
+        public string? Proveido { get; set; }
+    }
+
+    public class IniciarInformeComisionDto
+    {
+        [Required(ErrorMessage = "El plazo en días es obligatorio.")]
+        [Range(5, 15, ErrorMessage = "El plazo reglamentario para la elaboración del informe debe ser entre 5 y 15 días hábiles.")]
+        [JsonPropertyName("dias_plazo")]
+        public int DiasPlazo { get; set; } = 10;
 
         [JsonPropertyName("proveido")]
         public string? Proveido { get; set; }

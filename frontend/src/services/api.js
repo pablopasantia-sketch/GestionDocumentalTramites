@@ -281,6 +281,10 @@ export const tramitesService = {
     return response.data;
   },
   // Circuito Plenario, Firmas Duales Concurrentes y Despacho Final CMS
+  iniciarInforme: async (id, data) => {
+    const response = await api.post(`/tramites/${id}/iniciar-informe`, data);
+    return response.data;
+  },
   registrarAprobacionPleno: async (id, data) => {
     const response = await api.post(`/tramites/${id}/pleno/aprobacion`, data);
     return response.data;

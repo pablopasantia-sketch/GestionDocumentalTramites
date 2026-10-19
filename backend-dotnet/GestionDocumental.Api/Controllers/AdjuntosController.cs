@@ -64,13 +64,24 @@ namespace GestionDocumental.Api.Controllers
             // Validar trámite mediante SP
             var tramite = await _sp.QueryFirstOrDefaultAsync(
                 "dbo.usp_Tramites_ObtenerPorId",
-                reader => new { Id = reader.GetSafeInt32("id"), CreadoPorUsuario = reader.GetSafeString("creado_por_usuario") },
+                reader => new { 
+                    Id = reader.GetSafeInt32("id"), 
+                    CreadoPorUsuario = reader.GetSafeString("creado_por_usuario"),
+                    FechaLimiteRespuesta = reader.GetNullableDateTime("fecha_limite_respuesta"),
+                    SesionPlenoNro = reader.GetNullableString("sesion_pleno_nro")
+                },
                 new SqlParameter("@Id", SqlDbType.Int) { Value = tramiteId }
             );
 
             if (tramite == null)
             {
                 return NotFound(ApiResponse.ErrorResult("Trámite no encontrado."));
+            }
+
+            // Control de cierre de sistema por vencimiento de plazo reglamentario de informe (5 a 15 días)
+            if (string.IsNullOrEmpty(tramite.SesionPlenoNro) && tramite.FechaLimiteRespuesta.HasValue && tramite.FechaLimiteRespuesta.Value.Date < DateTime.Today)
+            {
+                return BadRequest(ApiResponse.ErrorResult($"SISTEMA CERRADO: El plazo reglamentario para la elaboración del informe de comisión expiró el {tramite.FechaLimiteRespuesta.Value:dd/MM/yyyy}. Por normativa del Concejo Municipal de Sucre, el sistema se encuentra bloqueado para la recepción o subida de informes y documentos extemporáneos."));
             }
 
             if (files == null || files.Count == 0)

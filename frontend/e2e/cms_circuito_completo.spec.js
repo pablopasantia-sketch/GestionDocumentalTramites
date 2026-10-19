@@ -297,12 +297,30 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     await page.goto('/escritorio');
     await expect(page.locator('h1')).toContainText('Escritorio Virtual');
 
-    // Asegurar trámite en EN_ATENCION
+    // Asegurar que existe al menos un trámite en EN_ATENCION o ATENDIDO
     const btnRecepcionar = page.locator('tr button:has-text("Recepcionar")').first();
     if (await btnRecepcionar.isVisible()) {
       await btnRecepcionar.click();
       await page.locator('.modal-backdrop button:has-text("Confirmar y Recepcionar")').click();
       await page.waitForTimeout(1500);
+    } else {
+      const filaExistente = page.locator('tr:has-text("EN ATENCIÓN"), tr:has-text("ATENDIDO")').first();
+      if (!await filaExistente.isVisible()) {
+        // Emitir uno rápido desde Ventanilla
+        await page.goto('/ventanilla');
+        const tipoCM = page.locator('div:has-text("CM"):has-text("Correspondencia Municipal Externa")').first();
+        await tipoCM.click();
+        await page.fill('input[placeholder*="Ministerio de Planificación"]', 'Comité Cívico');
+        await page.fill('input[placeholder*="CITE-MPD-042/2026"]', `CC-${Date.now().toString().slice(-4)}`);
+        await page.fill('input[placeholder*="Nombre completo de la persona"]', 'Test Despacho');
+        await page.fill('textarea[placeholder*="Escriba claramente el motivo"]', 'Prueba Despacho Final');
+        await page.locator('button[type="submit"]:has-text("Emitir Hoja de Ruta")').click();
+        await page.locator('button:has-text("Aceptar y Cerrar")').click();
+        await page.goto('/escritorio');
+        await page.locator('tr button:has-text("Recepcionar")').first().click();
+        await page.locator('.modal-backdrop button:has-text("Confirmar y Recepcionar")').click();
+        await page.waitForTimeout(1500);
+      }
     }
 
     // Abrir Ver de un trámite
@@ -491,4 +509,72 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
 
     // En la fila de la tabla, también debe estar disponible Avanzar
   });
+
+  test('8. Control de Plazos de Elaboración de Informes de Comisión (5 a 15 días reglamentarios)', async ({ page }) => {
+    test.setTimeout(60000);
+
+    // 8.1 Crear trámite de prueba en Ventanilla
+    await page.goto('/ventanilla');
+    const tipoCM = page.locator('div:has-text("CM"):has-text("Correspondencia Municipal Externa")').first();
+    await tipoCM.click();
+
+    const idUnico = Date.now().toString().slice(-4);
+    const remitenteInforme = `COMISIÓN JURÍDICA CMS #${idUnico}`;
+
+    await page.fill('input[placeholder*="Ministerio de Planificación"]', 'Colegio de Abogados de Chuquisaca');
+    await page.fill('input[placeholder*="CITE-MPD-042/2026"]', `CACH-INFORME-${idUnico}`);
+    await page.fill('input[placeholder*="Nombre completo de la persona"]', remitenteInforme);
+    await page.fill('textarea[placeholder*="Escriba claramente el motivo"]', 'Petición sobre dictamen jurídico para proyecto normativo');
+    await page.fill('input[type="number"][min="1"]', '12');
+
+    await page.locator('button[type="submit"]:has-text("Emitir Hoja de Ruta")').click();
+    await expect(page.locator('text=Hoja de Ruta Emitida Exitosamente')).toBeVisible({ timeout: 15000 });
+    const btnCerrarModal = page.locator('.modal-backdrop button:has-text("Cerrar")').first();
+    if (await btnCerrarModal.isVisible()) {
+      await btnCerrarModal.click();
+    }
+
+    // 8.2 Ir a Escritorio y recepcionarlo
+    await page.goto('/escritorio');
+    const searchInput = page.locator('input.input-sucre, input[placeholder*="CM-1/2026"]').first();
+    await searchInput.fill(remitenteInforme);
+    await page.waitForTimeout(600);
+
+    const fila = page.locator(`tr:has-text("${remitenteInforme}")`).first();
+    await expect(fila).toBeVisible({ timeout: 10000 });
+    await fila.locator('button:has-text("Recepcionar")').click();
+    await page.locator('.modal-backdrop button:has-text("Confirmar y Recepcionar")').click();
+    await page.waitForTimeout(1500);
+
+    // 8.3 Abrir Ver y validar Sub-sección 1. ELABORACIÓN DE INFORME DE COMISIÓN (5 A 15 DÍAS)
+    await fila.locator('button:has-text("Ver")').click();
+    const modalDetalle = page.locator('.modal-backdrop');
+    await expect(modalDetalle.locator('h3:has-text("Detalle de Hoja de Ruta")')).toBeVisible({ timeout: 10000 });
+
+    await expect(modalDetalle.locator('text=1. ELABORACIÓN DE INFORME DE COMISIÓN (5 A 15 DÍAS)')).toBeVisible();
+    const btnIniciarInforme = modalDetalle.locator('button:has-text("+ Iniciar Elaboración de Informe")');
+    await expect(btnIniciarInforme).toBeVisible();
+    await btnIniciarInforme.click();
+
+    // 8.4 Validar Modal de Inicio de Elaboración
+    const modalIniciar = page.locator('.modal-backdrop').last();
+    await expect(modalIniciar.locator('h3:has-text("Iniciar Elaboración de Informe de Comisión")')).toBeVisible();
+
+    // Probar chip de 10 días ordinarios
+    await modalIniciar.locator('button:has-text("Plazo Ordinario")').click();
+    await expect(modalIniciar.locator('text=Fecha límite calculada')).toBeVisible();
+
+    // Confirmar inicio
+    await modalIniciar.locator('button:has-text("Confirmar Inicio de Elaboración")').click();
+    await page.waitForTimeout(1500);
+
+    // 8.5 Validar que ahora el informe aparece EN CURSO con badge de días restantes
+    await expect(modalDetalle.locator('text=1. ELABORACIÓN DE INFORME DE COMISIÓN (EN CURSO)')).toBeVisible({ timeout: 10000 });
+    await expect(modalDetalle.locator('text=VIGENTE')).toBeVisible();
+    await expect(modalDetalle.locator('text=Cargar Informe Digital (PDF)')).toBeVisible();
+
+    // Cerrar detalle
+    await modalDetalle.locator('button:has-text("Cerrar")').click();
+  });
 });
+
