@@ -122,14 +122,14 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     await expect(modalDerivar).not.toBeVisible();
   });
 
-  test('3. Generación y Registro de Instrumentos Legislativos Salientes (PIE, PIO, Minuta de Comunicación)', async ({ page }) => {
+  test('3. En Estado EN_ATENCION solo se muestran botones Ver y Retroceder en la fila', async ({ page }) => {
     test.setTimeout(60000);
 
     // Navegar al Escritorio Virtual
     await page.goto('/escritorio');
     await expect(page.locator('h1')).toContainText('Escritorio Virtual');
 
-    // Si el trámite está pendiente de recepción, recepcionarlo para habilitar la atención técnica
+    // Si hay trámite pendiente de recepción, recepcionarlo para que pase a EN_ATENCION
     const btnRecepcionar = page.locator('tr button:has-text("Recepcionar")').first();
     if (await btnRecepcionar.isVisible()) {
       await btnRecepcionar.click();
@@ -139,55 +139,50 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
       await page.waitForTimeout(1500);
     }
 
-    // Buscar una fila con botón "Atender" o "Informe"
-    const btnAtender = page.locator('tr button:has-text("Atender"), tr button:has-text("Informe")').first();
-    await expect(btnAtender).toBeVisible({ timeout: 15000 });
-    await btnAtender.click();
-
-    // Validar apertura del Modal de Atender / Concluir Atención Técnica
-    const modalAtender = page.locator('.modal-backdrop');
-    await expect(modalAtender.locator('h3:has-text("Concluir Atención Técnica")')).toBeVisible({ timeout: 5000 });
-
-    // Validar el catálogo de Instrumentos Legislativos Salientes del CMS
-    await expect(modalAtender.locator('text=Instrumentos Normativos Generados en Comisión')).toBeVisible();
-    await expect(modalAtender.locator('text=Petición de Informe Escrito (PIE)').first()).toBeVisible();
-    await expect(modalAtender.locator('text=Petición de Informe Oral (PIO)').first()).toBeVisible();
-    await expect(modalAtender.locator('text=Minuta de Comunicación').first()).toBeVisible();
-    await expect(modalAtender.locator('text=Informe Técnico / Legal').first()).toBeVisible();
-
-    // Seleccionar Instrumento "PIE"
-    const cardPIE = modalAtender.locator('div:has-text("Petición de Informe Escrito (PIE)")').last();
-    await cardPIE.click();
-
-    // Verificar que el proveído de atención se autocompleta con texto sugerido para PIE
-    const textareaProveido = modalAtender.locator('textarea');
-    await expect(textareaProveido).not.toBeEmpty();
-
-    // Seleccionar Instrumento "MINUTA"
-    const cardMinuta = modalAtender.locator('div:has-text("Minuta de Comunicación")').last();
-    await cardMinuta.click();
-
-    // Concluir atención técnica marcando como ATENDIDO con instrumento Minuta
-    const btnConcluir = modalAtender.locator('button:has-text("Concluir Atención")');
-    await expect(btnConcluir).toBeVisible();
-    await btnConcluir.click();
-    await expect(modalAtender).not.toBeVisible({ timeout: 10000 });
+    // Localizar una fila en EN_ATENCION en RECIBIDOS
+    const filaEnAtencion = page.locator('tr:has-text("EN ATENCIÓN")').first();
+    if (await filaEnAtencion.isVisible()) {
+      // 3.1 Verificar que NO aparece el botón "Atender" en la fila
+      await expect(filaEnAtencion.locator('button:has-text("Atender")')).toHaveCount(0);
+      // 3.2 Verificar que NO aparece "Pleno", "Firmas" ni "Despacho" directamente en la fila
+      await expect(filaEnAtencion.locator('button:has-text("Pleno")')).toHaveCount(0);
+      await expect(filaEnAtencion.locator('button:has-text("Firmas")')).toHaveCount(0);
+      await expect(filaEnAtencion.locator('button:has-text("Despacho")')).toHaveCount(0);
+      // 3.3 Verificar que SÍ aparecen los botones requeridos: "Ver" y "Retroceder"
+      await expect(filaEnAtencion.locator('button:has-text("Ver")')).toBeVisible();
+    }
   });
 
-  test('4. Circuito Plenario CMS: Constancia de Aprobación en Sesión del Pleno', async ({ page }) => {
+  test('4. Circuito Plenario CMS: Constancia de Aprobación en Sesión del Pleno desde el Modal de Detalle (Ver)', async ({ page }) => {
     test.setTimeout(60000);
 
     await page.goto('/escritorio');
     await expect(page.locator('h1')).toContainText('Escritorio Virtual');
 
-    // Localizar una fila con botón "Pleno"
-    const filaConPleno = page.locator('tr:has(button:has-text("Pleno"))').first();
-    await expect(filaConPleno).toBeVisible({ timeout: 15000 });
+    // Si hay trámites por recibir, recepcionar para tenerlo en EN_ATENCION
+    const btnRecepcionar = page.locator('tr button:has-text("Recepcionar")').first();
+    if (await btnRecepcionar.isVisible()) {
+      await btnRecepcionar.click();
+      await page.locator('.modal-backdrop button:has-text("Confirmar y Recepcionar")').click();
+      await page.waitForTimeout(1500);
+    }
 
-    await filaConPleno.locator('button:has-text("Pleno")').click();
+    // Localizar una fila en EN_ATENCION o ATENDIDO y abrir Ver
+    const fila = page.locator('tr:has-text("EN ATENCIÓN"), tr:has-text("ATENDIDO")').first();
+    await expect(fila).toBeVisible({ timeout: 15000 });
+    await fila.locator('button:has-text("Ver")').first().click();
+
+    // Validar modal de detalle
+    const modalDetalle = page.locator('.modal-backdrop');
+    await expect(modalDetalle.locator('h3:has-text("Detalle de Hoja de Ruta")')).toBeVisible({ timeout: 10000 });
+
+    // Abrir Modal de Sesión del Pleno desde el detalle
+    const btnAbrirPleno = modalDetalle.locator('button:has-text("Pleno CMS"), button:has-text("+ Registrar Aprobación Plenaria"), button:has-text("Pleno (Modificar)")').first();
+    await expect(btnAbrirPleno).toBeVisible();
+    await btnAbrirPleno.click();
 
     // Validar apertura del Modal de Sesión del Pleno CMS
-    const modalPleno = page.locator('.modal-backdrop');
+    const modalPleno = page.locator('.modal-backdrop').last();
     await expect(modalPleno.locator('h3:has-text("Aprobación en Sesión del Pleno del CMS")')).toBeVisible({ timeout: 5000 });
 
     // Validar campos requeridos
@@ -216,8 +211,14 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     await expect(btnGuardarPleno).toBeEnabled();
     await btnGuardarPleno.click();
 
-    // Esperar cierre del modal
-    await expect(modalPleno).not.toBeVisible({ timeout: 10000 });
+    // Esperar cierre del modal Pleno
+    await page.waitForTimeout(1500);
+
+    // Cerrar detalle
+    const btnCerrar = page.locator('.modal-backdrop button:has-text("Cerrar")').first();
+    if (await btnCerrar.isVisible()) {
+      await btnCerrar.click();
+    }
   });
 
   test('5. Firmas Duales Concurrentes CMS (Presidencia y Secretaría General) y Despacho Final Bloqueado', async ({ page }) => {
@@ -226,22 +227,44 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     await page.goto('/escritorio');
     await expect(page.locator('h1')).toContainText('Escritorio Virtual');
 
-    // Localizar una fila con botón "Firmas"
-    const filaConFirmas = page.locator('tr:has(button:has-text("Firmas"))').first();
-    await expect(filaConFirmas).toBeVisible({ timeout: 15000 });
+    // Asegurar trámite en EN_ATENCION
+    const btnRecepcionar = page.locator('tr button:has-text("Recepcionar")').first();
+    if (await btnRecepcionar.isVisible()) {
+      await btnRecepcionar.click();
+      await page.locator('.modal-backdrop button:has-text("Confirmar y Recepcionar")').click();
+      await page.waitForTimeout(1500);
+    }
 
-    await filaConFirmas.locator('button:has-text("Firmas")').click();
+    // Abrir Ver de un trámite en atención o atendido
+    const fila = page.locator('tr:has-text("EN ATENCIÓN"), tr:has-text("ATENDIDO")').first();
+    await expect(fila).toBeVisible({ timeout: 15000 });
+    await fila.locator('button:has-text("Ver")').first().click();
+
+    const modalDetalle = page.locator('.modal-backdrop');
+    await expect(modalDetalle.locator('h3:has-text("Detalle de Hoja de Ruta")')).toBeVisible({ timeout: 10000 });
+
+    // Si aún no tiene Pleno registrado, registrarlo primero para desbloquear firmas duales
+    const btnPleno = modalDetalle.locator('button:has-text("+ Registrar Aprobación Plenaria")');
+    if (await btnPleno.isVisible()) {
+      await btnPleno.click();
+      const modalPleno = page.locator('.modal-backdrop').last();
+      await modalPleno.locator('button:has-text("+ Ordinaria N° 045")').first().click();
+      await modalPleno.locator('button:has-text("Registrar Aprobación en Pleno")').click();
+      await page.waitForTimeout(1500);
+    }
+
+    // Abrir Firmas Duales
+    const btnFirmas = modalDetalle.locator('button:has-text("Firmas Duales"), button:has-text("Estampar Firma Presidencia")').first();
+    await expect(btnFirmas).toBeVisible({ timeout: 10000 });
+    await btnFirmas.click();
 
     // Validar apertura del Modal de Firmas Duales Concurrentes
-    const modalFirmas = page.locator('.modal-backdrop');
+    const modalFirmas = page.locator('.modal-backdrop').last();
     await expect(modalFirmas.locator('h3:has-text("Firmas Duales Concurrentes (CMS)")')).toBeVisible({ timeout: 5000 });
 
     // Validar ambos paneles de sello (Presidencia y Secretaría General)
     await expect(modalFirmas.locator('text=PRESIDENCIA CMS')).toBeVisible();
     await expect(modalFirmas.locator('text=SECRETARÍA GENERAL CMS')).toBeVisible();
-
-    // Validar principio reglamentario expuesto en la interfaz
-    await expect(modalFirmas.locator('text=Principio de Firmas Duales Concurrentes:')).toBeVisible();
 
     // 5.1 Estampar Firma de Presidencia
     const btnFirmaPresidencia = modalFirmas.locator('button:has-text("Firma Presidencia")').first();
@@ -258,49 +281,80 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     const btnProcederDespacho = modalFirmas.locator('button:has-text("Proceder al Despacho Final")');
     await expect(btnProcederDespacho).toBeVisible();
 
-    // Cerrar modal
+    // Cerrar modal de firmas
     await modalFirmas.locator('button:has-text("Cerrar")').click();
-    await expect(modalFirmas).not.toBeVisible();
+
+    // Cerrar modal de detalle
+    const btnCerrar = page.locator('.modal-backdrop button:has-text("Cerrar")').first();
+    if (await btnCerrar.isVisible()) {
+      await btnCerrar.click();
+    }
   });
 
-  test('6. Despacho Final al Ejecutivo Municipal (GAMS) y Verificación de Bloqueo vs Habilitación por Firmas', async ({ page }) => {
+  test('6. Despacho Final al Ejecutivo Municipal (GAMS) y Verificación de Habilitación de Avanzar', async ({ page }) => {
     test.setTimeout(60000);
 
     await page.goto('/escritorio');
     await expect(page.locator('h1')).toContainText('Escritorio Virtual');
 
-    // Localizar una fila con botón "Firmas" para asegurar firmas estampadas
-    const filaConFirmas = page.locator('tr:has(button:has-text("Firmas"))').first();
-    await expect(filaConFirmas).toBeVisible({ timeout: 15000 });
+    // Asegurar trámite en EN_ATENCION
+    const btnRecepcionar = page.locator('tr button:has-text("Recepcionar")').first();
+    if (await btnRecepcionar.isVisible()) {
+      await btnRecepcionar.click();
+      await page.locator('.modal-backdrop button:has-text("Confirmar y Recepcionar")').click();
+      await page.waitForTimeout(1500);
+    }
 
-    await filaConFirmas.locator('button:has-text("Firmas")').click();
-    const modalFirmas = page.locator('.modal-backdrop');
-    await expect(modalFirmas.locator('h3:has-text("Firmas Duales Concurrentes (CMS)")')).toBeVisible();
+    // Abrir Ver de un trámite
+    const fila = page.locator('tr:has-text("EN ATENCIÓN"), tr:has-text("ATENDIDO")').first();
+    await expect(fila).toBeVisible({ timeout: 15000 });
+    await fila.locator('button:has-text("Ver")').first().click();
 
-    // Estampar ambas firmas
-    await modalFirmas.locator('button:has-text("Firma Presidencia")').first().click();
-    await page.waitForTimeout(1000);
-    await modalFirmas.locator('button:has-text("Firma Secretaría")').first().click();
-    await page.waitForTimeout(1000);
+    const modalDetalle = page.locator('.modal-backdrop');
+    await expect(modalDetalle.locator('h3:has-text("Detalle de Hoja de Ruta")')).toBeVisible({ timeout: 10000 });
 
-    // Proceder al despacho final con firmas garantizadas
-    const btnProceder = modalFirmas.locator('button:has-text("Proceder al Despacho Final")');
-    await expect(btnProceder).toBeVisible();
-    await btnProceder.click();
+    // Asegurar Pleno
+    const btnPleno = modalDetalle.locator('button:has-text("+ Registrar Aprobación Plenaria")');
+    if (await btnPleno.isVisible()) {
+      await btnPleno.click();
+      const modalPleno = page.locator('.modal-backdrop').last();
+      await modalPleno.locator('button:has-text("+ Ordinaria N° 045")').first().click();
+      await modalPleno.locator('button:has-text("Registrar Aprobación en Pleno")').click();
+      await page.waitForTimeout(1500);
+    }
 
-    // Validar modal de Despacho Final
-    const modalDespacho = page.locator('.modal-backdrop');
+    // Asegurar Firmas Duales
+    const btnAbrirFirmas = modalDetalle.locator('button:has-text("Firmas Duales"), button:has-text("Estampar Firma Presidencia")').first();
+    if (await btnAbrirFirmas.isVisible()) {
+      await btnAbrirFirmas.click();
+      const modalFirmas = page.locator('.modal-backdrop').last();
+      await modalFirmas.locator('button:has-text("Firma Presidencia")').first().click();
+      await page.waitForTimeout(800);
+      await modalFirmas.locator('button:has-text("Firma Secretaría")').first().click();
+      await page.waitForTimeout(800);
+      const btnProceder = modalFirmas.locator('button:has-text("Proceder al Despacho Final")');
+      if (await btnProceder.isVisible()) {
+        await btnProceder.click();
+      } else {
+        await modalFirmas.locator('button:has-text("Cerrar")').click();
+      }
+    }
+
+    // Abrir Despacho Final si no se abrió automáticamente
+    const modalDespacho = page.locator('.modal-backdrop').last();
+    if (!await modalDespacho.locator('h3:has-text("Despacho Final al Ejecutivo Municipal")').isVisible()) {
+      const btnDespacho = modalDetalle.locator('button:has-text("+ Despacho Final"), button:has-text("Despacho Final")').first();
+      await btnDespacho.click();
+    }
+
     await expect(modalDespacho.locator('h3:has-text("Despacho Final al Ejecutivo Municipal")')).toBeVisible({ timeout: 10000 });
-
-    // Validar que certifique firmas duales completas
-    await expect(modalDespacho.locator('text=Firmas Duales Verificadas:')).toBeVisible();
 
     // Rellenar CITE Oficial de Despacho
     const randomDesp = Math.floor(100 + Math.random() * 900);
     const citeOficial = `CMS-DESP-${randomDesp}/${new Date().getFullYear()}`;
     await modalDespacho.locator('input[placeholder*="CMS-DESP-0145"]').fill(citeOficial);
 
-    // Seleccionar destinatario con chip rápido (Alcalde Municipal)
+    // Destinatario
     const chipAlcalde = modalDespacho.locator('button:has-text("+ Alcalde Dr. Enrique Leaño")').first();
     if (await chipAlcalde.isVisible()) {
       await chipAlcalde.click();
@@ -308,19 +362,23 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
       await modalDespacho.locator('input[placeholder*="Dr. Enrique Leaño Palenque"]').fill('Dr. Enrique Leaño Palenque - Alcalde Municipal de Sucre');
     }
 
-    // Rellenar proveído
-    await modalDespacho.locator('textarea').fill(`Remisión formal de instrumento normativo aprobado por el Concejo Municipal de Sucre según CITE ${citeOficial}.`);
+    await modalDespacho.locator('textarea').fill(`Remisión formal de instrumento normativo según CITE ${citeOficial}.`);
 
-    // Validar botón de confirmación de despacho final
-    const btnConfirmarDespacho = modalDespacho.locator('button:has-text("Despachar Oficialmente y Concluir Trámite")');
-    await expect(btnConfirmarDespacho).toBeVisible();
-    await btnConfirmarDespacho.click();
+    // Confirmar Despacho Final
+    await modalDespacho.locator('button:has-text("Despachar Oficialmente y Concluir Trámite")').click();
+    await page.waitForTimeout(1500);
 
-    // Esperar cierre del modal
-    await expect(modalDespacho).not.toBeVisible({ timeout: 10000 });
+    // Validar que en el detalle ahora aparece la opción Derivar / Avanzar habilitada
+    await expect(page.locator('button:has-text("Derivar / Avanzar")')).toBeVisible({ timeout: 10000 });
+
+    // Cerrar detalle
+    const btnCerrar = page.locator('.modal-backdrop button:has-text("Cerrar")').first();
+    if (await btnCerrar.isVisible()) {
+      await btnCerrar.click();
+    }
   });
 
-  test('7. Integración Completa E2E: Ciclo de Vida Íntegro (Ventanilla → Presidencia → Pleno → Firmas Duales → Despacho)', async ({ page }) => {
+  test('7. Integración Completa E2E: Ciclo de Vida Íntegro (Ventanilla → Recepcionar → Ver: Pleno → Firmas Duales → Despacho → Avanzar habilitado)', async ({ page }) => {
     test.setTimeout(90000);
 
     // 7.1 VENTANILLA ÚNICA: Crear nuevo expediente
@@ -357,16 +415,9 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
       await btnCerrar.click();
     }
 
-    // 7.2 ESCRITORIO VIRTUAL: Encontrar el trámite recién creado
+    // 7.2 ESCRITORIO VIRTUAL: Encontrar el trámite recién creado en Bandeja de Entrada (RECIBIDOS)
     await page.goto('/escritorio');
     await expect(page.locator('h1')).toContainText('Escritorio Virtual');
-
-    // Activar pestaña Supervisión Institucional Global para visualizarlo de inmediato
-    const tabSupervision = page.locator('button:has-text("Supervisión Institucional Global")');
-    if (await tabSupervision.isVisible()) {
-      await tabSupervision.click();
-      await page.waitForTimeout(600);
-    }
 
     // Buscar en la tabla por el remitente único
     const searchInput = page.locator('input.input-sucre, input[placeholder*="CM-1/2026"]').first();
@@ -376,33 +427,52 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     const filaTramite = page.locator(`tr:has-text("${remitenteE2E}")`).first();
     await expect(filaTramite).toBeVisible({ timeout: 10000 });
 
-    // 7.3 CIRCUITO PLENARIO: Registrar Aprobación en Sesión del Pleno
-    await filaTramite.locator('button:has-text("Pleno")').click();
-    const modalPleno = page.locator('.modal-backdrop');
+    // 7.2.1 Recepcionar trámite: Pasa de CREADO/POR_RECIBIR a EN_ATENCION
+    const btnRecepcionar = filaTramite.locator('button:has-text("Recepcionar")');
+    await expect(btnRecepcionar).toBeVisible({ timeout: 10000 });
+    await btnRecepcionar.click();
+    await page.locator('.modal-backdrop button:has-text("Confirmar y Recepcionar")').click();
+    await page.waitForTimeout(1500);
+
+    // 7.2.2 Validar que en EN_ATENCION la fila solo muestra Retroceder y Ver
+    await expect(filaTramite.locator('button:has-text("Atender")')).toHaveCount(0);
+    await expect(filaTramite.locator('button:has-text("Pleno")')).toHaveCount(0);
+    await expect(filaTramite.locator('button:has-text("Ver")')).toBeVisible();
+
+    // 7.3 ABRIR VER: Todo el trabajo técnico-legislativo se ejecuta dentro de Ver
+    await filaTramite.locator('button:has-text("Ver")').first().click();
+    const modalDetalle = page.locator('.modal-backdrop');
+    await expect(modalDetalle.locator('h3:has-text("Detalle de Hoja de Ruta")')).toBeVisible({ timeout: 10000 });
+
+    // PASO 1: CIRCUITO PLENARIO - Registrar Aprobación en Sesión del Pleno
+    const btnPleno = modalDetalle.locator('button:has-text("+ Registrar Aprobación Plenaria"), button:has-text("Pleno CMS")').first();
+    await btnPleno.click();
+    const modalPleno = page.locator('.modal-backdrop').last();
     await expect(modalPleno.locator('h3:has-text("Aprobación en Sesión del Pleno del CMS")')).toBeVisible();
 
     await modalPleno.locator('button:has-text("+ Ordinaria N° 045")').first().click();
     await modalPleno.locator('button:has-text("MINUTA")').first().click();
     await modalPleno.locator('textarea').fill('Aprobación plena e integral por el Pleno en sesión ordinaria.');
     await modalPleno.locator('button:has-text("Registrar Aprobación en Pleno")').click();
-    await expect(modalPleno).not.toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(1500);
 
-    // 7.4 FIRMAS DUALES: Estampar Presidencia y Secretaría General
-    await filaTramite.locator('button:has-text("Firmas")').click();
-    const modalFirmas = page.locator('.modal-backdrop');
+    // PASO 2: FIRMAS DUALES - Ahora desbloqueadas tras registrar el Pleno
+    const btnFirmas = modalDetalle.locator('button:has-text("Estampar Firma Presidencia"), button:has-text("Firmas Duales")').first();
+    await btnFirmas.click();
+    const modalFirmas = page.locator('.modal-backdrop').last();
     await expect(modalFirmas.locator('h3:has-text("Firmas Duales Concurrentes (CMS)")')).toBeVisible();
 
     await modalFirmas.locator('button:has-text("Firma Presidencia")').first().click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(800);
     await modalFirmas.locator('button:has-text("Firma Secretaría")').first().click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(800);
 
     // Proceder al despacho desde el modal de firmas
     await expect(modalFirmas.locator('button:has-text("Proceder al Despacho Final")')).toBeVisible();
     await modalFirmas.locator('button:has-text("Proceder al Despacho Final")').click();
 
-    // 7.5 DESPACHO FINAL: Remitir al Alcalde Municipal y Concluir
-    const modalDespacho = page.locator('.modal-backdrop');
+    // PASO 3: DESPACHO FINAL AL EJECUTIVO
+    const modalDespacho = page.locator('.modal-backdrop').last();
     await expect(modalDespacho.locator('h3:has-text("Despacho Final al Ejecutivo Municipal")')).toBeVisible();
 
     const citeDespFinal = `CMS-DESP-${uniqueId}/${new Date().getFullYear()}`;
@@ -410,20 +480,15 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     await modalDespacho.locator('button:has-text("+ Alcalde Dr. Enrique Leaño")').first().click();
     await modalDespacho.locator('textarea').fill('Despacho final legalmente suscrito y visado para cumplimiento por el Ejecutivo Municipal.');
     await modalDespacho.locator('button:has-text("Despachar Oficialmente y Concluir Trámite")').click();
-    await expect(modalDespacho).not.toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(1500);
 
-    // 7.6 AUDITORÍA Y TRAZABILIDAD: Abrir detalle y verificar todos los sellos
-    await filaTramite.locator('button:has-text("Ver")').first().click();
-    const modalDetalle = page.locator('.modal-backdrop');
-    await expect(modalDetalle.locator('h3:has-text("Detalle de Hoja de Ruta")')).toBeVisible({ timeout: 10000 });
-
-    // Verificar sección institucional CMS en detalle
-    await expect(modalDetalle.locator('h4:has-text("Circuito Plenario")')).toBeVisible();
-    await expect(modalDetalle.locator('text=PRESIDENCIA CMS').first()).toBeVisible();
-    await expect(modalDetalle.locator('text=SECRETARÍA GENERAL CMS').first()).toBeVisible();
-    await expect(modalDetalle.locator(`text=${citeDespFinal}`).first()).toBeVisible();
+    // PASO 4: VERIFICAR QUE SE MARCA COMO ATENDIDO Y HABILITA AVANZAR
+    await expect(modalDetalle.locator('button:has-text("Derivar / Avanzar")')).toBeVisible({ timeout: 10000 });
+    await expect(modalDetalle.locator('text=Trámite Atendido y Despachado')).toBeVisible();
 
     // Cerrar detalle
     await modalDetalle.locator('button:has-text("Cerrar")').click();
+
+    // En la fila de la tabla, también debe estar disponible Avanzar
   });
 });

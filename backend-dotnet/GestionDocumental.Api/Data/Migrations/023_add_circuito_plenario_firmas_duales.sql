@@ -390,10 +390,9 @@ BEGIN
 
         DECLARE @Ahora DATETIME2 = GETDATE();
 
-        -- 1. Actualizar dbo.tramites a CONCLUIDO
+        -- 1. Actualizar dbo.tramites a ATENDIDO (listo para avanzar o archivar)
         UPDATE dbo.tramites
-        SET estado                     = 'CONCLUIDO',
-            fecha_conclusion           = @Ahora,
+        SET estado                     = 'ATENDIDO',
             despacho_final_fecha       = @Ahora,
             despacho_final_cite        = @CiteDespacho,
             despacho_final_destinatario = @DestinatarioFinal,

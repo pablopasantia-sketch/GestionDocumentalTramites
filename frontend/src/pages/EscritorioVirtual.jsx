@@ -41,7 +41,8 @@ import {
   FileCheck,
   PenTool,
   Stamp,
-  CheckCheck
+  CheckCheck,
+  Lock
 } from 'lucide-react';
 import { tramitesService, adjuntosService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -766,6 +767,11 @@ export default function EscritorioVirtual() {
 
   // Handlers para Firmas Duales Concurrentes CMS
   const handleAbrirFirmas = async (tramite) => {
+    if (!tramite.sesion_pleno_nro) {
+      setAlertError('FIRMAS DUALES BLOQUEADAS: Debe registrar primero la Aprobación en Sesión del Pleno con sus informes correspondientes.');
+      setTimeout(() => setAlertError(null), 5000);
+      return;
+    }
     setTramiteAFirmas(tramite);
     setObservacionesFirma('');
     const norm = {
@@ -1939,32 +1945,8 @@ export default function EscritorioVirtual() {
                               </button>
                             )}
 
-                            {/* 2. Etapa: Atender (solo si está EN_ATENCION en mis pendientes) */}
-                            {bandejaActiva === 'RECIBIDOS' && esEnAtencion && (
-                              <button
-                                onClick={() => handleAbrirAtender(item)}
-                                className="btn btn-sm"
-                                style={{
-                                  backgroundColor: '#0D9488',
-                                  color: '#FFFFFF',
-                                  padding: '5px 9px',
-                                  fontSize: '0.78rem',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  borderRadius: '4px',
-                                  border: 'none',
-                                  cursor: 'pointer'
-                                }}
-                                title="Registrar informe técnico/dictamen y marcar como ATENDIDO listo para Pleno o Despacho"
-                              >
-                                <CheckCircle2 size={13} />
-                                <span>Atender</span>
-                              </button>
-                            )}
-
-                            {/* 3. Etapa: Avanzar / Derivar Libre (solo cuando está ATENDIDO o en Supervisión, antes de Pleno) */}
-                            {!esConcluido && !tienePleno && ((bandejaActiva === 'RECIBIDOS' && esAtendido) || (bandejaActiva === 'SUPERVISION')) && (
+                            {/* 2. Etapa: Avanzar / Derivar Libre (habilitado una vez atendido con despacho o en Supervisión) */}
+                            {!esConcluido && ((bandejaActiva === 'RECIBIDOS' && (esAtendido || Boolean(item.despacho_final_cite))) || (bandejaActiva === 'SUPERVISION')) && (
                               <button
                                 onClick={() => handleAbrirDerivar(item)}
                                 className="btn btn-sm"
@@ -1987,8 +1969,8 @@ export default function EscritorioVirtual() {
                               </button>
                             )}
 
-                            {/* 4. Etapa: Retroceder Proceso (disponible en mesa de trabajo o supervisión antes de Pleno) */}
-                            {!esConcluido && !tienePleno && ((bandejaActiva === 'RECIBIDOS' && (esEnAtencion || esAtendido)) || (bandejaActiva === 'SUPERVISION')) && (
+                            {/* 3. Etapa: Retroceder Proceso (disponible en mesa de trabajo o supervisión antes de concluir) */}
+                            {!esConcluido && ((bandejaActiva === 'RECIBIDOS' && (esEnAtencion || esAtendido)) || (bandejaActiva === 'SUPERVISION')) && (
                               <button
                                 onClick={() => handleAbrirRetroceder(item)}
                                 className="btn btn-sm"
@@ -2008,78 +1990,6 @@ export default function EscritorioVirtual() {
                               >
                                 <RotateCcw size={13} />
                                 <span>Retroceder</span>
-                              </button>
-                            )}
-
-                            {/* 5. Etapa CMS: Sesión Plenario (solo cuando YA ESTÁ ATENDIDO con informe en RECIBIDOS, o en Supervisión) */}
-                            {!esConcluido && !tienePleno && ((bandejaActiva === 'RECIBIDOS' && esAtendido) || (bandejaActiva === 'SUPERVISION')) && (
-                              <button
-                                onClick={() => handleAbrirPleno(item)}
-                                className="btn btn-sm"
-                                style={{
-                                  backgroundColor: '#1E3A8A',
-                                  color: '#FFFFFF',
-                                  padding: '5px 8px',
-                                  fontSize: '0.78rem',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '3px',
-                                  borderRadius: '4px',
-                                  border: 'none',
-                                  cursor: 'pointer'
-                                }}
-                                title="Constancia de Aprobación en Sesión del Pleno del CMS"
-                              >
-                                <Award size={13} />
-                                <span>Pleno</span>
-                              </button>
-                            )}
-
-                            {/* 6. Etapa CMS: Firmas Duales (solo tras registrar el Pleno) */}
-                            {!esConcluido && tienePleno && (
-                              <button
-                                onClick={() => handleAbrirFirmas(item)}
-                                className="btn btn-sm"
-                                style={{
-                                  backgroundColor: tieneFirmasDuales ? '#059669' : (item.firma_presidencia || item.firma_secretaria) ? '#0284C7' : '#0369A1',
-                                  color: '#FFFFFF',
-                                  padding: '5px 8px',
-                                  fontSize: '0.78rem',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '3px',
-                                  borderRadius: '4px',
-                                  border: 'none',
-                                  cursor: 'pointer'
-                                }}
-                                title="Rúbricas Duales Concurrentes: Presidencia CMS y Secretaría General CMS"
-                              >
-                                <Stamp size={13} />
-                                <span>Firmas {tieneFirmasDuales ? '✓' : (item.firma_presidencia || item.firma_secretaria) ? '(1/2)' : '(0/2)'}</span>
-                              </button>
-                            )}
-
-                            {/* 7. Etapa CMS: Despacho Final (solo tras firmas duales completas) */}
-                            {!esConcluido && tienePleno && tieneFirmasDuales && (
-                              <button
-                                onClick={() => handleAbrirDespacho(item)}
-                                className="btn btn-sm"
-                                style={{
-                                  backgroundColor: '#7C3AED',
-                                  color: '#FFFFFF',
-                                  padding: '5px 8px',
-                                  fontSize: '0.78rem',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '3px',
-                                  borderRadius: '4px',
-                                  border: 'none',
-                                  cursor: 'pointer'
-                                }}
-                                title="Despacho Final al Ejecutivo Municipal (GAMS) / Notificación externa"
-                              >
-                                <FileCheck size={13} />
-                                <span>Despacho</span>
                               </button>
                             )}
                           </>
@@ -2402,6 +2312,7 @@ export default function EscritorioVirtual() {
                   </div>
 
                   {/* Circuito Plenario, Firmas Duales Concurrentes y Despacho Final CMS */}
+                  {tramiteDetalle && !['CREADO', 'POR_RECIBIR', 'EN_TRANSITO'].includes(tramiteDetalle.estado) && (
                   <div
                     style={{
                       marginBottom: '1.5rem',
@@ -2479,123 +2390,144 @@ export default function EscritorioVirtual() {
                         <Stamp size={15} color="#0D9488" />
                         <span>FIRMAS DUALES CONCURRENTES (Suscripción Notificada CMS)</span>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-                        {/* Sello Presidencia CMS */}
+                      {!tramiteDetalle.sesion_pleno_nro ? (
                         <div
                           style={{
                             padding: '12px 14px',
                             borderRadius: '6px',
-                            backgroundColor: tramiteDetalle.firma_presidencia ? '#F0FDF4' : '#FFFFFF',
-                            border: tramiteDetalle.firma_presidencia ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
+                            backgroundColor: '#FFFBEB',
+                            border: '1.5px dashed #F59E0B',
+                            color: '#92400E',
+                            fontSize: '0.8rem',
                             display: 'flex',
-                            flexDirection: 'column',
-                            gap: '6px'
+                            alignItems: 'center',
+                            gap: '8px'
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#166534' }}>
-                              🏛️ PRESIDENCIA DEL CMS
-                            </span>
+                          <Lock size={16} color="#D97706" />
+                          <span>
+                            <strong>Firmas Duales Bloqueadas (Paso 2):</strong> Debe registrar primero la <strong>Aprobación en Sesión del Pleno</strong> (Paso 1) y sus informes de comisión antes de habilitar las firmas duales.
+                          </span>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                          {/* Sello Presidencia CMS */}
+                          <div
+                            style={{
+                              padding: '12px 14px',
+                              borderRadius: '6px',
+                              backgroundColor: tramiteDetalle.firma_presidencia ? '#F0FDF4' : '#FFFFFF',
+                              border: tramiteDetalle.firma_presidencia ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '6px'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#166534' }}>
+                                🏛️ PRESIDENCIA DEL CMS
+                              </span>
+                              {tramiteDetalle.firma_presidencia ? (
+                                <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700 }}>
+                                  ✓ RÚBRICA VALIDADA
+                                </span>
+                              ) : (
+                                <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px' }}>
+                                  PENDIENTE
+                                </span>
+                              )}
+                            </div>
                             {tramiteDetalle.firma_presidencia ? (
-                              <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700 }}>
-                                ✓ RÚBRICA VALIDADA
-                              </span>
+                              <div style={{ fontSize: '0.8rem', color: '#166534' }}>
+                                <div><strong>Firmado por:</strong> {tramiteDetalle.firma_presidencia_usuario}</div>
+                                <div><small>{formatFecha(tramiteDetalle.firma_presidencia_fecha)}</small></div>
+                              </div>
                             ) : (
-                              <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px' }}>
-                                PENDIENTE
-                              </span>
+                              <div>
+                                <p style={{ margin: '2px 0 6px', fontSize: '0.75rem', color: '#64748B' }}>
+                                  Pendiente de firma y rúbrica de la Presidencia del Concejo Municipal.
+                                </p>
+                                {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleAbrirFirmas(tramiteDetalle)}
+                                    className="btn btn-sm"
+                                    style={{
+                                      backgroundColor: '#0D9488',
+                                      color: '#FFFFFF',
+                                      fontSize: '0.72rem',
+                                      padding: '3px 8px',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    Estampar Firma Presidencia
+                                  </button>
+                                )}
+                              </div>
                             )}
                           </div>
-                          {tramiteDetalle.firma_presidencia ? (
-                            <div style={{ fontSize: '0.8rem', color: '#166534' }}>
-                              <div><strong>Firmado por:</strong> {tramiteDetalle.firma_presidencia_usuario}</div>
-                              <div><small>{formatFecha(tramiteDetalle.firma_presidencia_fecha)}</small></div>
-                            </div>
-                          ) : (
-                            <div>
-                              <p style={{ margin: '2px 0 6px', fontSize: '0.75rem', color: '#64748B' }}>
-                                Pendiente de firma y rúbrica de la Presidencia del Concejo Municipal.
-                              </p>
-                              {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleAbrirFirmas(tramiteDetalle)}
-                                  className="btn btn-sm"
-                                  style={{
-                                    backgroundColor: '#0D9488',
-                                    color: '#FFFFFF',
-                                    fontSize: '0.72rem',
-                                    padding: '3px 8px',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer'
-                                  }}
-                                >
-                                  Estampar Firma Presidencia
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
 
-                        {/* Sello Secretaría General CMS */}
-                        <div
-                          style={{
-                            padding: '12px 14px',
-                            borderRadius: '6px',
-                            backgroundColor: tramiteDetalle.firma_secretaria ? '#F0FDF4' : '#FFFFFF',
-                            border: tramiteDetalle.firma_secretaria ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '6px'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#166534' }}>
-                              ✍️ SECRETARÍA GENERAL CMS
-                            </span>
-                            {tramiteDetalle.firma_secretaria ? (
-                              <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700 }}>
-                                ✓ RÚBRICA VALIDADA
+                          {/* Sello Secretaría General CMS */}
+                          <div
+                            style={{
+                              padding: '12px 14px',
+                              borderRadius: '6px',
+                              backgroundColor: tramiteDetalle.firma_secretaria ? '#F0FDF4' : '#FFFFFF',
+                              border: tramiteDetalle.firma_secretaria ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '6px'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#166534' }}>
+                                ✍️ SECRETARÍA GENERAL CMS
                               </span>
-                            ) : (
-                              <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px' }}>
-                                PENDIENTE
-                              </span>
-                            )}
-                          </div>
-                          {tramiteDetalle.firma_secretaria ? (
-                            <div style={{ fontSize: '0.8rem', color: '#166534' }}>
-                              <div><strong>Firmado por:</strong> {tramiteDetalle.firma_secretaria_usuario}</div>
-                              <div><small>{formatFecha(tramiteDetalle.firma_secretaria_fecha)}</small></div>
-                            </div>
-                          ) : (
-                            <div>
-                              <p style={{ margin: '2px 0 6px', fontSize: '0.75rem', color: '#64748B' }}>
-                                Pendiente de firma y rúbrica de la Secretaría General del Concejo Municipal.
-                              </p>
-                              {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleAbrirFirmas(tramiteDetalle)}
-                                  className="btn btn-sm"
-                                  style={{
-                                    backgroundColor: '#0D9488',
-                                    color: '#FFFFFF',
-                                    fontSize: '0.72rem',
-                                    padding: '3px 8px',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer'
-                                  }}
-                                >
-                                  Estampar Firma Secretaría
-                                </button>
+                              {tramiteDetalle.firma_secretaria ? (
+                                <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700 }}>
+                                  ✓ RÚBRICA VALIDADA
+                                </span>
+                              ) : (
+                                <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px' }}>
+                                  PENDIENTE
+                                </span>
                               )}
                             </div>
-                          )}
+                            {tramiteDetalle.firma_secretaria ? (
+                              <div style={{ fontSize: '0.8rem', color: '#166534' }}>
+                                <div><strong>Firmado por:</strong> {tramiteDetalle.firma_secretaria_usuario}</div>
+                                <div><small>{formatFecha(tramiteDetalle.firma_secretaria_fecha)}</small></div>
+                              </div>
+                            ) : (
+                              <div>
+                                <p style={{ margin: '2px 0 6px', fontSize: '0.75rem', color: '#64748B' }}>
+                                  Pendiente de firma y rúbrica de la Secretaría General del Concejo Municipal.
+                                </p>
+                                {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleAbrirFirmas(tramiteDetalle)}
+                                    className="btn btn-sm"
+                                    style={{
+                                      backgroundColor: '#0D9488',
+                                      color: '#FFFFFF',
+                                      fontSize: '0.72rem',
+                                      padding: '3px 8px',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    Estampar Firma Secretaría
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     {/* 3. Sub-sección: Despacho Final al Ejecutivo */}
@@ -2630,20 +2562,26 @@ export default function EscritorioVirtual() {
                         )}
                       </div>
                       {tramiteDetalle.despacho_final_cite ? (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
-                          <div>
-                            <small style={{ color: '#64748B', display: 'block' }}>CITE OFICIAL SALIENTE</small>
-                            <strong style={{ color: '#7C3AED' }}>{tramiteDetalle.despacho_final_cite}</strong>
+                        <>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
+                            <div>
+                              <small style={{ color: '#64748B', display: 'block' }}>CITE OFICIAL SALIENTE</small>
+                              <strong style={{ color: '#7C3AED' }}>{tramiteDetalle.despacho_final_cite}</strong>
+                            </div>
+                            <div>
+                              <small style={{ color: '#64748B', display: 'block' }}>DESTINATARIO OFICIAL</small>
+                              <span>{tramiteDetalle.despacho_final_destinatario || 'Alcalde Municipal de Sucre'}</span>
+                            </div>
+                            <div>
+                              <small style={{ color: '#64748B', display: 'block' }}>FECHA DE REMISIÓN</small>
+                              <span>{formatFecha(tramiteDetalle.despacho_final_fecha)}</span>
+                            </div>
                           </div>
-                          <div>
-                            <small style={{ color: '#64748B', display: 'block' }}>DESTINATARIO OFICIAL</small>
-                            <span>{tramiteDetalle.despacho_final_destinatario || 'Alcalde Municipal de Sucre'}</span>
+                          <div style={{ marginTop: '8px', padding: '6px 10px', backgroundColor: '#F0FDF4', borderRadius: '4px', border: '1px solid #BBF7D0', color: '#15803D', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <CheckCircle2 size={14} color="#16A34A" />
+                            <span><strong>Trámite Atendido y Despachado:</strong> Circuito legislativo concluido exitosamente. El botón <strong>Avanzar</strong> está habilitado para archivar o derivar a otra unidad.</span>
                           </div>
-                          <div>
-                            <small style={{ color: '#64748B', display: 'block' }}>FECHA DE REMISIÓN</small>
-                            <span>{formatFecha(tramiteDetalle.despacho_final_fecha)}</span>
-                          </div>
-                        </div>
+                        </>
                       ) : (
                         <div style={{ fontSize: '0.78rem', color: '#64748B' }}>
                           {(!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria) ? (
@@ -2659,6 +2597,7 @@ export default function EscritorioVirtual() {
                       )}
                     </div>
                   </div>
+                  )}
 
                   {/* Documentos Adjuntos PDF (RF-07) */}
                   <div style={{ marginBottom: '1.5rem' }}>
@@ -3168,128 +3107,115 @@ export default function EscritorioVirtual() {
                 </button>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                {tramiteDetalle && tramiteDetalle.estado === 'EN_ATENCION' && (
-                  <button
-                    type="button"
-                    onClick={() => handleAbrirAtender(tramiteDetalle)}
-                    className="btn btn-sm"
-                    style={{
-                      backgroundColor: '#0D9488',
-                      borderColor: '#0D9488',
-                      color: '#FFFFFF',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem'
-                    }}
-                    title="Registrar informe técnico / dictamen y marcar trámite como Atendido"
-                  >
-                    <CheckCircle2 size={14} />
-                    <span>Concluir Atención</span>
-                  </button>
-                )}
-                {tramiteDetalle && tramiteDetalle.historial && tramiteDetalle.historial.length > 1 &&
-                 tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && tramiteDetalle.estado !== 'BLOQUEADO' && (
-                  <button
-                    type="button"
-                    onClick={() => handleAbrirRetroceder(tramiteDetalle)}
-                    className="btn btn-sm"
-                    style={{
-                      backgroundColor: '#D97706',
-                      borderColor: '#D97706',
-                      color: '#FFFFFF',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem'
-                    }}
-                    title="Retroceder trámite a la unidad remitente anterior con justificación obligatoria"
-                  >
-                    <RotateCcw size={14} />
-                    <span>Retroceder Proceso</span>
-                  </button>
-                )}
-                {tramiteDetalle && tramiteDetalle.estado === 'ATENDIDO' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleAbrirDerivar(tramiteDetalle);
-                    }}
-                    className="btn btn-primary btn-sm"
-                    style={{
-                      backgroundColor: '#800000',
-                      borderColor: '#800000',
-                      color: '#FFFFFF',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem'
-                    }}
-                    title="Derivación libre institucional (Avanzar trámite a otro destinatario)"
-                  >
-                    <Send size={14} />
-                    <span>Derivar / Avanzar</span>
-                  </button>
-                )}
-                {tramiteDetalle && tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                  <button
-                    type="button"
-                    onClick={() => handleAbrirPleno(tramiteDetalle)}
-                    className="btn btn-sm"
-                    style={{
-                      backgroundColor: '#1E3A8A',
-                      borderColor: '#1E3A8A',
-                      color: '#FFFFFF',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem'
-                    }}
-                    title="Registrar o actualizar constancia de Aprobación en Sesión del Pleno del CMS"
-                  >
-                    <Award size={14} />
-                    <span>Pleno CMS</span>
-                  </button>
-                )}
-                {tramiteDetalle && tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                  <button
-                    type="button"
-                    onClick={() => handleAbrirFirmas(tramiteDetalle)}
-                    className="btn btn-sm"
-                    style={{
-                      backgroundColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#059669' : '#0284C7',
-                      borderColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#059669' : '#0284C7',
-                      color: '#FFFFFF',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem'
-                    }}
-                    title="Estampar firmas duales concurrentes (Presidencia y Secretaría General CMS)"
-                  >
-                    <Stamp size={14} />
-                    <span>Firmas Duales {tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria ? '(2/2)' : ''}</span>
-                  </button>
-                )}
-                {tramiteDetalle && tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                  <button
-                    type="button"
-                    onClick={() => handleAbrirDespacho(tramiteDetalle)}
-                    disabled={!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria}
-                    className="btn btn-sm"
-                    style={{
-                      backgroundColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#7C3AED' : '#9CA3AF',
-                      borderColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#7C3AED' : '#9CA3AF',
-                      color: '#FFFFFF',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      cursor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? 'pointer' : 'not-allowed'
-                    }}
-                    title={
-                      (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria)
-                        ? 'Despacho Final al Alcalde Municipal de Sucre'
-                        : 'Despacho bloqueado: Requiere firmas duales completas (Presidencia y Secretaría General)'
-                    }
-                  >
-                    <FileCheck size={14} />
-                    <span>Despacho Final</span>
-                  </button>
+                {tramiteDetalle && !['CREADO', 'POR_RECIBIR', 'EN_TRANSITO'].includes(tramiteDetalle.estado) && (
+                  <>
+                    {/* Retroceder Proceso */}
+                    {tramiteDetalle.historial && tramiteDetalle.historial.length > 1 &&
+                     tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && tramiteDetalle.estado !== 'BLOQUEADO' && (
+                      <button
+                        type="button"
+                        onClick={() => handleAbrirRetroceder(tramiteDetalle)}
+                        className="btn btn-sm"
+                        style={{
+                          backgroundColor: '#D97706',
+                          borderColor: '#D97706',
+                          color: '#FFFFFF',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem'
+                        }}
+                        title="Retroceder trámite a la unidad remitente anterior con justificación obligatoria"
+                      >
+                        <RotateCcw size={14} />
+                        <span>Retroceder Proceso</span>
+                      </button>
+                    )}
+
+                    {/* Paso 1: Pleno CMS */}
+                    {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                      <button
+                        type="button"
+                        onClick={() => handleAbrirPleno(tramiteDetalle)}
+                        className="btn btn-sm"
+                        style={{
+                          backgroundColor: '#1E3A8A',
+                          borderColor: '#1E3A8A',
+                          color: '#FFFFFF',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem'
+                        }}
+                        title="Registrar o actualizar constancia de Aprobación en Sesión del Pleno del CMS"
+                      >
+                        <Award size={14} />
+                        <span>{tramiteDetalle.sesion_pleno_nro ? 'Pleno (Modificar)' : 'Pleno CMS'}</span>
+                      </button>
+                    )}
+
+                    {/* Paso 2: Firmas Duales (solo tras registrar el Pleno) */}
+                    {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && Boolean(tramiteDetalle.sesion_pleno_nro) && (
+                      <button
+                        type="button"
+                        onClick={() => handleAbrirFirmas(tramiteDetalle)}
+                        className="btn btn-sm"
+                        style={{
+                          backgroundColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#059669' : '#0284C7',
+                          borderColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#059669' : '#0284C7',
+                          color: '#FFFFFF',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem'
+                        }}
+                        title="Estampar firmas duales concurrentes (Presidencia y Secretaría General CMS)"
+                      >
+                        <Stamp size={14} />
+                        <span>Firmas Duales {tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria ? '(2/2)' : (tramiteDetalle.firma_presidencia || tramiteDetalle.firma_secretaria) ? '(1/2)' : '(0/2)'}</span>
+                      </button>
+                    )}
+
+                    {/* Paso 3: Despacho Final (solo tras firmas duales completas) */}
+                    {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && Boolean(tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) && (
+                      <button
+                        type="button"
+                        onClick={() => handleAbrirDespacho(tramiteDetalle)}
+                        className="btn btn-sm"
+                        style={{
+                          backgroundColor: '#7C3AED',
+                          borderColor: '#7C3AED',
+                          color: '#FFFFFF',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          cursor: 'pointer'
+                        }}
+                        title="Despacho Final al Alcalde Municipal de Sucre"
+                      >
+                        <FileCheck size={14} />
+                        <span>Despacho Final</span>
+                      </button>
+                    )}
+
+                    {/* Paso 4: Derivar / Avanzar (habilitado una vez atendido / con despacho) */}
+                    {(tramiteDetalle.estado === 'ATENDIDO' || Boolean(tramiteDetalle.despacho_final_cite)) && (
+                      <button
+                        type="button"
+                        onClick={() => handleAbrirDerivar(tramiteDetalle)}
+                        className="btn btn-primary btn-sm"
+                        style={{
+                          backgroundColor: '#800000',
+                          borderColor: '#800000',
+                          color: '#FFFFFF',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem'
+                        }}
+                        title="Derivación libre institucional (Avanzar trámite a otro destinatario)"
+                      >
+                        <Send size={14} />
+                        <span>Derivar / Avanzar</span>
+                      </button>
+                    )}
+                  </>
                 )}
                 <button
                   type="button"
@@ -4819,7 +4745,7 @@ export default function EscritorioVirtual() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1060,
+            zIndex: 12000,
             padding: '1rem'
           }}
         >
@@ -5128,7 +5054,7 @@ export default function EscritorioVirtual() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1060,
+            zIndex: 12000,
             padding: '1rem'
           }}
         >
@@ -5488,7 +5414,7 @@ export default function EscritorioVirtual() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1060,
+            zIndex: 12000,
             padding: '1rem'
           }}
         >
