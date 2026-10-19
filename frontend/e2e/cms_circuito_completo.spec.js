@@ -46,8 +46,6 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     const citeExternoTest = `FEDJUVE-LEG-0${randomSuffix}/2026`;
     const referenciaTest = `Solicitud de Petición de Informe Escrito (PIE) sobre fiscalización de obras viales distrito 3 - E2E #${randomSuffix}`;
 
-    await page.fill('input[placeholder*="Ministerio de Planificación"]', institucionTest);
-    await page.fill('input[placeholder*="CITE-MPD-042/2026"]', citeExternoTest);
     await page.fill('input[placeholder*="Nombre completo de la persona"]', remitenteTest);
 
     // 1.5 Asunto, Hojas y Prioridad
@@ -228,15 +226,32 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     await expect(page.locator('h1')).toContainText('Escritorio Virtual');
 
     // Asegurar trámite en EN_ATENCION
-    const btnRecepcionar = page.locator('tr button:has-text("Recepcionar")').first();
-    if (await btnRecepcionar.isVisible()) {
-      await btnRecepcionar.click();
-      await page.locator('.modal-backdrop button:has-text("Confirmar y Recepcionar")').click();
-      await page.waitForTimeout(1500);
+    let fila = page.locator('tr:has-text("EN ATENCIÓN"), tr:has-text("ATENDIDO")').first();
+    if (!await fila.isVisible()) {
+      const btnRecepcionar = page.locator('tr button:has-text("Recepcionar")').first();
+      if (await btnRecepcionar.isVisible()) {
+        await btnRecepcionar.click();
+        await page.locator('.modal-backdrop button:has-text("Confirmar y Recepcionar")').click();
+        await page.waitForTimeout(1500);
+      } else {
+        // Emitir uno desde Ventanilla
+        await page.goto('/ventanilla');
+        const tipoCM = page.locator('div:has-text("CM"):has-text("Correspondencia Municipal Externa")').first();
+        await tipoCM.click();
+        await page.fill('input[placeholder*="Nombre completo de la persona"]', 'Test Firmas Duales');
+        await page.fill('textarea[placeholder*="Escriba claramente el motivo"]', 'Prueba Firmas Duales');
+        await page.locator('button[type="submit"]:has-text("Emitir Hoja de Ruta")').click();
+        await expect(page.locator('text=Hoja de Ruta Emitida Exitosamente')).toBeVisible({ timeout: 15000 });
+        await page.locator('.modal-backdrop button:has-text("Cerrar")').first().click();
+        await page.goto('/escritorio');
+        await page.locator('tr button:has-text("Recepcionar")').first().click();
+        await page.locator('.modal-backdrop button:has-text("Confirmar y Recepcionar")').click();
+        await page.waitForTimeout(1500);
+      }
     }
 
     // Abrir Ver de un trámite en atención o atendido
-    const fila = page.locator('tr:has-text("EN ATENCIÓN"), tr:has-text("ATENDIDO")').first();
+    fila = page.locator('tr:has-text("EN ATENCIÓN"), tr:has-text("ATENDIDO")').first();
     await expect(fila).toBeVisible({ timeout: 15000 });
     await fila.locator('button:has-text("Ver")').first().click();
 
@@ -310,12 +325,11 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
         await page.goto('/ventanilla');
         const tipoCM = page.locator('div:has-text("CM"):has-text("Correspondencia Municipal Externa")').first();
         await tipoCM.click();
-        await page.fill('input[placeholder*="Ministerio de Planificación"]', 'Comité Cívico');
-        await page.fill('input[placeholder*="CITE-MPD-042/2026"]', `CC-${Date.now().toString().slice(-4)}`);
         await page.fill('input[placeholder*="Nombre completo de la persona"]', 'Test Despacho');
         await page.fill('textarea[placeholder*="Escriba claramente el motivo"]', 'Prueba Despacho Final');
         await page.locator('button[type="submit"]:has-text("Emitir Hoja de Ruta")').click();
-        await page.locator('button:has-text("Aceptar y Cerrar")').click();
+        await expect(page.locator('text=Hoja de Ruta Emitida Exitosamente')).toBeVisible({ timeout: 15000 });
+        await page.locator('.modal-backdrop button:has-text("Cerrar")').first().click();
         await page.goto('/escritorio');
         await page.locator('tr button:has-text("Recepcionar")').first().click();
         await page.locator('.modal-backdrop button:has-text("Confirmar y Recepcionar")').click();
@@ -414,8 +428,6 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     const remitenteE2E = `ORGANIZACIÓN SOCIAL CENTRALIA #${uniqueId}`;
     const asuntoE2E = `EXPEDIENTE INTEGRAL E2E CMS - FISCALIZACIÓN Y PROYECTO NORMATIVO #${uniqueId}`;
 
-    await page.fill('input[placeholder*="Ministerio de Planificación"]', 'Central Obrera Departamental Chuquisaca');
-    await page.fill('input[placeholder*="CITE-MPD-042/2026"]', `COD-CH-${uniqueId}/2026`);
     await page.fill('input[placeholder*="Nombre completo de la persona"]', remitenteE2E);
     await page.fill('textarea[placeholder*="Escriba claramente el motivo"]', asuntoE2E);
     await page.fill('input[type="number"][min="1"]', '20');
@@ -521,8 +533,6 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     const idUnico = Date.now().toString().slice(-4);
     const remitenteInforme = `COMISIÓN JURÍDICA CMS #${idUnico}`;
 
-    await page.fill('input[placeholder*="Ministerio de Planificación"]', 'Colegio de Abogados de Chuquisaca');
-    await page.fill('input[placeholder*="CITE-MPD-042/2026"]', `CACH-INFORME-${idUnico}`);
     await page.fill('input[placeholder*="Nombre completo de la persona"]', remitenteInforme);
     await page.fill('textarea[placeholder*="Escriba claramente el motivo"]', 'Petición sobre dictamen jurídico para proyecto normativo');
     await page.fill('input[type="number"][min="1"]', '12');

@@ -533,35 +533,7 @@ export default function VentanillaUnica() {
                   </h3>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                  <div>
-                    <label className="form-label" style={{ fontWeight: 600 }}>
-                      Institución / Empresa / Procedencia:
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Ej: Ministerio de Planificación, Junta Vecinal, Particular"
-                      value={formData.institucion_remitente}
-                      onChange={e => setFormData({ ...formData, institucion_remitente: e.target.value })}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="form-label" style={{ fontWeight: 600 }}>
-                      CITE / Nro. de Oficio de Origen:
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Ej: CITE-MPD-042/2026 o Carta S/N"
-                      value={formData.cite_externo}
-                      onChange={e => setFormData({ ...formData, cite_externo: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: '12px' }}>
+                <div>
                   <label className="form-label" style={{ fontWeight: 600 }}>
                     Nombre del Remitente o Representante Legal: <span style={{ color: '#800000' }}>*</span>
                   </label>
@@ -644,105 +616,12 @@ export default function VentanillaUnica() {
                 </div>
               </div>
 
-              {/* BLOQUE 4: DESTINATARIO INSTITUCIONAL (DB_TRAMITES_EXTERNOS) */}
-              <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #1B365D' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Building2 size={18} color="#1B365D" />
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                      4. Asignación y Destinatario Institucional
-                    </h3>
-                  </div>
-                  <span className="badge badge-sucre" style={{ fontSize: '0.72rem' }}>
-                    Estructura Institucional CMS
-                  </span>
-                </div>
-
-                {/* Banner de estado de la ruta oficial vs derivación excepcional */}
-                {!esDestinoExcepcional ? (
-                  <div style={{ background: canalActivo === 'EXTERNA' ? '#FFF5F5' : '#F0F4F8', border: `1px solid ${canalActivo === 'EXTERNA' ? '#FECACA' : '#BFDBFE'}`, padding: '10px 14px', borderRadius: '6px', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <CheckCircle2 size={18} color={canalActivo === 'EXTERNA' ? '#800000' : '#1B365D'} />
-                      <div style={{ fontSize: '0.82rem', color: '#1E293B' }}>
-                        <strong style={{ color: canalActivo === 'EXTERNA' ? '#800000' : '#1B365D' }}>Ruta Reglamentaria CMS Activa:</strong>{' '}
-                        {CANALES_CMS[canalActivo].circuitoTexto}
-                      </div>
-                    </div>
-                    <span className="badge" style={{ background: canalActivo === 'EXTERNA' ? '#800000' : '#1B365D', color: 'white', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
-                      DERIVACIÓN PREDEFINIDA
-                    </span>
-                  </div>
-                ) : (
-                  <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', padding: '10px 14px', borderRadius: '6px', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <AlertCircle size={18} color="#D97706" />
-                      <div style={{ fontSize: '0.82rem', color: '#92400E' }}>
-                        <strong>Derivación Excepcional Activa:</strong> Ha modificado el destino predeterminado del CMS (Ruta normal de {CANALES_CMS[canalActivo].label}: {CANALES_CMS[canalActivo].destinatarioDefault.unidad}).
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      className="btn btn-outline-warning btn-sm"
-                      style={{ fontSize: '0.75rem', padding: '3px 8px', whiteSpace: 'nowrap' }}
-                      onClick={handleRestaurarSugerenciaOficial}
-                    >
-                      Restablecer Sugerencia Oficial
-                    </button>
-                  </div>
-                )}
-
-                <p style={{ fontSize: '0.82rem', color: '#6C757D', marginBottom: '1rem' }}>
-                  Indique la unidad organizacional y cargo municipal que debe atender y recibir este trámite oficial. Se preserva total flexibilidad para derivaciones excepcionales:
-                </p>
-
-                {/* Cascada de Unidad y Cargo */}
-                <InstitucionalSelectors
-                  selectedCodU={formData.cod_u_destino}
-                  onUnidadChange={handleUnidadChange}
-                  selectedCodCargo={formData.cod_cargo_destino}
-                  onCargoChange={handleCargoChange}
-                  showBadges={false}
-                />
-
-                {/* Buscador de Funcionario desde Padrón Municipal */}
-                <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px dashed #E5E7EB' }}>
-                  <label className="form-label" style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <UserCheck size={16} color="#800000" />
-                    <span>Funcionario Asignado (Padrón de Personal por CI o Nombre):</span>
-                  </label>
-                  <EmpleadoSearchAutocomplete
-                    currentCi={formData.ci_empleado_destino}
-                    onSelectEmpleado={handleSelectEmpleado}
-                  />
-
-                  {formData.destinatario_nombre && (
-                    <div style={{ marginTop: '10px', background: '#F0FDF4', border: '1px solid #BBF7D0', padding: '10px 14px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div>
-                        <div style={{ fontSize: '0.75rem', color: '#166534', fontWeight: 700, textTransform: 'uppercase' }}>
-                          Funcionario Destinatario Seleccionado
-                        </div>
-                        <div style={{ fontWeight: 700, color: '#15803D', fontSize: '0.92rem' }}>
-                          {formData.destinatario_nombre} {formData.ci_empleado_destino ? `(CI: ${formData.ci_empleado_destino})` : ''}
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={() => setFormData({ ...formData, ci_empleado_destino: '', destinatario_nombre: '' })}
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* BLOQUE 5: PROVEÍDO INICIAL E INSTRUCCIÓN */}
+              {/* BLOQUE 4: PROVEÍDO INICIAL E INSTRUCCIÓN */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #800000' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
                   <Send size={18} color="#800000" />
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                    5. Instrucción Municipal y Proveído Inicial de Recepción
+                    4. Instrucción Municipal y Proveído Inicial de Recepción
                   </h3>
                 </div>
 
@@ -773,13 +652,13 @@ export default function VentanillaUnica() {
                 </div>
               </div>
 
-              {/* BLOQUE 6: DOCUMENTACIÓN DIGITAL ADJUNTA */}
+              {/* BLOQUE 5: DOCUMENTACIÓN DIGITAL ADJUNTA */}
               <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #1B365D' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Paperclip size={18} color="#1B365D" />
                     <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1B365D', margin: 0 }}>
-                      6. Documentos Digitales Adjuntos (Archivos PDF de Respaldo)
+                      5. Documentos Digitales Adjuntos (Archivos PDF de Respaldo)
                     </h3>
                   </div>
                   <span className="badge badge-secondary" style={{ fontSize: '0.72rem' }}>
