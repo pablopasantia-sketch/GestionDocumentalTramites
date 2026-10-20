@@ -10,8 +10,10 @@ services:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=SqlAdminSucre2026!
       - MSSQL_PID=Developer
+      - TZ=America/La_Paz
     volumes:
       - mssql_data:/var/opt/mssql/data
+      - /etc/localtime:/etc/localtime:ro
 
 volumes:
   mssql_data:

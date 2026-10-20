@@ -905,7 +905,7 @@ namespace GestionDocumental.Api.Controllers
                 {
                     Id = nuevoId,
                     NumeroCorrelativo = numeroCorrelativo,
-                    Gestion = DateTime.UtcNow.Year,
+                    Gestion = DateTime.Now.Year,
                     TipoProcesoId = dto.TipoProcesoId,
                     TipoProcesoCodigo = string.Empty,
                     TipoProcesoNombre = string.Empty,
@@ -926,7 +926,7 @@ namespace GestionDocumental.Api.Controllers
                     CodUDestino = dto.CodUDestino,
                     CodCargoDestino = dto.CodCargoDestino,
                     CiEmpleadoDestino = dto.CiEmpleadoDestino,
-                    FechaCreacion = DateTime.UtcNow,
+                    FechaCreacion = DateTime.Now,
                     CreadoPorUsuario = "Operador Ventanilla",
                     UnidadOrigen = "Ventanilla Única"
                 };

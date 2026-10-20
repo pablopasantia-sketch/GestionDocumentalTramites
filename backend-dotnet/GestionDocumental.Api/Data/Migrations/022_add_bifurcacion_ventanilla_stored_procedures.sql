@@ -124,8 +124,8 @@ BEGIN
 
         -- 5. Insertar Movimiento Inicial (Orden 1)
         DECLARE @NomActividad VARCHAR(150) = CASE 
-            WHEN @TipoCorresNorm = 'EXTERNA' THEN 'Recepción Ventanilla (Canal Político-Legislativo)'
-            WHEN @TipoCorresNorm = 'INTERNA' THEN 'Recepción Ventanilla (Canal Administrativo-Operativo)'
+            WHEN @TipoCorresNorm = 'EXTERNA' THEN 'Recepción Ventanilla'
+            WHEN @TipoCorresNorm = 'INTERNA' THEN 'Recepción Ventanilla'
             ELSE 'Recepción en Ventanilla Única'
         END;
 

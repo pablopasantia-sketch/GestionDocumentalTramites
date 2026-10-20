@@ -153,7 +153,7 @@ namespace GestionDocumental.Api.Controllers
                     TamanoBytes = file.Length,
                     TipoMime = "application/pdf",
                     SubidoPorNombre = "Usuario Actual",
-                    FechaSubida = DateTime.UtcNow
+                    FechaSubida = DateTime.Now
                 });
             }
 
