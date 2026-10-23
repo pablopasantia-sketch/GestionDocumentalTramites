@@ -262,6 +262,8 @@ export default function EscritorioVirtual() {
   const [subiendoInforme, setSubiendoInforme] = useState(false);
   const [subidaInformeError, setSubidaInformeError] = useState(null);
   const [subidaInformeSuccess, setSubidaInformeSuccess] = useState(null);
+  const [concluyendoInforme, setConcluyendoInforme] = useState(false);
+  const [concluirInformeError, setConcluirInformeError] = useState(null);
 
   // Modal de Constancia de Sesión del Pleno del CMS
   const [plenoModalOpen, setPlenoModalOpen] = useState(false);
@@ -810,7 +812,15 @@ export default function EscritorioVirtual() {
       const formData = new FormData();
       formData.append('archivo', archivoInformePdf);
       await adjuntosService.upload(tramiteId, formData);
-      setSubidaInformeSuccess('¡Informe de comisión digital (PDF) incorporado al expediente exitosamente!');
+      // Auto-concluir el informe al subir el PDF digital
+      try {
+        await tramitesService.concluirInforme(tramiteId, {
+          proveido: 'Informe de comisión digital (PDF) incorporado al expediente formal.'
+        });
+      } catch (errConcluir) {
+        console.warn('Auto-conclusión informe post-subida:', errConcluir);
+      }
+      setSubidaInformeSuccess('¡Informe de comisión digital (PDF) incorporado y concluido exitosamente! 🏛️ Paso 2 (Sesión del Pleno) habilitado.');
       setArchivoInformePdf(null);
       const inputEl = document.getElementById('informe-comision-file-input');
       if (inputEl) inputEl.value = '';
@@ -826,10 +836,43 @@ export default function EscritorioVirtual() {
     }
   };
 
+  const handleConcluirInforme = async (tramiteId) => {
+    if (esPlazoInformeExpirado(tramiteDetalle)) {
+      setConcluirInformeError('SISTEMA CERRADO: El plazo reglamentario ha expirado.');
+      return;
+    }
+    setConcluyendoInforme(true);
+    setConcluirInformeError(null);
+    try {
+      await tramitesService.concluirInforme(tramiteId, {
+        proveido: 'Informe técnico de comisión concluido y presentado formalmente para consideración en Sesión del Pleno.'
+      });
+      setSubidaInformeSuccess('¡Informe de comisión concluido exitosamente! 🏛️ Paso 2 (Sesión del Pleno) ahora habilitado.');
+      setTimeout(() => setSubidaInformeSuccess(null), 6000);
+      await handleVerDetalle(tramiteId);
+      fetchTramites(bandejaActiva);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Error al concluir el informe de comisión.';
+      setConcluirInformeError(msg);
+    } finally {
+      setConcluyendoInforme(false);
+    }
+  };
+
   // Handlers para Circuito Plenario CMS
   const handleAbrirPleno = (tramite) => {
     if (esPlazoInformeExpirado(tramite)) {
       setAlertError('SISTEMA CERRADO: El plazo reglamentario de 5 a 15 días para la elaboración del informe ha expirado. Por normativa del Concejo Municipal de Sucre, el sistema se encuentra bloqueado para la presentación o aprobación de informes extemporáneos.');
+      setTimeout(() => setAlertError(null), 6000);
+      return;
+    }
+    const informeListo = Boolean(
+      tramite.fecha_fin_informe ||
+      (tramite.adjuntos && tramite.adjuntos.length > 0 && tramite.fecha_inicio_informe) ||
+      tramite.sesion_pleno_nro
+    );
+    if (!informeListo) {
+      setAlertError('Debe completar primero la Elaboración de Informe de Comisión (Paso 1) antes de registrar el tratamiento o aprobación en el Pleno.');
       setTimeout(() => setAlertError(null), 6000);
       return;
     }
@@ -2375,7 +2418,7 @@ export default function EscritorioVirtual() {
                     <h4 style={{ fontSize: '0.95rem', color: '#1B365D', borderBottom: '2px solid #E2E8F0', paddingBottom: '6px', marginBottom: '0.75rem' }}>
                       Datos del Remitente y Referencia
                     </h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '0.75rem' }}>
+                    <div style={{ marginBottom: '0.75rem' }}>
                       <div>
                         <strong>Remitente:</strong> {tramiteDetalle.remitente}
                         {tramiteDetalle.institucion_remitente && (
@@ -2383,9 +2426,6 @@ export default function EscritorioVirtual() {
                             Institución: {tramiteDetalle.institucion_remitente}
                           </div>
                         )}
-                      </div>
-                      <div>
-                        <strong>CITE Externo:</strong> {tramiteDetalle.cite_externo || 'S/N'}
                       </div>
                     </div>
                     <div>
@@ -2402,27 +2442,6 @@ export default function EscritorioVirtual() {
                         </div>
                       </div>
                     )}
-                  </div>
-
-                  {/* Destinatario Institucional */}
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <h4 style={{ fontSize: '0.95rem', color: '#1B365D', borderBottom: '2px solid #E2E8F0', paddingBottom: '6px', marginBottom: '0.75rem' }}>
-                      Destinatario Institucional Asignado
-                    </h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
-                      <div>
-                        <small style={{ color: '#6C757D', display: 'block' }}>FUNCIONARIO RESPONSABLE</small>
-                        <strong>{tramiteDetalle.destinatario_nombre || 'No especificado'}</strong>
-                      </div>
-                      <div>
-                        <small style={{ color: '#6C757D', display: 'block' }}>CARGO INSTITUCIONAL</small>
-                        <span>{tramiteDetalle.destinatario_cargo || '—'}</span>
-                      </div>
-                      <div>
-                        <small style={{ color: '#6C757D', display: 'block' }}>UNIDAD / DEPENDENCIA</small>
-                        <span>{tramiteDetalle.destinatario_unidad || '—'}</span>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Circuito Plenario, Firmas Duales Concurrentes y Despacho Final CMS */}
@@ -2450,229 +2469,330 @@ export default function EscritorioVirtual() {
                     </div>
 
                     {/* 1. Sub-sección: Elaboración de Informe de Comisión (5 a 15 días reglamentarios) */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      {!tramiteDetalle.fecha_inicio_informe ? (
-                        <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0D9488', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              <Clock size={15} color="#0D9488" />
-                              <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (5 A 15 DÍAS)</span>
-                            </span>
-                            {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                              <button
-                                type="button"
-                                onClick={() => handleAbrirIniciarInforme(tramiteDetalle)}
-                                className="btn btn-sm"
-                                style={{
-                                  backgroundColor: '#0D9488',
-                                  color: '#FFFFFF',
-                                  padding: '4px 10px',
-                                  fontSize: '0.74rem',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer',
-                                  fontWeight: 600,
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px'
-                                }}
-                              >
-                                <Clock size={13} />
-                                <span>+ Iniciar Elaboración de Informe</span>
-                              </button>
+                    {(() => {
+                      const esInformeConcluido = Boolean(
+                        tramiteDetalle.fecha_fin_informe ||
+                        (tramiteDetalle.adjuntos && tramiteDetalle.adjuntos.length > 0 && tramiteDetalle.fecha_inicio_informe) ||
+                        tramiteDetalle.sesion_pleno_nro
+                      );
+
+                      return (
+                        <>
+                          <div style={{ marginBottom: '1rem' }}>
+                            {!tramiteDetalle.fecha_inicio_informe ? (
+                              <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0D9488', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                    <Clock size={15} color="#0D9488" />
+                                    <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (5 A 15 DÍAS)</span>
+                                  </span>
+                                  {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleAbrirIniciarInforme(tramiteDetalle)}
+                                      className="btn btn-sm"
+                                      style={{
+                                        backgroundColor: '#0D9488',
+                                        color: '#FFFFFF',
+                                        padding: '4px 10px',
+                                        fontSize: '0.74rem',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontWeight: 600,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                      }}
+                                    >
+                                      <Clock size={13} />
+                                      <span>+ Iniciar Elaboración de Informe</span>
+                                    </button>
+                                  )}
+                                </div>
+                                <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '0.8rem', lineHeight: '1.4' }}>
+                                  Conforme al Reglamento del CMS, las comisiones técnicas disponen de un plazo perentorio de <strong>5 a 15 días hábiles</strong> para la elaboración del informe técnico o proyecto normativo. Presione <strong>+ Iniciar Elaboración de Informe</strong> para activar el cómputo del plazo perentorio.
+                                </p>
+                              </div>
+                            ) : esPlazoInformeExpirado(tramiteDetalle) ? (
+                              <div style={{
+                                backgroundColor: '#FEF2F2',
+                                border: '2px solid #DC2626',
+                                borderRadius: '6px',
+                                padding: '14px 16px',
+                                color: '#991B1B'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <AlertTriangle size={18} color="#DC2626" />
+                                    <strong style={{ fontSize: '0.88rem', color: '#991B1B' }}>
+                                      ⛔ SISTEMA CERRADO: PLAZO DE ELABORACIÓN EXPIRADO
+                                    </strong>
+                                  </div>
+                                  <span className="badge" style={{ backgroundColor: '#DC2626', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                                    BLOQUEO AUTOMÁTICO CMS
+                                  </span>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', fontSize: '0.82rem', marginBottom: '8px' }}>
+                                  <div>
+                                    <small style={{ color: '#7F1D1D', display: 'block', fontWeight: 600 }}>FECHA DE INICIO</small>
+                                    <span>{formatFecha(tramiteDetalle.fecha_inicio_informe)}</span>
+                                  </div>
+                                  <div>
+                                    <small style={{ color: '#7F1D1D', display: 'block', fontWeight: 600 }}>PLAZO REGLAMENTARIO</small>
+                                    <span>{tramiteDetalle.dias_plazo_informe || 10} días hábiles</span>
+                                  </div>
+                                  <div>
+                                    <small style={{ color: '#7F1D1D', display: 'block', fontWeight: 600 }}>FECHA LÍMITE (VENCIDA)</small>
+                                    <span style={{ fontWeight: 700, color: '#B91C1C' }}>{formatFecha(tramiteDetalle.fecha_limite_respuesta)}</span>
+                                  </div>
+                                </div>
+                                <p style={{ margin: 0, fontSize: '0.8rem', color: '#991B1B', lineHeight: '1.4' }}>
+                                  El plazo de <strong>{tramiteDetalle.dias_plazo_informe || 10} días</strong> para emitir y presentar el informe de comisión venció el <strong>{formatFecha(tramiteDetalle.fecha_limite_respuesta)}</strong>. <strong>El sistema se encuentra CERRADO:</strong> no se permite la subida ni presentación de informes o adjuntos extemporáneos.
+                                </p>
+                              </div>
+                            ) : esInformeConcluido ? (
+                              <div style={{
+                                backgroundColor: '#F0FDF4',
+                                border: '1.5px solid #22C55E',
+                                borderRadius: '6px',
+                                padding: '12px 14px'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <CheckCircle2 size={16} color="#16A34A" />
+                                    <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (CONCLUIDO)</span>
+                                  </span>
+                                  <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                                    ✓ INFORME CONCLUIDO Y HABILITADO PARA EL PLENO
+                                  </span>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', fontSize: '0.82rem', marginBottom: '8px' }}>
+                                  <div>
+                                    <small style={{ color: '#166534', display: 'block' }}>FECHA DE INICIO</small>
+                                    <strong>{formatFecha(tramiteDetalle.fecha_inicio_informe)}</strong>
+                                  </div>
+                                  <div>
+                                    <small style={{ color: '#166534', display: 'block' }}>PLAZO REGLAMENTARIO</small>
+                                    <strong>{tramiteDetalle.dias_plazo_informe || 10} días hábiles</strong>
+                                  </div>
+                                  <div>
+                                    <small style={{ color: '#166534', display: 'block' }}>FECHA DE CONCLUSIÓN</small>
+                                    <strong style={{ color: '#15803D' }}>{formatFecha(tramiteDetalle.fecha_fin_informe || tramiteDetalle.updated_at)}</strong>
+                                  </div>
+                                </div>
+                                {tramiteDetalle.adjuntos && tramiteDetalle.adjuntos.length > 0 && (
+                                  <div style={{ borderTop: '1px dashed #86EFAC', paddingTop: '6px', marginTop: '6px', fontSize: '0.78rem', color: '#166534' }}>
+                                    📎 <strong>Informe digital adjunto al expediente:</strong> {tramiteDetalle.adjuntos[0].nombre_original}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div style={{
+                                backgroundColor: '#F0FDF4',
+                                border: '1.5px solid #22C55E',
+                                borderRadius: '6px',
+                                padding: '12px 14px'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Clock size={16} color="#16A34A" />
+                                    <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (EN CURSO)</span>
+                                  </span>
+                                  <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                                    ⏱️ VIGENTE: {calcularDiasRestantes(tramiteDetalle.fecha_limite_respuesta)} DÍAS RESTANTES
+                                  </span>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', fontSize: '0.82rem', marginBottom: '8px' }}>
+                                  <div>
+                                    <small style={{ color: '#166534', display: 'block' }}>FECHA DE INICIO</small>
+                                    <strong>{formatFecha(tramiteDetalle.fecha_inicio_informe)}</strong>
+                                  </div>
+                                  <div>
+                                    <small style={{ color: '#166534', display: 'block' }}>PLAZO ASIGNADO</small>
+                                    <strong>{tramiteDetalle.dias_plazo_informe || 10} días hábiles</strong>
+                                  </div>
+                                  <div>
+                                    <small style={{ color: '#166534', display: 'block' }}>FECHA LÍMITE DE ENTREGA</small>
+                                    <strong style={{ color: '#15803D' }}>{formatFecha(tramiteDetalle.fecha_limite_respuesta)}</strong>
+                                  </div>
+                                </div>
+
+                                {/* Carga digital del informe PDF y botón de Conclusión */}
+                                {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                                  <div style={{ borderTop: '1px dashed #86EFAC', paddingTop: '8px', marginTop: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      <Paperclip size={14} color="#15803D" />
+                                      <span style={{ fontSize: '0.78rem', color: '#166534', fontWeight: 600 }}>Cargar Informe Digital (PDF):</span>
+                                      <input
+                                        type="file"
+                                        accept=".pdf"
+                                        id="informe-comision-file-input"
+                                        onChange={(e) => setArchivoInformePdf(e.target.files[0] || null)}
+                                        style={{ fontSize: '0.75rem' }}
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleSubirInformePdf(tramiteDetalle.id)}
+                                        disabled={!archivoInformePdf || subiendoInforme}
+                                        className="btn btn-sm"
+                                        style={{
+                                          backgroundColor: '#16A34A',
+                                          color: '#FFFFFF',
+                                          padding: '3px 10px',
+                                          fontSize: '0.74rem',
+                                          border: 'none',
+                                          borderRadius: '4px',
+                                          cursor: (!archivoInformePdf || subiendoInforme) ? 'not-allowed' : 'pointer'
+                                        }}
+                                      >
+                                        {subiendoInforme ? 'Subiendo...' : 'Subir Informe PDF'}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleConcluirInforme(tramiteDetalle.id)}
+                                        disabled={concluyendoInforme}
+                                        className="btn btn-sm"
+                                        style={{
+                                          backgroundColor: '#0D9488',
+                                          color: '#FFFFFF',
+                                          padding: '3px 10px',
+                                          fontSize: '0.74rem',
+                                          border: 'none',
+                                          borderRadius: '4px',
+                                          fontWeight: 700,
+                                          cursor: concluyendoInforme ? 'not-allowed' : 'pointer'
+                                        }}
+                                      >
+                                        {concluyendoInforme ? 'Concluyendo...' : '✓ Concluir Elaboración de Informe'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                                {subidaInformeSuccess && (
+                                  <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#15803D', fontWeight: 600 }}>
+                                    ✅ {subidaInformeSuccess}
+                                  </div>
+                                )}
+                                {subidaInformeError && (
+                                  <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#DC2626', fontWeight: 600 }}>
+                                    ⚠️ {subidaInformeError}
+                                  </div>
+                                )}
+                                {concluirInformeError && (
+                                  <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#DC2626', fontWeight: 600 }}>
+                                    ⚠️ {concluirInformeError}
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
-                          <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '0.8rem', lineHeight: '1.4' }}>
-                            Conforme al Reglamento del CMS, las comisiones técnicas disponen de un plazo perentorio de <strong>5 a 15 días hábiles</strong> para la elaboración del informe técnico o proyecto normativo. Presione <strong>+ Iniciar Elaboración de Informe</strong> para activar el cómputo del plazo perentorio.
-                          </p>
-                        </div>
-                      ) : esPlazoInformeExpirado(tramiteDetalle) ? (
-                        <div style={{
-                          backgroundColor: '#FEF2F2',
-                          border: '2px solid #DC2626',
-                          borderRadius: '6px',
-                          padding: '14px 16px',
-                          color: '#991B1B'
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <AlertTriangle size={18} color="#DC2626" />
-                              <strong style={{ fontSize: '0.88rem', color: '#991B1B' }}>
-                                ⛔ SISTEMA CERRADO: PLAZO DE ELABORACIÓN EXPIRADO
-                              </strong>
-                            </div>
-                            <span className="badge" style={{ backgroundColor: '#DC2626', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
-                              BLOQUEO AUTOMÁTICO CMS
-                            </span>
-                          </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', fontSize: '0.82rem', marginBottom: '8px' }}>
-                            <div>
-                              <small style={{ color: '#7F1D1D', display: 'block', fontWeight: 600 }}>FECHA DE INICIO</small>
-                              <span>{formatFecha(tramiteDetalle.fecha_inicio_informe)}</span>
-                            </div>
-                            <div>
-                              <small style={{ color: '#7F1D1D', display: 'block', fontWeight: 600 }}>PLAZO REGLAMENTARIO</small>
-                              <span>{tramiteDetalle.dias_plazo_informe || 10} días hábiles</span>
-                            </div>
-                            <div>
-                              <small style={{ color: '#7F1D1D', display: 'block', fontWeight: 600 }}>FECHA LÍMITE (VENCIDA)</small>
-                              <span style={{ fontWeight: 700, color: '#B91C1C' }}>{formatFecha(tramiteDetalle.fecha_limite_respuesta)}</span>
-                            </div>
-                          </div>
-                          <p style={{ margin: 0, fontSize: '0.8rem', color: '#991B1B', lineHeight: '1.4' }}>
-                            El plazo de <strong>{tramiteDetalle.dias_plazo_informe || 10} días</strong> para emitir y presentar el informe de comisión venció el <strong>{formatFecha(tramiteDetalle.fecha_limite_respuesta)}</strong>. <strong>El sistema se encuentra CERRADO:</strong> no se permite la subida ni presentación de informes o adjuntos extemporáneos.
-                          </p>
-                        </div>
-                      ) : (
-                        <div style={{
-                          backgroundColor: '#F0FDF4',
-                          border: '1.5px solid #22C55E',
-                          borderRadius: '6px',
-                          padding: '12px 14px'
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <CheckCircle2 size={16} color="#16A34A" />
-                              <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (EN CURSO)</span>
-                            </span>
-                            <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
-                              ⏱️ VIGENTE: {calcularDiasRestantes(tramiteDetalle.fecha_limite_respuesta)} DÍAS RESTANTES
-                            </span>
-                          </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', fontSize: '0.82rem', marginBottom: '8px' }}>
-                            <div>
-                              <small style={{ color: '#166534', display: 'block' }}>FECHA DE INICIO</small>
-                              <strong>{formatFecha(tramiteDetalle.fecha_inicio_informe)}</strong>
-                            </div>
-                            <div>
-                              <small style={{ color: '#166534', display: 'block' }}>PLAZO ASIGNADO</small>
-                              <strong>{tramiteDetalle.dias_plazo_informe || 10} días hábiles</strong>
-                            </div>
-                            <div>
-                              <small style={{ color: '#166534', display: 'block' }}>FECHA LÍMITE DE ENTREGA</small>
-                              <strong style={{ color: '#15803D' }}>{formatFecha(tramiteDetalle.fecha_limite_respuesta)}</strong>
-                            </div>
-                          </div>
 
-                          {/* Carga digital del informe PDF dentro de plazo */}
-                          {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                            <div style={{ borderTop: '1px dashed #86EFAC', paddingTop: '8px', marginTop: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Paperclip size={14} color="#15803D" />
-                                <span style={{ fontSize: '0.78rem', color: '#166534', fontWeight: 600 }}>Cargar Informe Digital (PDF):</span>
-                                <input
-                                  type="file"
-                                  accept=".pdf"
-                                  id="informe-comision-file-input"
-                                  onChange={(e) => setArchivoInformePdf(e.target.files[0] || null)}
-                                  style={{ fontSize: '0.75rem' }}
-                                />
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleSubirInformePdf(tramiteDetalle.id)}
-                                disabled={!archivoInformePdf || subiendoInforme}
-                                className="btn btn-sm"
+                          {/* 2. Sub-sección: Aprobación en Sesión del Pleno */}
+                          <div style={{ marginBottom: '1rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1E3A8A', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                🏛️ 2. SESIÓN DEL PLENO DEL CMS
+                              </span>
+                            </div>
+                            {!esInformeConcluido ? (
+                              <div
                                 style={{
-                                  backgroundColor: '#16A34A',
-                                  color: '#FFFFFF',
-                                  padding: '3px 10px',
-                                  fontSize: '0.74rem',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  cursor: (!archivoInformePdf || subiendoInforme) ? 'not-allowed' : 'pointer'
+                                  padding: '12px 14px',
+                                  borderRadius: '6px',
+                                  backgroundColor: '#FFFBEB',
+                                  border: '1.5px dashed #F59E0B',
+                                  color: '#92400E',
+                                  fontSize: '0.8rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px'
                                 }}
                               >
-                                {subiendoInforme ? 'Subiendo...' : 'Subir Informe'}
-                              </button>
-                            </div>
-                          )}
-                          {subidaInformeSuccess && (
-                            <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#15803D', fontWeight: 600 }}>
-                              ✅ {subidaInformeSuccess}
-                            </div>
-                          )}
-                          {subidaInformeError && (
-                            <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#DC2626', fontWeight: 600 }}>
-                              ⚠️ {subidaInformeError}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 2. Sub-sección: Aprobación en Sesión del Pleno */}
-                    <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0', marginBottom: '1rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1E3A8A', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          🏛️ 2. SESIÓN DEL PLENO DEL CMS
-                        </span>
-                        {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                          esPlazoInformeExpirado(tramiteDetalle) ? (
-                            <button
-                              type="button"
-                              disabled={true}
-                              className="btn btn-sm"
-                              style={{
-                                backgroundColor: '#94A3B8',
-                                color: '#FFFFFF',
-                                padding: '3px 8px',
-                                fontSize: '0.72rem',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'not-allowed',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px'
-                              }}
-                              title="Sistema cerrado por vencimiento de plazo reglamentario de 5 a 15 días"
-                            >
-                              <Lock size={12} />
-                              <span>⛔ Bloqueado: Plazo Vencido</span>
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleAbrirPleno(tramiteDetalle)}
-                              className="btn btn-sm"
-                              style={{
-                                backgroundColor: '#1E3A8A',
-                                color: '#FFFFFF',
-                                padding: '3px 8px',
-                                fontSize: '0.72rem',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              {tramiteDetalle.sesion_pleno_nro ? 'Modificar Sesión' : '+ Registrar Aprobación Plenaria'}
-                            </button>
-                          )
-                        )}
-                      </div>
-                      {tramiteDetalle.sesion_pleno_nro ? (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
-                          <div>
-                            <small style={{ color: '#64748B', display: 'block' }}>NRO DE SESIÓN</small>
-                            <strong style={{ color: '#1E3A8A' }}>{tramiteDetalle.sesion_pleno_nro}</strong>
+                                <Lock size={16} color="#D97706" />
+                                <span>
+                                  <strong>Sesión del Pleno Bloqueada (Paso 2):</strong> Debe completar primero la <strong>Elaboración de Informe de Comisión (Paso 1)</strong> antes de habilitar el tratamiento y aprobación en el Pleno Camaral.
+                                </span>
+                              </div>
+                            ) : (
+                              <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1E3A8A' }}>
+                                    Registro de Aprobación Plenaria
+                                  </span>
+                                  {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                                    esPlazoInformeExpirado(tramiteDetalle) ? (
+                                      <button
+                                        type="button"
+                                        disabled={true}
+                                        className="btn btn-sm"
+                                        style={{
+                                          backgroundColor: '#94A3B8',
+                                          color: '#FFFFFF',
+                                          padding: '3px 8px',
+                                          fontSize: '0.72rem',
+                                          border: 'none',
+                                          borderRadius: '4px',
+                                          cursor: 'not-allowed',
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '4px'
+                                        }}
+                                        title="Sistema cerrado por vencimiento de plazo reglamentario de 5 a 15 días"
+                                      >
+                                        <Lock size={12} />
+                                        <span>⛔ Bloqueado: Plazo Vencido</span>
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleAbrirPleno(tramiteDetalle)}
+                                        className="btn btn-sm"
+                                        style={{
+                                          backgroundColor: '#1E3A8A',
+                                          color: '#FFFFFF',
+                                          padding: '3px 8px',
+                                          fontSize: '0.72rem',
+                                          border: 'none',
+                                          borderRadius: '4px',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
+                                        {tramiteDetalle.sesion_pleno_nro ? 'Modificar Sesión' : '+ Registrar Aprobación Plenaria'}
+                                      </button>
+                                    )
+                                  )}
+                                </div>
+                                {tramiteDetalle.sesion_pleno_nro ? (
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
+                                    <div>
+                                      <small style={{ color: '#64748B', display: 'block' }}>NRO DE SESIÓN</small>
+                                      <strong style={{ color: '#1E3A8A' }}>{tramiteDetalle.sesion_pleno_nro}</strong>
+                                    </div>
+                                    <div>
+                                      <small style={{ color: '#64748B', display: 'block' }}>FECHA DE TRATAMIENTO</small>
+                                      <span>{formatFecha(tramiteDetalle.sesion_pleno_fecha)}</span>
+                                    </div>
+                                    <div>
+                                      <small style={{ color: '#64748B', display: 'block' }}>RESULTADO DE VOTACIÓN</small>
+                                      <span className="badge" style={{ backgroundColor: '#059669', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                                        {tramiteDetalle.sesion_pleno_resultado}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                                    Trámite pendiente de tratamiento en Sesión del Pleno del Concejo Municipal de Sucre.
+                                  </p>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <div>
-                            <small style={{ color: '#64748B', display: 'block' }}>FECHA DE TRATAMIENTO</small>
-                            <span>{formatFecha(tramiteDetalle.sesion_pleno_fecha)}</span>
-                          </div>
-                          <div>
-                            <small style={{ color: '#64748B', display: 'block' }}>RESULTADO DE VOTACIÓN</small>
-                            <span className="badge" style={{ backgroundColor: '#059669', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
-                              {tramiteDetalle.sesion_pleno_resultado}
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '0.8rem', fontStyle: 'italic' }}>
-                          Trámite pendiente de tratamiento en Sesión del Pleno del Concejo Municipal de Sucre.
-                        </p>
-                      )}
-                    </div>
+                        </>
+                      );
+                    })()}
 
                     {/* 3. Sub-sección: Firmas Duales Concurrentes */}
                     <div style={{ marginBottom: '1rem' }}>

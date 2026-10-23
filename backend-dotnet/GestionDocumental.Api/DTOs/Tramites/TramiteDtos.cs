@@ -388,6 +388,9 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("dias_plazo_informe")]
         public int? DiasPlazoInforme { get; set; }
 
+        [JsonPropertyName("fecha_fin_informe")]
+        public DateTime? FechaFinInforme { get; set; }
+
         [JsonPropertyName("tiempo_estimado_horas")]
         public int TiempoEstimadoHoras { get; set; }
 
@@ -751,6 +754,12 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("dias_plazo")]
         public int DiasPlazo { get; set; } = 10;
 
+        [JsonPropertyName("proveido")]
+        public string? Proveido { get; set; }
+    }
+
+    public class ConcluirInformeComisionDto
+    {
         [JsonPropertyName("proveido")]
         public string? Proveido { get; set; }
     }

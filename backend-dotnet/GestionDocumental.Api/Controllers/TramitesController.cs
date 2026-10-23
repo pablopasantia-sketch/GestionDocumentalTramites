@@ -538,6 +538,42 @@ namespace GestionDocumental.Api.Controllers
         }
 
         /// <summary>
+        /// Concluir formalmente la elaboración de informe de comisión (habilitando el tratamiento en Sesión del Pleno)
+        /// </summary>
+        [Authorize]
+        [HttpPost("{id}/concluir-informe")]
+        public async Task<IActionResult> ConcluirInformeComision(int id, [FromBody] ConcluirInformeComisionDto? dto)
+        {
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            var outNuevoMovimientoId = new SqlParameter("@NuevoMovimientoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_ConcluirInformeComision",
+                    new SqlParameter("@TramiteId", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@Proveido", SqlDbType.NVarChar, -1) { Value = (object?)dto?.Proveido?.Trim() ?? DBNull.Value },
+                    outNuevoMovimientoId
+                );
+
+                int movId = outNuevoMovimientoId.Value != DBNull.Value ? (int)outNuevoMovimientoId.Value : 0;
+
+                return Ok(ApiResponse<object>.Ok(
+                    new { tramiteId = id, movimientoId = movId },
+                    "Informe de comisión concluido satisfactoriamente. Trámite habilitado para su tratamiento en el Pleno del Concejo Municipal."
+                ));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+        }
+
+        /// <summary>
         /// Constancia de Aprobación en Sesión del Pleno del CMS
         /// </summary>
         [Authorize]
@@ -760,6 +796,7 @@ namespace GestionDocumental.Api.Controllers
                             FechaLimiteRespuesta = reader.GetNullableDateTime("fecha_limite_respuesta"),
                             FechaInicioInforme = reader.GetNullableDateTime("fecha_inicio_informe"),
                             DiasPlazoInforme = reader.GetNullableInt32("dias_plazo_informe"),
+                            FechaFinInforme = reader.GetNullableDateTime("fecha_fin_informe"),
                             TiempoEstimadoHoras = reader.GetSafeInt32("tiempo_estimado_horas", 24),
                             CreadoPorUsuario = reader.GetSafeString("creado_por_usuario"),
                             UnidadOrigen = reader.GetSafeString("unidad_origen"),

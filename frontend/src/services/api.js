@@ -285,6 +285,10 @@ export const tramitesService = {
     const response = await api.post(`/tramites/${id}/iniciar-informe`, data);
     return response.data;
   },
+  concluirInforme: async (id, data = {}) => {
+    const response = await api.post(`/tramites/${id}/concluir-informe`, data);
+    return response.data;
+  },
   registrarAprobacionPleno: async (id, data) => {
     const response = await api.post(`/tramites/${id}/pleno/aprobacion`, data);
     return response.data;

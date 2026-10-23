@@ -174,7 +174,21 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     const modalDetalle = page.locator('.modal-backdrop');
     await expect(modalDetalle.locator('h3:has-text("Detalle de Hoja de Ruta")')).toBeVisible({ timeout: 10000 });
 
-    // Abrir Modal de Sesión del Pleno desde el detalle
+    // Abrir Modal de Sesión del Pleno desde el detalle (asegurar que Informe de Comisión esté concluido)
+    const btnIniciarInforme = modalDetalle.locator('button:has-text("+ Iniciar Elaboración de Informe")');
+    if (await btnIniciarInforme.isVisible()) {
+      await btnIniciarInforme.click();
+      const modalIniciar = page.locator('.modal-backdrop').last();
+      await modalIniciar.locator('button:has-text("Plazo Ordinario")').click();
+      await modalIniciar.locator('button:has-text("Confirmar Inicio de Elaboración")').click();
+      await page.waitForTimeout(1000);
+    }
+    const btnConcluirInforme = modalDetalle.locator('button:has-text("Concluir Elaboración de Informe")');
+    if (await btnConcluirInforme.isVisible()) {
+      await btnConcluirInforme.click();
+      await page.waitForTimeout(1000);
+    }
+
     const btnAbrirPleno = modalDetalle.locator('button:has-text("Pleno CMS"), button:has-text("+ Registrar Aprobación Plenaria"), button:has-text("Pleno (Modificar)")').first();
     await expect(btnAbrirPleno).toBeVisible();
     await btnAbrirPleno.click();
@@ -257,6 +271,21 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
 
     const modalDetalle = page.locator('.modal-backdrop');
     await expect(modalDetalle.locator('h3:has-text("Detalle de Hoja de Ruta")')).toBeVisible({ timeout: 10000 });
+
+    // Asegurar que el informe esté concluido para desbloquear el Pleno
+    const btnIniciarInforme5 = modalDetalle.locator('button:has-text("+ Iniciar Elaboración de Informe")');
+    if (await btnIniciarInforme5.isVisible()) {
+      await btnIniciarInforme5.click();
+      const modalIniciar = page.locator('.modal-backdrop').last();
+      await modalIniciar.locator('button:has-text("Plazo Ordinario")').click();
+      await modalIniciar.locator('button:has-text("Confirmar Inicio de Elaboración")').click();
+      await page.waitForTimeout(1000);
+    }
+    const btnConcluirInforme5 = modalDetalle.locator('button:has-text("Concluir Elaboración de Informe")');
+    if (await btnConcluirInforme5.isVisible()) {
+      await btnConcluirInforme5.click();
+      await page.waitForTimeout(1000);
+    }
 
     // Si aún no tiene Pleno registrado, registrarlo primero para desbloquear firmas duales
     const btnPleno = modalDetalle.locator('button:has-text("+ Registrar Aprobación Plenaria")');
@@ -344,6 +373,21 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
 
     const modalDetalle = page.locator('.modal-backdrop');
     await expect(modalDetalle.locator('h3:has-text("Detalle de Hoja de Ruta")')).toBeVisible({ timeout: 10000 });
+
+    // Asegurar informe concluido para desbloquear el Pleno
+    const btnIniciarInforme6 = modalDetalle.locator('button:has-text("+ Iniciar Elaboración de Informe")');
+    if (await btnIniciarInforme6.isVisible()) {
+      await btnIniciarInforme6.click();
+      const modalIniciar = page.locator('.modal-backdrop').last();
+      await modalIniciar.locator('button:has-text("Plazo Ordinario")').click();
+      await modalIniciar.locator('button:has-text("Confirmar Inicio de Elaboración")').click();
+      await page.waitForTimeout(1000);
+    }
+    const btnConcluirInforme6 = modalDetalle.locator('button:has-text("Concluir Elaboración de Informe")');
+    if (await btnConcluirInforme6.isVisible()) {
+      await btnConcluirInforme6.click();
+      await page.waitForTimeout(1000);
+    }
 
     // Asegurar Pleno
     const btnPleno = modalDetalle.locator('button:has-text("+ Registrar Aprobación Plenaria")');
@@ -474,8 +518,23 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     const modalDetalle = page.locator('.modal-backdrop');
     await expect(modalDetalle.locator('h3:has-text("Detalle de Hoja de Ruta")')).toBeVisible({ timeout: 10000 });
 
-    // PASO 1: CIRCUITO PLENARIO - Registrar Aprobación en Sesión del Pleno
+    // PASO 1: Iniciar y Concluir Informe de Comisión (5 a 15 días reglamentarios)
+    const btnIniciarInforme7 = modalDetalle.locator('button:has-text("+ Iniciar Elaboración de Informe")');
+    await expect(btnIniciarInforme7).toBeVisible();
+    await btnIniciarInforme7.click();
+    const modalIniciar7 = page.locator('.modal-backdrop').last();
+    await modalIniciar7.locator('button:has-text("Plazo Ordinario")').click();
+    await modalIniciar7.locator('button:has-text("Confirmar Inicio de Elaboración")').click();
+    await page.waitForTimeout(1000);
+
+    const btnConcluirInforme7 = modalDetalle.locator('button:has-text("Concluir Elaboración de Informe")');
+    await expect(btnConcluirInforme7).toBeVisible();
+    await btnConcluirInforme7.click();
+    await page.waitForTimeout(1000);
+
+    // PASO 2: CIRCUITO PLENARIO - Ahora desbloqueado tras concluir el Informe de Comisión
     const btnPleno = modalDetalle.locator('button:has-text("+ Registrar Aprobación Plenaria"), button:has-text("Pleno CMS")').first();
+    await expect(btnPleno).toBeVisible();
     await btnPleno.click();
     const modalPleno = page.locator('.modal-backdrop').last();
     await expect(modalPleno.locator('h3:has-text("Aprobación en Sesión del Pleno del CMS")')).toBeVisible();
