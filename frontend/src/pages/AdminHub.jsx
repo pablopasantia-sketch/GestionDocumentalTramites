@@ -1329,7 +1329,7 @@ export default function AdminHub() {
                           {u.unidad_nombre || (u.cod_u ? `Unidad #${u.cod_u}` : 'Sin unidad asignada')}
                         </div>
                         <div style={{ fontSize: '0.8rem', color: '#6C757D' }}>
-                          {u.cargo || u.cargo_oficial || 'Funcionario'}
+                          {u.cargo || u.cargo_oficial || (u.login === 'admin' ? 'Sin cargo asignado' : 'Funcionario')}
                         </div>
                       </td>
                       <td>

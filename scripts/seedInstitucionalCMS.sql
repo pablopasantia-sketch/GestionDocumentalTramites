@@ -292,7 +292,19 @@ IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE id = 4)
 SET IDENTITY_INSERT dbo.roles OFF;
 GO
 
-PRINT '🔹 Sembrando Usuario Administrador en dbo.TEmpleados...';
+PRINT '🔹 Asegurando Ubicación Administrativa Central (Sin Unidad Institucional) en dbo.ubicaciones_org...';
+
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+
+IF NOT EXISTS (SELECT 1 FROM dbo.ubicaciones_org WHERE codigo = 'CMS-ADMIN-SIS')
+BEGIN
+    INSERT INTO dbo.ubicaciones_org (codigo, nombre, sigla, padre_id, nivel, descripcion, activo, codU, created_at, updated_at)
+    VALUES ('CMS-ADMIN-SIS', 'Administración General del Sistema', 'SIS', NULL, 0, 'Área técnica global de soporte y administración del sistema, independiente de cargos y unidades operativas', 1, NULL, SYSDATETIME(), SYSDATETIME());
+END
+GO
+
+PRINT '🔹 Sembrando Usuario Administrador Técnico (sin cargo ni unidad) en dbo.TEmpleados...';
 
 SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
@@ -300,7 +312,7 @@ SET QUOTED_IDENTIFIER ON;
 IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE login = 'admin' OR CI = 1000001)
 BEGIN
     INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo, created_at, updated_at)
-    VALUES (1000001, 'SISTEMA GENERAL', 'ADMINISTRADOR', 'Plaza 25 de Mayo #1 (CMS)', 70012345, 'admin@cms.gob.bo', 1, 'admin', 'admin123', 'Administrador General CMS', 1, 1, SYSDATETIME(), SYSDATETIME());
+    VALUES (1000001, 'DEL SISTEMA', 'ADMINISTRADOR', 'CMS - Administración Central', 70000001, 'admin@cms.gob.bo', 1, 'admin', 'admin123', NULL, NULL, NULL, SYSDATETIME(), SYSDATETIME());
 END
 ELSE
 BEGIN
@@ -308,9 +320,11 @@ BEGIN
     SET login = 'admin',
         password_hash = 'admin123',
         Activo = 1,
-        cargo_nombre = 'Administrador General CMS',
-        cod_u = 1,
-        cod_cargo = 1,
+        Apellidos = 'DEL SISTEMA',
+        Nombres = 'ADMINISTRADOR',
+        cargo_nombre = NULL,
+        cod_u = NULL,
+        cod_cargo = NULL,
         updated_at = SYSDATETIME()
     WHERE login = 'admin' OR CI = 1000001;
 END
@@ -321,36 +335,144 @@ PRINT '🔹 Asignando Roles Institucionales al Administrador en dbo.usuario_role
 SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 
-DECLARE @AdminId INT, @PresidenciaUbiId INT;
+DECLARE @AdminId INT, @AdminUbiId INT;
 SELECT TOP 1 @AdminId = id FROM dbo.TEmpleados WHERE login = 'admin';
-SELECT TOP 1 @PresidenciaUbiId = id FROM dbo.ubicaciones_org WHERE codU = 1;
-IF @PresidenciaUbiId IS NULL SET @PresidenciaUbiId = 1;
+SELECT TOP 1 @AdminUbiId = id FROM dbo.ubicaciones_org WHERE codigo = 'CMS-ADMIN-SIS';
+IF @AdminUbiId IS NULL SET @AdminUbiId = 1;
 
 IF @AdminId IS NOT NULL
 BEGIN
+    -- Eliminar asociaciones operativas anteriores (ej. Presidencia)
+    DELETE FROM dbo.usuario_roles WHERE usuario_id = @AdminId AND ubicacion_org_id <> @AdminUbiId;
+
     -- Rol ADMIN_SISTEMA (1)
-    IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE usuario_id = @AdminId AND rol_id = 1)
+    IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE usuario_id = @AdminId AND rol_id = 1 AND ubicacion_org_id = @AdminUbiId)
     BEGIN
         INSERT INTO dbo.usuario_roles (usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo, created_at, updated_at)
-        VALUES (@AdminId, 1, @PresidenciaUbiId, 'CONTROL_TOTAL', '2030-12-31', 1, 1, SYSDATETIME(), SYSDATETIME());
+        VALUES (@AdminId, 1, @AdminUbiId, 'CONTROL_TOTAL', '2030-12-31', 1, 1, SYSDATETIME(), SYSDATETIME());
+    END
+    ELSE
+    BEGIN
+        UPDATE dbo.usuario_roles 
+        SET es_principal = 1, activo = 1, nivel_acceso = 'CONTROL_TOTAL', updated_at = SYSDATETIME()
+        WHERE usuario_id = @AdminId AND rol_id = 1 AND ubicacion_org_id = @AdminUbiId;
     END
 
     -- Rol ADMIN_TRAMITES (2)
-    IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE usuario_id = @AdminId AND rol_id = 2)
+    IF NOT EXISTS (SELECT 1 FROM dbo.usuario_roles WHERE usuario_id = @AdminId AND rol_id = 2 AND ubicacion_org_id = @AdminUbiId)
     BEGIN
         INSERT INTO dbo.usuario_roles (usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo, created_at, updated_at)
-        VALUES (@AdminId, 2, @PresidenciaUbiId, 'CONTROL_TOTAL', '2030-12-31', 0, 1, SYSDATETIME(), SYSDATETIME());
+        VALUES (@AdminId, 2, @AdminUbiId, 'CONTROL_TOTAL', '2030-12-31', 0, 1, SYSDATETIME(), SYSDATETIME());
+    END
+    ELSE
+    BEGIN
+        UPDATE dbo.usuario_roles 
+        SET es_principal = 0, activo = 1, nivel_acceso = 'CONTROL_TOTAL', updated_at = SYSDATETIME()
+        WHERE usuario_id = @AdminId AND rol_id = 2 AND ubicacion_org_id = @AdminUbiId;
     END
 END
 GO
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- 4.1 AUTORIDADES DEL CONCEJO MUNICIPAL DE SUCRE (CMS)
+--     Directiva y Concejales Municipales en dbo.TEmpleados y dbo.usuario_roles
+-- ─────────────────────────────────────────────────────────────────────────────
+PRINT '🔹 Sembrando Directiva y Concejales del CMS en dbo.TEmpleados...';
+
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+
+MERGE dbo.TEmpleados AS target
+USING (
+    VALUES
+        -- Directiva CMS
+        (1000002, 'CERVANTES ZAMBRANA',    'JUAN PABLO',     'Plaza 25 de Mayo #1 (CMS)', 70010002, 'jcervantes@cms.gob.bo', 1, 'jcervantes', 'admin123', 'Presidente del Concejo Municipal',          CAST(1 AS SMALLINT), CAST(1 AS SMALLINT)),
+        (1000003, 'SALAS COILA',           'CARMEN ROSA',    'Plaza 25 de Mayo #1 (CMS)', 70010003, 'csalas@cms.gob.bo',     1, 'csalas',     'admin123', 'Vicepresidenta del Concejo Municipal',      CAST(3 AS SMALLINT), CAST(4 AS SMALLINT)),
+        (1000004, 'AVENDAÑO NAVA MORALES', 'MARIO',          'Plaza 25 de Mayo #1 (CMS)', 70010004, 'mavendano@cms.gob.bo',  1, 'mavendano',  'admin123', 'Secretario General del Concejo Municipal',  CAST(4 AS SMALLINT), CAST(6 AS SMALLINT)),
+        -- Concejales Municipales del Pleno
+        (1000005, 'DÁVALOS VARGAS',        'DAYSI MARIEL',   'Plaza 25 de Mayo #1 (CMS)', 70010005, 'ddavalos@cms.gob.bo',   1, 'ddavalos',   'admin123', 'Concejala Municipal',                       CAST(2 AS SMALLINT), CAST(8 AS SMALLINT)),
+        (1000006, 'MORA SANDI',            'CARLOS',         'Plaza 25 de Mayo #1 (CMS)', 70010006, 'cmora@cms.gob.bo',      1, 'cmora',      'admin123', 'Concejal Municipal',                        CAST(2 AS SMALLINT), CAST(9 AS SMALLINT)),
+        (1000007, 'CAMPERO RODRIGUEZ',     'JENNY BEATRIZ',  'Plaza 25 de Mayo #1 (CMS)', 70010007, 'jcampero@cms.gob.bo',   1, 'jcampero',   'admin123', 'Concejala Municipal',                       CAST(2 AS SMALLINT), CAST(10 AS SMALLINT)),
+        (1000008, 'AILLÓN VALVERDE',       'ALEXIS IMBERT',  'Plaza 25 de Mayo #1 (CMS)', 70010008, 'aaillon@cms.gob.bo',    1, 'aaillon',    'admin123', 'Concejal Municipal',                        CAST(2 AS SMALLINT), CAST(11 AS SMALLINT)),
+        (1000009, 'MARTINEZ',              'ANGÉLICA',       'Plaza 25 de Mayo #1 (CMS)', 70010009, 'amartinez@cms.gob.bo',  1, 'amartinez',  'admin123', 'Concejala Municipal',                       CAST(2 AS SMALLINT), CAST(12 AS SMALLINT)),
+        (1000010, 'GONZALES RAMIREZ',      'ALBERTO',        'Plaza 25 de Mayo #1 (CMS)', 70010010, 'agonzales@cms.gob.bo',  1, 'agonzales',  'admin123', 'Concejal Municipal',                        CAST(2 AS SMALLINT), CAST(13 AS SMALLINT)),
+        (1000011, 'FLORES HINOJOSA',       'SIXTA',          'Plaza 25 de Mayo #1 (CMS)', 70010011, 'sflores@cms.gob.bo',    1, 'sflores',    'admin123', 'Concejala Municipal',                       CAST(2 AS SMALLINT), CAST(14 AS SMALLINT)),
+        (1000012, 'AGUILAR CONDO',         'OMAR PAUL',      'Plaza 25 de Mayo #1 (CMS)', 70010012, 'oaguilar@cms.gob.bo',   1, 'oaguilar',   'admin123', 'Concejal Municipal',                        CAST(2 AS SMALLINT), CAST(15 AS SMALLINT))
+) AS source (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo)
+ON target.CI = source.CI OR target.login = source.login
+WHEN MATCHED THEN
+    UPDATE SET
+        target.Apellidos     = source.Apellidos,
+        target.Nombres       = source.Nombres,
+        target.Direccion     = source.Direccion,
+        target.Cel           = source.Cel,
+        target.Email         = source.Email,
+        target.Activo        = source.Activo,
+        target.login         = source.login,
+        target.password_hash = source.password_hash,
+        target.cargo_nombre  = source.cargo_nombre,
+        target.cod_u         = source.cod_u,
+        target.cod_cargo     = source.cod_cargo,
+        target.updated_at    = SYSDATETIME()
+WHEN NOT MATCHED THEN
+    INSERT (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo, created_at, updated_at)
+    VALUES (source.CI, source.Apellidos, source.Nombres, source.Direccion, source.Cel, source.Email, source.Activo, source.login, source.password_hash, source.cargo_nombre, source.cod_u, source.cod_cargo, SYSDATETIME(), SYSDATETIME());
+GO
+
+PRINT '🔹 Asignando Roles Institucionales a la Directiva y Concejales en dbo.usuario_roles...';
+
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+
+-- 1. Asignar rol FUNCIONARIO (rol_id: 4) como rol principal a las 11 autoridades
+INSERT INTO dbo.usuario_roles (usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo, created_at, updated_at)
+SELECT 
+    e.id AS usuario_id,
+    4 AS rol_id, -- FUNCIONARIO
+    ISNULL(uo.id, 1) AS ubicacion_org_id,
+    'CONTROL_TOTAL' AS nivel_acceso,
+    CAST('2030-12-31' AS DATE) AS fecha_expiracion,
+    1 AS es_principal,
+    1 AS activo,
+    SYSDATETIME() AS created_at,
+    SYSDATETIME() AS updated_at
+FROM dbo.TEmpleados e
+LEFT JOIN dbo.ubicaciones_org uo ON uo.codU = e.cod_u
+WHERE e.CI BETWEEN 1000002 AND 1000012
+  AND NOT EXISTS (
+      SELECT 1 FROM dbo.usuario_roles ur 
+      WHERE ur.usuario_id = e.id AND ur.rol_id = 4
+  );
+
+-- 2. Para la Directiva (Presidente, Vicepresidenta, Secretario), asignar adicionalmente rol ADMIN_TRAMITES (rol_id: 2)
+INSERT INTO dbo.usuario_roles (usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo, created_at, updated_at)
+SELECT 
+    e.id AS usuario_id,
+    2 AS rol_id, -- ADMIN_TRAMITES
+    ISNULL(uo.id, 1) AS ubicacion_org_id,
+    'CONTROL_TOTAL' AS nivel_acceso,
+    CAST('2030-12-31' AS DATE) AS fecha_expiracion,
+    0 AS es_principal,
+    1 AS activo,
+    SYSDATETIME() AS created_at,
+    SYSDATETIME() AS updated_at
+FROM dbo.TEmpleados e
+LEFT JOIN dbo.ubicaciones_org uo ON uo.codU = e.cod_u
+WHERE e.CI IN (1000002, 1000003, 1000004)
+  AND NOT EXISTS (
+      SELECT 1 FROM dbo.usuario_roles ur 
+      WHERE ur.usuario_id = e.id AND ur.rol_id = 2
+  );
+GO
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- 5. VERIFICACIÓN FINAL Y REPORTE
 -- ─────────────────────────────────────────────────────────────────────────────
-DECLARE @TotalUnidades INT, @TotalCargos INT, @TotalUbicaciones INT, @AdminUsuario VARCHAR(50);
+DECLARE @TotalUnidades INT, @TotalCargos INT, @TotalUbicaciones INT, @TotalEmpleados INT, @AdminUsuario VARCHAR(50);
 SELECT @TotalUnidades = COUNT(*) FROM dbo.TUnidad;
 SELECT @TotalCargos = COUNT(*) FROM dbo.TCargo;
 SELECT @TotalUbicaciones = COUNT(*) FROM dbo.ubicaciones_org;
+SELECT @TotalEmpleados = COUNT(*) FROM dbo.TEmpleados;
 SELECT @AdminUsuario = login FROM dbo.TEmpleados WHERE login = 'admin';
 
 PRINT ' ';
@@ -358,6 +480,13 @@ PRINT '✅ POBLAMIENTO INSTITUCIONAL CMS COMPLETADO CON ÉXITO:';
 PRINT '   - Total Unidades en TUnidad:       ' + CAST(@TotalUnidades AS VARCHAR(10));
 PRINT '   - Total Ubicaciones Org:           ' + CAST(@TotalUbicaciones AS VARCHAR(10));
 PRINT '   - Total Cargos en TCargo:          ' + CAST(@TotalCargos AS VARCHAR(10));
+PRINT '   - Total Empleados / Autoridades:   ' + CAST(@TotalEmpleados AS VARCHAR(10));
 PRINT '   - Usuario Administrador Habilitado: ' + ISNULL(@AdminUsuario, 'NO ENCONTRADO') + ' (Clave: admin123)';
+PRINT '   - Autoridades Habilitadas:';
+PRINT '       * Presidente:     Juan Pablo Cervantes Zambrana (login: jcervantes / admin123)';
+PRINT '       * Vicepresidenta: Carmen Rosa Salas Coila       (login: csalas / admin123)';
+PRINT '       * Secretario:     Mario Avendaño Nava Morales   (login: mavendano / admin123)';
+PRINT '       * Concejales:     ddavalos, cmora, jcampero, aaillon, amartinez, agonzales, sflores, oaguilar (Clave: admin123)';
 PRINT '=============================================================================';
 GO
+

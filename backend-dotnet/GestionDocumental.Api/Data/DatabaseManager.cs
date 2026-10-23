@@ -410,7 +410,7 @@ namespace GestionDocumental.Api.Data
                 -- TEmpleados (Personal Municipal y Cuentas de Acceso al Sistema)
                 IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 1000001)
                     INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo) 
-                    VALUES (1000001, 'SISTEMA GENERAL', 'ADMINISTRADOR', 'Oficina Central Sucre', 70012345, 'admin@gob.bo', 1, 'admin', @hash, 'Administrador General', 1, 1);
+                    VALUES (1000001, 'DEL SISTEMA', 'ADMINISTRADOR', 'CMS - Administración Central', 70000001, 'admin@cms.gob.bo', 1, 'admin', @hash, NULL, NULL, NULL);
                 IF NOT EXISTS (SELECT 1 FROM dbo.TEmpleados WHERE CI = 2000002)
                     INSERT INTO dbo.TEmpleados (CI, Apellidos, Nombres, Direccion, Cel, Email, Activo, login, password_hash, cargo_nombre, cod_u, cod_cargo) 
                     VALUES (2000002, 'FERNANDEZ ROJAS', 'MARIA', 'Av. Hernando Siles #123', 70054321, 'mfernandez@gob.bo', 1, 'mfernandez', @hash, 'Responsable de Ventanilla Única', 3, 3);

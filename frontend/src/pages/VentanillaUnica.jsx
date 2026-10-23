@@ -48,9 +48,9 @@ export const CANALES_CMS = {
       cod_u: 1,
       unidad: 'Presidencia del Concejo Municipal',
       cod_cargo: 1,
-      cargo: 'DIRECTOR GENERAL EJECUTIVO',
-      ci_empleado: '4000004',
-      nombre: 'ENRIQUE LEAÑO PALENQUE (PRESIDENCIA CMS)',
+      cargo: 'Presidente del Concejo Municipal',
+      ci_empleado: '1000002',
+      nombre: 'JUAN PABLO CERVANTES ZAMBRANA',
       instruccion: 'Para su análisis y asignación a Comisiones del Concejo Municipal de Sucre.'
     }
   }
