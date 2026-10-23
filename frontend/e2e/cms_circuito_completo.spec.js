@@ -190,7 +190,7 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
       await page.waitForTimeout(1500);
     }
 
-    const btnAbrirPleno = modalDetalle.locator('button:has-text("Pleno CMS"), button:has-text("+ Registrar Aprobación Plenaria"), button:has-text("Pleno (Modificar)")').first();
+    const btnAbrirPleno = modalDetalle.locator('button:has-text("+ Registrar Aprobación Plenaria"), button:has-text("Pleno (Modificar)"), button:has-text("Pleno CMS")').first();
     await expect(btnAbrirPleno).toBeVisible();
     await btnAbrirPleno.click();
 
@@ -445,14 +445,14 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     await modalDespacho.locator('button:has-text("Despachar Oficialmente y Concluir Trámite")').click();
     await page.waitForTimeout(1500);
 
-    // Validar que en el detalle ahora aparece la opción Derivar / Avanzar habilitada
-    await expect(page.locator('button:has-text("Derivar / Avanzar")')).toBeVisible({ timeout: 10000 });
-
     // Cerrar detalle
     const btnCerrar = page.locator('.modal-backdrop button:has-text("Cerrar")').first();
     if (await btnCerrar.isVisible()) {
       await btnCerrar.click();
     }
+
+    // Validar que en la bandeja ahora aparece la opción Avanzar habilitada para el trámite atendido
+    await expect(page.locator('tr:has-text("ATENDIDO") button:has-text("Avanzar")').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('7. Integración Completa E2E: Ciclo de Vida Íntegro (Ventanilla → Recepcionar → Ver: Pleno → Firmas Duales → Despacho → Avanzar habilitado)', async ({ page }) => {
@@ -573,13 +573,14 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     await page.waitForTimeout(1500);
 
     // PASO 4: VERIFICAR QUE SE MARCA COMO ATENDIDO Y HABILITA AVANZAR
-    await expect(modalDetalle.locator('button:has-text("Derivar / Avanzar")')).toBeVisible({ timeout: 10000 });
-    await expect(modalDetalle.locator('text=Trámite Atendido y Despachado')).toBeVisible();
+    await expect(modalDetalle.locator('text=Trámite Atendido y Despachado')).toBeVisible({ timeout: 10000 });
 
     // Cerrar detalle
     await modalDetalle.locator('button:has-text("Cerrar")').click();
 
     // En la fila de la tabla, también debe estar disponible Avanzar
+    const btnAvanzar = page.locator('tr:has-text("ATENDIDO") button:has-text("Avanzar")').first();
+    await expect(btnAvanzar).toBeVisible({ timeout: 10000 });
   });
 
   test('8. Control de Plazos de Elaboración de Informes de Comisión (5 a 15 días reglamentarios)', async ({ page }) => {
