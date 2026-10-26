@@ -42,7 +42,8 @@ import {
   PenTool,
   Stamp,
   CheckCheck,
-  Lock
+  Lock,
+  Upload
 } from 'lucide-react';
 import { tramitesService, adjuntosService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -282,6 +283,8 @@ export default function EscritorioVirtual() {
   const [observacionesFirma, setObservacionesFirma] = useState('');
   const [firmando, setFirmando] = useState(false);
   const [firmasError, setFirmasError] = useState(null);
+  const [firmandoTipo, setFirmandoTipo] = useState(null); // 'PRESIDENCIA' | 'SECRETARIA'
+  const [firmasErrorDirecto, setFirmasErrorDirecto] = useState(null);
 
   // Modal de Despacho Final al Ejecutivo / Destino Externo
   const [despachoModalOpen, setDespachoModalOpen] = useState(false);
@@ -812,21 +815,14 @@ export default function EscritorioVirtual() {
       const formData = new FormData();
       formData.append('archivo', archivoInformePdf);
       await adjuntosService.upload(tramiteId, formData);
-      // Auto-concluir el informe al subir el PDF digital
-      try {
-        await tramitesService.concluirInforme(tramiteId, {
-          proveido: 'Informe de comisión digital (PDF) incorporado al expediente formal.'
-        });
-      } catch (errConcluir) {
-        console.warn('Auto-conclusión informe post-subida:', errConcluir);
-      }
-      setSubidaInformeSuccess('¡Informe de comisión digital (PDF) incorporado y concluido exitosamente! 🏛️ Paso 2 (Sesión del Pleno) habilitado.');
+      setSubidaInformeSuccess('¡Informe de comisión digital (PDF) cargado e incorporado exitosamente al expediente! Ahora puede presionar "Concluir Elaboración de Informe".');
       setArchivoInformePdf(null);
       const inputEl = document.getElementById('informe-comision-file-input');
       if (inputEl) inputEl.value = '';
       if (detalleModalOpen) {
-        handleVerDetalle(tramiteId);
+        await handleVerDetalle(tramiteId);
       }
+      fetchTramites(bandejaActiva);
       setTimeout(() => setSubidaInformeSuccess(null), 6000);
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Error al subir el informe digital.';
@@ -839,6 +835,11 @@ export default function EscritorioVirtual() {
   const handleConcluirInforme = async (tramiteId) => {
     if (esPlazoInformeExpirado(tramiteDetalle)) {
       setConcluirInformeError('SISTEMA CERRADO: El plazo reglamentario ha expirado.');
+      return;
+    }
+    // REGLA: No se puede concluir la elaboración del informe sin haber cargado previamente el archivo digital (PDF)
+    if (!tramiteDetalle?.adjuntos || tramiteDetalle.adjuntos.length === 0) {
+      setConcluirInformeError('Debe cargar y subir previamente el archivo digital (PDF) del Informe de Comisión antes de concluir la etapa.');
       return;
     }
     setConcluyendoInforme(true);
@@ -868,7 +869,6 @@ export default function EscritorioVirtual() {
     }
     const informeListo = Boolean(
       tramite.fecha_fin_informe ||
-      (tramite.adjuntos && tramite.adjuntos.length > 0 && tramite.fecha_inicio_informe) ||
       tramite.sesion_pleno_nro
     );
     if (!informeListo) {
@@ -902,7 +902,7 @@ export default function EscritorioVirtual() {
         sesion_pleno_fecha: sesionPlenoFecha ? new Date(sesionPlenoFecha).toISOString() : new Date().toISOString(),
         sesion_pleno_resultado: sesionPlenoResultado,
         proveido: proveidoPleno.trim() || undefined,
-        instrumento_generado: instrumentoPleno || undefined
+        instrumento_generado: 'RESOLUCION'
       };
       await tramitesService.registrarAprobacionPleno(tramiteAPleno.id, payload);
       setAlertSuccess(`¡Constancia de Aprobación en ${sesionPlenoNro} registrada exitosamente! Listo para firmas duales reglamentarias.`);
@@ -919,6 +919,45 @@ export default function EscritorioVirtual() {
       setPlenoError(msg);
     } finally {
       setGuardandoPleno(false);
+    }
+  };
+
+  // Direct stamping of Dual Signatures (Presidencia y Secretaría General CMS)
+  const handleFirmarDirecto = async (tipoFirma) => {
+    if (!tramiteDetalle) return;
+    if (!tramiteDetalle.sesion_pleno_nro) {
+      setAlertError('FIRMAS DUALES BLOQUEADAS: Debe registrar primero la Aprobación en Sesión del Pleno.');
+      setTimeout(() => setAlertError(null), 5000);
+      return;
+    }
+    setFirmandoTipo(tipoFirma);
+    setFirmasErrorDirecto(null);
+    try {
+      const payload = {
+        tipo_firma: tipoFirma,
+        observaciones: `Rúbrica oficial de ${tipoFirma === 'PRESIDENCIA' ? 'Presidencia' : 'Secretaría General'} del CMS estampada conforme a Ley.`
+      };
+      await tramitesService.registrarFirmaDual(tramiteDetalle.id, payload);
+      const res = await tramitesService.getById(tramiteDetalle.id);
+      if (res && res.data) {
+        const d = res.data;
+        const norm = {
+          ...d,
+          firma_presidencia: Boolean(d.firma_presidencia ?? d.firmaPresidencia),
+          firma_secretaria: Boolean(d.firma_secretaria ?? d.firmaSecretaria)
+        };
+        setTramiteDetalle(norm);
+      }
+      fetchTramites(bandejaActiva);
+      const cargoTexto = tipoFirma === 'PRESIDENCIA' ? 'Presidencia del CMS' : 'Secretaría General del CMS';
+      setAlertSuccess(`¡Rúbrica oficial de ${cargoTexto} estampada exitosamente en el expediente!`);
+      setTimeout(() => setAlertSuccess(null), 6000);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Error al estampar firma dual.';
+      setFirmasErrorDirecto(msg);
+      setTimeout(() => setFirmasErrorDirecto(null), 7000);
+    } finally {
+      setFirmandoTipo(null);
     }
   };
 
@@ -2472,7 +2511,6 @@ export default function EscritorioVirtual() {
                       {(() => {
                         const esInformeConcluido = Boolean(
                           tramiteDetalle.fecha_fin_informe ||
-                          (tramiteDetalle.adjuntos && tramiteDetalle.adjuntos.length > 0 && tramiteDetalle.fecha_inicio_informe) ||
                           tramiteDetalle.sesion_pleno_nro
                         );
 
@@ -2480,10 +2518,10 @@ export default function EscritorioVirtual() {
                           <>
                             <div style={{ marginBottom: '1rem' }}>
                               {!tramiteDetalle.fecha_inicio_informe ? (
-                                <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0D9488', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                      <Clock size={15} color="#0D9488" />
+                                <div style={{ backgroundColor: '#FFFFFF', padding: '14px 16px', borderRadius: '8px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0D9488', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <Clock size={16} color="#0D9488" />
                                       <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (5 A 15 DÍAS)</span>
                                     </span>
                                     {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
@@ -2494,23 +2532,25 @@ export default function EscritorioVirtual() {
                                         style={{
                                           backgroundColor: '#0D9488',
                                           color: '#FFFFFF',
-                                          padding: '4px 10px',
-                                          fontSize: '0.74rem',
+                                          padding: '6px 14px',
+                                          fontSize: '0.82rem',
                                           border: 'none',
-                                          borderRadius: '4px',
+                                          borderRadius: '6px',
                                           cursor: 'pointer',
                                           fontWeight: 600,
                                           display: 'inline-flex',
                                           alignItems: 'center',
-                                          gap: '4px'
+                                          gap: '6px',
+                                          boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                          transition: 'all 0.15s ease'
                                         }}
                                       >
-                                        <Clock size={13} />
+                                        <Clock size={14} />
                                         <span>+ Iniciar Elaboración de Informe</span>
                                       </button>
                                     )}
                                   </div>
-                                  <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '0.8rem', lineHeight: '1.4' }}>
+                                  <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '0.82rem', lineHeight: '1.45' }}>
                                     Conforme al Reglamento del CMS, las comisiones técnicas disponen de un plazo perentorio de <strong>5 a 15 días hábiles</strong> para la elaboración del informe técnico o proyecto normativo. Presione <strong>+ Iniciar Elaboración de Informe</strong> para activar el cómputo del plazo perentorio.
                                   </p>
                                 </div>
@@ -2518,7 +2558,7 @@ export default function EscritorioVirtual() {
                                 <div style={{
                                   backgroundColor: '#FEF2F2',
                                   border: '2px solid #DC2626',
-                                  borderRadius: '6px',
+                                  borderRadius: '8px',
                                   padding: '14px 16px',
                                   color: '#991B1B'
                                 }}>
@@ -2555,15 +2595,16 @@ export default function EscritorioVirtual() {
                                 <div style={{
                                   backgroundColor: '#F0FDF4',
                                   border: '1.5px solid #22C55E',
-                                  borderRadius: '6px',
-                                  padding: '12px 14px'
+                                  borderRadius: '8px',
+                                  padding: '14px 16px',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
                                 }}>
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                      <CheckCircle2 size={16} color="#16A34A" />
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <CheckCircle2 size={18} color="#16A34A" />
                                       <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (CONCLUIDO)</span>
                                     </span>
-                                    <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                                    <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 700, padding: '4px 8px' }}>
                                       ✓ INFORME CONCLUIDO Y HABILITADO PARA EL PLENO
                                     </span>
                                   </div>
@@ -2582,8 +2623,63 @@ export default function EscritorioVirtual() {
                                     </div>
                                   </div>
                                   {tramiteDetalle.adjuntos && tramiteDetalle.adjuntos.length > 0 && (
-                                    <div style={{ borderTop: '1px dashed #86EFAC', paddingTop: '6px', marginTop: '6px', fontSize: '0.78rem', color: '#166534' }}>
-                                      📎 <strong>Informe digital adjunto al expediente:</strong> {tramiteDetalle.adjuntos[0].nombre_original}
+                                    <div style={{ borderTop: '1px solid #BBF7D0', paddingTop: '10px', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem', color: '#166534' }}>
+                                        <FileText size={18} color="#16A34A" />
+                                        <div>
+                                          <div style={{ fontWeight: 600 }}>{tramiteDetalle.adjuntos[0].nombre_original}</div>
+                                          <small style={{ color: '#15803D' }}>
+                                            {tramiteDetalle.adjuntos[0].tamano_bytes ? `${(tramiteDetalle.adjuntos[0].tamano_bytes / 1024).toFixed(1)} KB` : 'Documento PDF'} • Subido por: {tramiteDetalle.adjuntos[0].subido_por_nombre || 'Comisión Técnica'}
+                                          </small>
+                                        </div>
+                                      </div>
+                                      <div style={{ display: 'flex', gap: '8px' }}>
+                                        <a
+                                          href={adjuntosService.getViewUrl(tramiteDetalle.adjuntos[0].id)}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="btn btn-sm"
+                                          style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            backgroundColor: '#16A34A',
+                                            color: '#FFFFFF',
+                                            padding: '6px 14px',
+                                            fontSize: '0.82rem',
+                                            fontWeight: 600,
+                                            borderRadius: '6px',
+                                            textDecoration: 'none',
+                                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                            cursor: 'pointer'
+                                          }}
+                                        >
+                                          <Eye size={14} />
+                                          <span>Ver PDF</span>
+                                        </a>
+                                        <a
+                                          href={adjuntosService.getDownloadUrl(tramiteDetalle.adjuntos[0].id)}
+                                          download
+                                          className="btn btn-sm"
+                                          style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            backgroundColor: '#059669',
+                                            color: '#FFFFFF',
+                                            padding: '6px 14px',
+                                            fontSize: '0.82rem',
+                                            fontWeight: 600,
+                                            borderRadius: '6px',
+                                            textDecoration: 'none',
+                                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                            cursor: 'pointer'
+                                          }}
+                                        >
+                                          <Download size={14} />
+                                          <span>Descargar</span>
+                                        </a>
+                                      </div>
                                     </div>
                                   )}
                                 </div>
@@ -2591,15 +2687,16 @@ export default function EscritorioVirtual() {
                                 <div style={{
                                   backgroundColor: '#F0FDF4',
                                   border: '1.5px solid #22C55E',
-                                  borderRadius: '6px',
-                                  padding: '12px 14px'
+                                  borderRadius: '8px',
+                                  padding: '14px 16px',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
                                 }}>
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                       <Clock size={16} color="#16A34A" />
                                       <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (EN CURSO)</span>
                                     </span>
-                                    <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                                    <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 700, padding: '4px 8px' }}>
                                       ⏱️ VIGENTE: {calcularDiasRestantes(tramiteDetalle.fecha_limite_respuesta)} DÍAS RESTANTES
                                     </span>
                                   </div>
@@ -2620,69 +2717,96 @@ export default function EscritorioVirtual() {
 
                                   {/* Carga digital del informe PDF y botón de Conclusión */}
                                   {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                                    <div style={{ borderTop: '1px dashed #86EFAC', paddingTop: '8px', marginTop: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <Paperclip size={14} color="#15803D" />
-                                        <span style={{ fontSize: '0.78rem', color: '#166534', fontWeight: 600 }}>Cargar Informe Digital (PDF):</span>
-                                        <input
-                                          type="file"
-                                          accept=".pdf"
-                                          id="informe-comision-file-input"
-                                          onChange={(e) => setArchivoInformePdf(e.target.files[0] || null)}
-                                          style={{ fontSize: '0.75rem' }}
-                                        />
-                                      </div>
-                                      <div style={{ display: 'flex', gap: '6px' }}>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleSubirInformePdf(tramiteDetalle.id)}
-                                          disabled={!archivoInformePdf || subiendoInforme}
-                                          className="btn btn-sm"
-                                          style={{
-                                            backgroundColor: '#16A34A',
-                                            color: '#FFFFFF',
-                                            padding: '3px 10px',
-                                            fontSize: '0.74rem',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            cursor: (!archivoInformePdf || subiendoInforme) ? 'not-allowed' : 'pointer'
-                                          }}
-                                        >
-                                          {subiendoInforme ? 'Subiendo...' : 'Subir Informe PDF'}
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleConcluirInforme(tramiteDetalle.id)}
-                                          disabled={concluyendoInforme}
-                                          className="btn btn-sm"
-                                          style={{
-                                            backgroundColor: '#0D9488',
-                                            color: '#FFFFFF',
-                                            padding: '3px 10px',
-                                            fontSize: '0.74rem',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            fontWeight: 700,
-                                            cursor: concluyendoInforme ? 'not-allowed' : 'pointer'
-                                          }}
-                                        >
-                                          {concluyendoInforme ? 'Concluyendo...' : '✓ Concluir Elaboración de Informe'}
-                                        </button>
+                                    <div style={{ borderTop: '1px solid #BBF7D0', paddingTop: '10px', marginTop: '10px' }}>
+                                      {/* Banner si ya se cargó un PDF previamente */}
+                                      {tramiteDetalle.adjuntos && tramiteDetalle.adjuntos.length > 0 && (
+                                        <div style={{ marginBottom: '10px', padding: '8px 12px', backgroundColor: '#DCFCE7', borderRadius: '6px', border: '1px solid #86EFAC', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#166534' }}>
+                                            <FileCheck size={16} color="#16A34A" />
+                                            <span><strong>PDF Adjunto en expediente:</strong> {tramiteDetalle.adjuntos[0].nombre_original}</span>
+                                          </div>
+                                          <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 600 }}>Listo para Concluir</span>
+                                        </div>
+                                      )}
+
+                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 auto', minWidth: '240px' }}>
+                                          <Paperclip size={16} color="#15803D" />
+                                          <span style={{ fontSize: '0.82rem', color: '#166534', fontWeight: 600 }}>Cargar Informe Digital (PDF):</span>
+                                          <input
+                                            type="file"
+                                            accept=".pdf"
+                                            id="informe-comision-file-input"
+                                            onChange={(e) => setArchivoInformePdf(e.target.files[0] || null)}
+                                            style={{ fontSize: '0.82rem', color: '#334155' }}
+                                          />
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleSubirInformePdf(tramiteDetalle.id)}
+                                            disabled={!archivoInformePdf || subiendoInforme}
+                                            className="btn btn-sm"
+                                            style={{
+                                              backgroundColor: (!archivoInformePdf || subiendoInforme) ? '#94A3B8' : '#16A34A',
+                                              color: '#FFFFFF',
+                                              padding: '6px 14px',
+                                              fontSize: '0.82rem',
+                                              border: 'none',
+                                              borderRadius: '6px',
+                                              cursor: (!archivoInformePdf || subiendoInforme) ? 'not-allowed' : 'pointer',
+                                              fontWeight: 600,
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              gap: '6px',
+                                              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                              transition: 'all 0.15s ease'
+                                            }}
+                                          >
+                                            <Upload size={14} />
+                                            <span>{subiendoInforme ? 'Subiendo PDF...' : 'Subir Informe PDF'}</span>
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleConcluirInforme(tramiteDetalle.id)}
+                                            disabled={concluyendoInforme || !tramiteDetalle.adjuntos || tramiteDetalle.adjuntos.length === 0}
+                                            className="btn btn-sm"
+                                            title={(!tramiteDetalle.adjuntos || tramiteDetalle.adjuntos.length === 0) ? 'Debe subir primero el archivo digital PDF del informe' : 'Concluir elaboración de informe y habilitar Sesión del Pleno'}
+                                            style={{
+                                              backgroundColor: (concluyendoInforme || !tramiteDetalle.adjuntos || tramiteDetalle.adjuntos.length === 0) ? '#94A3B8' : '#0D9488',
+                                              color: '#FFFFFF',
+                                              padding: '6px 14px',
+                                              fontSize: '0.82rem',
+                                              border: 'none',
+                                              borderRadius: '6px',
+                                              fontWeight: 700,
+                                              cursor: (concluyendoInforme || !tramiteDetalle.adjuntos || tramiteDetalle.adjuntos.length === 0) ? 'not-allowed' : 'pointer',
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              gap: '6px',
+                                              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                              transition: 'all 0.15s ease'
+                                            }}
+                                          >
+                                            <CheckCircle2 size={14} />
+                                            <span>{concluyendoInforme ? 'Concluyendo...' : '✓ Concluir Elaboración de Informe'}</span>
+                                          </button>
+                                        </div>
                                       </div>
                                     </div>
                                   )}
                                   {subidaInformeSuccess && (
-                                    <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#15803D', fontWeight: 600 }}>
+                                    <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#15803D', fontWeight: 600, padding: '6px 10px', backgroundColor: '#DCFCE7', borderRadius: '4px' }}>
                                       ✅ {subidaInformeSuccess}
                                     </div>
                                   )}
                                   {subidaInformeError && (
-                                    <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#DC2626', fontWeight: 600 }}>
+                                    <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#DC2626', fontWeight: 600, padding: '6px 10px', backgroundColor: '#FEE2E2', borderRadius: '4px' }}>
                                       ⚠️ {subidaInformeError}
                                     </div>
                                   )}
                                   {concluirInformeError && (
-                                    <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#DC2626', fontWeight: 600 }}>
+                                    <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#DC2626', fontWeight: 600, padding: '6px 10px', backgroundColor: '#FEE2E2', borderRadius: '4px' }}>
                                       ⚠️ {concluirInformeError}
                                     </div>
                                   )}
@@ -2693,33 +2817,33 @@ export default function EscritorioVirtual() {
                             {/* 2. Sub-sección: Aprobación en Sesión del Pleno */}
                             <div style={{ marginBottom: '1rem' }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1E3A8A', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E3A8A', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                   🏛️ 2. SESIÓN DEL PLENO DEL CMS
                                 </span>
                               </div>
                               {!esInformeConcluido ? (
                                 <div
                                   style={{
-                                    padding: '12px 14px',
-                                    borderRadius: '6px',
+                                    padding: '14px 16px',
+                                    borderRadius: '8px',
                                     backgroundColor: '#FFFBEB',
                                     border: '1.5px dashed #F59E0B',
                                     color: '#92400E',
-                                    fontSize: '0.8rem',
+                                    fontSize: '0.82rem',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '8px'
+                                    gap: '10px'
                                   }}
                                 >
-                                  <Lock size={16} color="#D97706" />
+                                  <Lock size={18} color="#D97706" />
                                   <span>
                                     <strong>Sesión del Pleno Bloqueada (Paso 2):</strong> Debe completar primero la <strong>Elaboración de Informe de Comisión (Paso 1)</strong> antes de habilitar el tratamiento y aprobación en el Pleno Camaral.
                                   </span>
                                 </div>
                               ) : (
-                                <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1E3A8A' }}>
+                                <div style={{ backgroundColor: '#FFFFFF', padding: '14px 16px', borderRadius: '8px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E3A8A' }}>
                                       Registro de Aprobación Plenaria
                                     </span>
                                     {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
@@ -2731,18 +2855,18 @@ export default function EscritorioVirtual() {
                                           style={{
                                             backgroundColor: '#94A3B8',
                                             color: '#FFFFFF',
-                                            padding: '3px 8px',
-                                            fontSize: '0.72rem',
+                                            padding: '6px 14px',
+                                            fontSize: '0.82rem',
                                             border: 'none',
-                                            borderRadius: '4px',
+                                            borderRadius: '6px',
                                             cursor: 'not-allowed',
                                             display: 'inline-flex',
                                             alignItems: 'center',
-                                            gap: '4px'
+                                            gap: '6px'
                                           }}
                                           title="Sistema cerrado por vencimiento de plazo reglamentario de 5 a 15 días"
                                         >
-                                          <Lock size={12} />
+                                          <Lock size={14} />
                                           <span>⛔ Bloqueado: Plazo Vencido</span>
                                         </button>
                                       ) : (
@@ -2753,37 +2877,44 @@ export default function EscritorioVirtual() {
                                           style={{
                                             backgroundColor: '#1E3A8A',
                                             color: '#FFFFFF',
-                                            padding: '3px 8px',
-                                            fontSize: '0.72rem',
+                                            padding: '6px 14px',
+                                            fontSize: '0.82rem',
                                             border: 'none',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer'
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                            fontWeight: 600,
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                            transition: 'all 0.15s ease'
                                           }}
                                         >
-                                          {tramiteDetalle.sesion_pleno_nro ? 'Modificar Sesión' : '+ Registrar Aprobación Plenaria'}
+                                          <Award size={14} />
+                                          <span>{tramiteDetalle.sesion_pleno_nro ? 'Modificar Sesión' : '+ Registrar Aprobación Plenaria'}</span>
                                         </button>
                                       )
                                     )}
                                   </div>
                                   {tramiteDetalle.sesion_pleno_nro ? (
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', fontSize: '0.85rem' }}>
                                       <div>
-                                        <small style={{ color: '#64748B', display: 'block' }}>NRO DE SESIÓN</small>
+                                        <small style={{ color: '#64748B', display: 'block', fontWeight: 600 }}>NRO DE SESIÓN</small>
                                         <strong style={{ color: '#1E3A8A' }}>{tramiteDetalle.sesion_pleno_nro}</strong>
                                       </div>
                                       <div>
-                                        <small style={{ color: '#64748B', display: 'block' }}>FECHA DE TRATAMIENTO</small>
+                                        <small style={{ color: '#64748B', display: 'block', fontWeight: 600 }}>FECHA DE TRATAMIENTO</small>
                                         <span>{formatFecha(tramiteDetalle.sesion_pleno_fecha)}</span>
                                       </div>
                                       <div>
-                                        <small style={{ color: '#64748B', display: 'block' }}>RESULTADO DE VOTACIÓN</small>
-                                        <span className="badge" style={{ backgroundColor: '#059669', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                                        <small style={{ color: '#64748B', display: 'block', fontWeight: 600 }}>RESULTADO DE VOTACIÓN</small>
+                                        <span className="badge" style={{ backgroundColor: '#059669', color: '#FFFFFF', fontSize: '10px', fontWeight: 700, padding: '3px 8px' }}>
                                           {tramiteDetalle.sesion_pleno_resultado}
                                         </span>
                                       </div>
                                     </div>
                                   ) : (
-                                    <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                                    <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '0.82rem', fontStyle: 'italic' }}>
                                       Trámite pendiente de tratamiento en Sesión del Pleno del Concejo Municipal de Sucre.
                                     </p>
                                   )}
@@ -2796,154 +2927,203 @@ export default function EscritorioVirtual() {
 
                       {/* 3. Sub-sección: Firmas Duales Concurrentes */}
                       <div style={{ marginBottom: '1rem' }}>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0F172A', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          <Stamp size={15} color="#0D9488" />
+                        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0F172A', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Stamp size={16} color="#0D9488" />
                           <span>3. FIRMAS DUALES CONCURRENTES (Suscripción Notificada CMS)</span>
                         </div>
                         {!tramiteDetalle.sesion_pleno_nro ? (
                           <div
                             style={{
-                              padding: '12px 14px',
-                              borderRadius: '6px',
+                              padding: '14px 16px',
+                              borderRadius: '8px',
                               backgroundColor: '#FFFBEB',
                               border: '1.5px dashed #F59E0B',
                               color: '#92400E',
-                              fontSize: '0.8rem',
+                              fontSize: '0.82rem',
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '8px'
+                              gap: '10px'
                             }}
                           >
-                            <Lock size={16} color="#D97706" />
+                            <Lock size={18} color="#D97706" />
                             <span>
                               <strong>Firmas Duales Bloqueadas (Paso 3):</strong> Debe registrar primero la <strong>Aprobación en Sesión del Pleno</strong> (Paso 2) antes de habilitar las firmas duales reglamentarias.
                             </span>
                           </div>
                         ) : (
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-                            {/* Sello Presidencia CMS */}
-                            <div
-                              style={{
-                                padding: '12px 14px',
-                                borderRadius: '6px',
-                                backgroundColor: tramiteDetalle.firma_presidencia ? '#F0FDF4' : '#FFFFFF',
-                                border: tramiteDetalle.firma_presidencia ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '6px'
-                              }}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#166534' }}>
-                                  🏛️ PRESIDENCIA DEL CMS
-                                </span>
-                                {tramiteDetalle.firma_presidencia ? (
-                                  <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700 }}>
-                                    ✓ RÚBRICA VALIDADA
-                                  </span>
-                                ) : (
-                                  <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px' }}>
-                                    PENDIENTE
-                                  </span>
-                                )}
-                              </div>
-                              {tramiteDetalle.firma_presidencia ? (
-                                <div style={{ fontSize: '0.8rem', color: '#166534' }}>
-                                  <div><strong>Firmado por:</strong> {tramiteDetalle.firma_presidencia_usuario}</div>
-                                  <div><small>{formatFecha(tramiteDetalle.firma_presidencia_fecha)}</small></div>
-                                </div>
-                              ) : (
+                          <>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                              {/* Sello Presidencia CMS */}
+                              <div
+                                style={{
+                                  padding: '14px 16px',
+                                  borderRadius: '8px',
+                                  backgroundColor: tramiteDetalle.firma_presidencia ? '#F0FDF4' : '#FFFFFF',
+                                  border: tramiteDetalle.firma_presidencia ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  justifyContent: 'space-between',
+                                  gap: '10px',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                                }}
+                              >
                                 <div>
-                                  <p style={{ margin: '2px 0 6px', fontSize: '0.75rem', color: '#64748B' }}>
-                                    Pendiente de firma y rúbrica de la Presidencia del Concejo Municipal.
-                                  </p>
-                                  {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleAbrirFirmas(tramiteDetalle)}
-                                      className="btn btn-sm"
-                                      style={{
-                                        backgroundColor: '#0D9488',
-                                        color: '#FFFFFF',
-                                        fontSize: '0.72rem',
-                                        padding: '3px 8px',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer'
-                                      }}
-                                    >
-                                      Estampar Firma Presidencia
-                                    </button>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#166534' }}>
+                                      🏛️ PRESIDENCIA DEL CMS
+                                    </span>
+                                    {tramiteDetalle.firma_presidencia ? (
+                                      <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700, padding: '3px 8px' }}>
+                                        ✓ RÚBRICA VALIDADA
+                                      </span>
+                                    ) : (
+                                      <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px', padding: '3px 8px' }}>
+                                        PENDIENTE
+                                      </span>
+                                    )}
+                                  </div>
+                                  {tramiteDetalle.firma_presidencia ? (
+                                    <div style={{ fontSize: '0.82rem', color: '#166534' }}>
+                                      <div><strong>Firmado por:</strong> {tramiteDetalle.firma_presidencia_usuario}</div>
+                                      <div><small>{formatFecha(tramiteDetalle.firma_presidencia_fecha)}</small></div>
+                                    </div>
+                                  ) : (
+                                    <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#64748B' }}>
+                                      Pendiente de firma y rúbrica de la Presidencia del Concejo Municipal.
+                                    </p>
                                   )}
                                 </div>
-                              )}
-                            </div>
+                                {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && !tramiteDetalle.firma_presidencia && (
+                                  <div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleFirmarDirecto('PRESIDENCIA')}
+                                      disabled={firmandoTipo !== null}
+                                      className="btn btn-sm"
+                                      style={{
+                                        backgroundColor: firmandoTipo === 'PRESIDENCIA' ? '#0F766E' : '#0D9488',
+                                        color: '#FFFFFF',
+                                        fontSize: '0.82rem',
+                                        padding: '7px 14px',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        cursor: firmandoTipo !== null ? 'not-allowed' : 'pointer',
+                                        fontWeight: 600,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                        transition: 'all 0.15s ease'
+                                      }}
+                                    >
+                                      {firmandoTipo === 'PRESIDENCIA' ? (
+                                        <>
+                                          <RefreshCw size={14} className="spin-animation" />
+                                          <span>Estampando rúbrica...</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Stamp size={14} />
+                                          <span>Estampar Firma Presidencia</span>
+                                        </>
+                                      )}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
 
-                            {/* Sello Secretaría General CMS */}
-                            <div
-                              style={{
-                                padding: '12px 14px',
-                                borderRadius: '6px',
-                                backgroundColor: tramiteDetalle.firma_secretaria ? '#F0FDF4' : '#FFFFFF',
-                                border: tramiteDetalle.firma_secretaria ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '6px'
-                              }}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#166534' }}>
-                                  ✍️ SECRETARÍA GENERAL CMS
-                                </span>
-                                {tramiteDetalle.firma_secretaria ? (
-                                  <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700 }}>
-                                    ✓ RÚBRICA VALIDADA
-                                  </span>
-                                ) : (
-                                  <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px' }}>
-                                    PENDIENTE
-                                  </span>
-                                )}
-                              </div>
-                              {tramiteDetalle.firma_secretaria ? (
-                                <div style={{ fontSize: '0.8rem', color: '#166534' }}>
-                                  <div><strong>Firmado por:</strong> {tramiteDetalle.firma_secretaria_usuario}</div>
-                                  <div><small>{formatFecha(tramiteDetalle.firma_secretaria_fecha)}</small></div>
-                                </div>
-                              ) : (
+                              {/* Sello Secretaría General CMS */}
+                              <div
+                                style={{
+                                  padding: '14px 16px',
+                                  borderRadius: '8px',
+                                  backgroundColor: tramiteDetalle.firma_secretaria ? '#F0FDF4' : '#FFFFFF',
+                                  border: tramiteDetalle.firma_secretaria ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  justifyContent: 'space-between',
+                                  gap: '10px',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                                }}
+                              >
                                 <div>
-                                  <p style={{ margin: '2px 0 6px', fontSize: '0.75rem', color: '#64748B' }}>
-                                    Pendiente de firma y rúbrica de la Secretaría General del Concejo Municipal.
-                                  </p>
-                                  {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleAbrirFirmas(tramiteDetalle)}
-                                      className="btn btn-sm"
-                                      style={{
-                                        backgroundColor: '#0D9488',
-                                        color: '#FFFFFF',
-                                        fontSize: '0.72rem',
-                                        padding: '3px 8px',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer'
-                                      }}
-                                    >
-                                      Estampar Firma Secretaría
-                                    </button>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#166534' }}>
+                                      ✍️ SECRETARÍA GENERAL CMS
+                                    </span>
+                                    {tramiteDetalle.firma_secretaria ? (
+                                      <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700, padding: '3px 8px' }}>
+                                        ✓ RÚBRICA VALIDADA
+                                      </span>
+                                    ) : (
+                                      <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px', padding: '3px 8px' }}>
+                                        PENDIENTE
+                                      </span>
+                                    )}
+                                  </div>
+                                  {tramiteDetalle.firma_secretaria ? (
+                                    <div style={{ fontSize: '0.82rem', color: '#166534' }}>
+                                      <div><strong>Firmado por:</strong> {tramiteDetalle.firma_secretaria_usuario}</div>
+                                      <div><small>{formatFecha(tramiteDetalle.firma_secretaria_fecha)}</small></div>
+                                    </div>
+                                  ) : (
+                                    <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#64748B' }}>
+                                      Pendiente de firma y rúbrica de la Secretaría General del Concejo Municipal.
+                                    </p>
                                   )}
                                 </div>
-                              )}
+                                {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && !tramiteDetalle.firma_secretaria && (
+                                  <div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleFirmarDirecto('SECRETARIA')}
+                                      disabled={firmandoTipo !== null}
+                                      className="btn btn-sm"
+                                      style={{
+                                        backgroundColor: firmandoTipo === 'SECRETARIA' ? '#0F766E' : '#0D9488',
+                                        color: '#FFFFFF',
+                                        fontSize: '0.82rem',
+                                        padding: '7px 14px',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        cursor: firmandoTipo !== null ? 'not-allowed' : 'pointer',
+                                        fontWeight: 600,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                        transition: 'all 0.15s ease'
+                                      }}
+                                    >
+                                      {firmandoTipo === 'SECRETARIA' ? (
+                                        <>
+                                          <RefreshCw size={14} className="spin-animation" />
+                                          <span>Estampando rúbrica...</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Stamp size={14} />
+                                          <span>Estampar Firma Secretaría</span>
+                                        </>
+                                      )}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
+                            {firmasErrorDirecto && (
+                              <div style={{ marginTop: '8px', fontSize: '0.82rem', color: '#DC2626', fontWeight: 600, padding: '6px 12px', backgroundColor: '#FEE2E2', borderRadius: '6px' }}>
+                                ⚠️ {firmasErrorDirecto}
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
 
                       {/* 4. Sub-sección: Despacho Final al Ejecutivo */}
-                      <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#7C3AED', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <div style={{ backgroundColor: '#FFFFFF', padding: '14px 16px', borderRadius: '8px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#7C3AED', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             📬 4. DESPACHO FINAL AL EJECUTIVO / DESTINO EXTERNO
                           </span>
                           {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
@@ -2955,11 +3135,17 @@ export default function EscritorioVirtual() {
                               style={{
                                 backgroundColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#7C3AED' : '#CBD5E1',
                                 color: '#FFFFFF',
-                                padding: '3px 8px',
-                                fontSize: '0.72rem',
+                                padding: '6px 14px',
+                                fontSize: '0.82rem',
                                 border: 'none',
-                                borderRadius: '4px',
-                                cursor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? 'pointer' : 'not-allowed'
+                                borderRadius: '6px',
+                                cursor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? 'pointer' : 'not-allowed',
+                                fontWeight: 600,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                transition: 'all 0.15s ease'
                               }}
                               title={
                                 (!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria)
@@ -2967,7 +3153,8 @@ export default function EscritorioVirtual() {
                                   : 'Proceder al despacho final al Alcalde Municipal o institución externa'
                               }
                             >
-                              + Despacho Final
+                              <Send size={14} />
+                              <span>+ Despacho Final</span>
                             </button>
                           )}
                         </div>
@@ -5427,49 +5614,6 @@ export default function EscritorioVirtual() {
                 </div>
               </div>
 
-              {/* Confirmación de Instrumento Normativo */}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1E3A8A', marginBottom: '4px' }}>
-                  Instrumento Legislativo Proyectado
-                </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '6px' }}>
-                  {[
-                    { sigla: 'MINUTA', nombre: 'Minuta de Comunicación', color: '#1E3A8A' },
-                    { sigla: 'RESOLUCION', nombre: 'Resolución Municipal', color: '#7C3AED' },
-                    { sigla: 'PIE', nombre: 'Petición Inf. Escrito', color: '#0369A1' },
-                    { sigla: 'PIO', nombre: 'Petición Inf. Oral', color: '#0D9488' },
-                    { sigla: 'NOTA_EXTERNA', nombre: 'Nota Externa Saliente', color: '#047857' },
-                    { sigla: 'INFORME', nombre: 'Informe de Comisión', color: '#4B5563' }
-                  ].map((inst) => {
-                    const sel = instrumentoPleno === inst.sigla;
-                    return (
-                      <button
-                        key={inst.sigla}
-                        type="button"
-                        onClick={() => setInstrumentoPleno(inst.sigla)}
-                        style={{
-                          padding: '6px 8px',
-                          borderRadius: '6px',
-                          border: sel ? `2px solid ${inst.color}` : '1px solid #E2E8F0',
-                          backgroundColor: sel ? '#F8FAFC' : '#FFFFFF',
-                          color: sel ? inst.color : '#475569',
-                          fontWeight: sel ? 700 : 500,
-                          fontSize: '0.78rem',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: '2px'
-                        }}
-                      >
-                        <span>{inst.sigla}</span>
-                        <span style={{ fontSize: '0.68rem', color: '#64748B' }}>{inst.nombre}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
               {/* Considerandos y Proveído */}
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1E3A8A', marginBottom: '4px' }}>
@@ -5541,365 +5685,7 @@ export default function EscritorioVirtual() {
         </div>
       )}
 
-      {/* ─────────────────────────────────────────────────────────────
-          MODAL: REGISTRO DE FIRMAS DUALES CONCURRENTES CMS
-         ───────────────────────────────────────────────────────────── */}
-      {firmasModalOpen && tramiteAFirmas && (
-        <div
-          className="modal-backdrop"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.55)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 12000,
-            padding: '1rem'
-          }}
-        >
-          <div
-            className="modal-content"
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: '8px',
-              maxWidth: '720px',
-              width: '100%',
-              maxHeight: '90vh',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-              border: '1px solid #E2E8F0',
-              overflow: 'hidden'
-            }}
-          >
-            {/* Header */}
-            <div
-              className="modal-header"
-              style={{
-                padding: '1.25rem 1.5rem',
-                borderBottom: '1px solid #E2E8F0',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                backgroundColor: '#0D9488',
-                color: '#FFFFFF'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <Stamp size={22} color="#A7F3D0" />
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#FFFFFF' }}>
-                    Firmas Duales Concurrentes (CMS)
-                  </h3>
-                  <div style={{ fontSize: '0.78rem', color: '#CCFBF1', marginTop: '2px' }}>
-                    Trámite: <strong>{tramiteAFirmas.numero_correlativo || tramiteAFirmas.codigo}</strong> • Presidencia y Secretaría General
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setFirmasModalOpen(false)}
-                disabled={firmando}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#FFFFFF',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  opacity: 0.8
-                }}
-              >
-                <X size={20} />
-              </button>
-            </div>
 
-            {/* Body */}
-            <div
-              className="modal-body"
-              style={{
-                padding: '1.5rem',
-                overflowY: 'auto',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.2rem'
-              }}
-            >
-              {/* Explicación reglamentaria */}
-              <div
-                style={{
-                  backgroundColor: '#F0FDFA',
-                  borderLeft: '4px solid #0D9488',
-                  padding: '10px 14px',
-                  borderRadius: '0 6px 6px 0',
-                  fontSize: '0.82rem',
-                  color: '#134E4A'
-                }}
-              >
-                <strong>Principio de Firmas Duales Concurrentes:</strong>
-                <p style={{ margin: '3px 0 0' }}>
-                  De acuerdo con el Reglamento Interno del Concejo Municipal de Sucre, los instrumentos legislativos aprobados por el Pleno deben ser suscritos conjuntamente por <strong>Presidencia del CMS</strong> y <strong>Secretaría General del CMS</strong> antes de su remisión formal al Alcalde Municipal. Ambas firmas pueden estamparse en cualquier orden cronológico.
-                </p>
-              </div>
-
-              {/* Panel de sellos de firmas duales */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                {/* Sello Presidencia */}
-                <div
-                  style={{
-                    border: tramiteAFirmas.firma_presidencia ? '2px solid #10B981' : '2px dashed #CBD5E1',
-                    borderRadius: '8px',
-                    padding: '1.25rem',
-                    backgroundColor: tramiteAFirmas.firma_presidencia ? '#F0FDF4' : '#F8FAFC',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    minHeight: '190px',
-                    position: 'relative'
-                  }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#166534' }}>
-                        🏛️ PRESIDENCIA CMS
-                      </span>
-                      {tramiteAFirmas.firma_presidencia ? (
-                        <span className="badge" style={{ backgroundColor: '#10B981', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
-                          ✓ FIRMADO
-                        </span>
-                      ) : (
-                        <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '10px' }}>
-                          PENDIENTE
-                        </span>
-                      )}
-                    </div>
-                    {tramiteAFirmas.firma_presidencia ? (
-                      <div style={{ fontSize: '0.82rem', color: '#14532D', marginTop: '6px' }}>
-                        <div><strong>Firmado por:</strong> {tramiteAFirmas.firma_presidencia_usuario}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#15803D', marginTop: '3px' }}>
-                          📅 {formatFecha(tramiteAFirmas.firma_presidencia_fecha)}
-                        </div>
-                        <div style={{ marginTop: '8px', fontSize: '0.72rem', color: '#166534', fontStyle: 'italic' }}>
-                          Sello y rúbrica electrónica registrada conforme a Ley.
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '6px' }}>
-                        Firma reglamentaria de la Presidencia del Concejo Municipal pendiente de estampado.
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ marginTop: '12px' }}>
-                    <button
-                      type="button"
-                      onClick={() => handleFirmar('PRESIDENCIA')}
-                      disabled={firmando}
-                      className="btn btn-sm"
-                      style={{
-                        width: '100%',
-                        backgroundColor: tramiteAFirmas.firma_presidencia ? '#059669' : '#0D9488',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        padding: '7px 12px',
-                        borderRadius: '4px',
-                        fontWeight: 600,
-                        fontSize: '0.8rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {firmando ? <RefreshCw size={13} className="spin-animation" /> : <Stamp size={14} />}
-                      <span>{tramiteAFirmas.firma_presidencia ? 'Re-confirmar Firma Presidencia' : 'Estampar Firma Presidencia'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Sello Secretaría General */}
-                <div
-                  style={{
-                    border: tramiteAFirmas.firma_secretaria ? '2px solid #10B981' : '2px dashed #CBD5E1',
-                    borderRadius: '8px',
-                    padding: '1.25rem',
-                    backgroundColor: tramiteAFirmas.firma_secretaria ? '#F0FDF4' : '#F8FAFC',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    minHeight: '190px',
-                    position: 'relative'
-                  }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#166534' }}>
-                        ✍️ SECRETARÍA GENERAL CMS
-                      </span>
-                      {tramiteAFirmas.firma_secretaria ? (
-                        <span className="badge" style={{ backgroundColor: '#10B981', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
-                          ✓ FIRMADO
-                        </span>
-                      ) : (
-                        <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '10px' }}>
-                          PENDIENTE
-                        </span>
-                      )}
-                    </div>
-                    {tramiteAFirmas.firma_secretaria ? (
-                      <div style={{ fontSize: '0.82rem', color: '#14532D', marginTop: '6px' }}>
-                        <div><strong>Firmado por:</strong> {tramiteAFirmas.firma_secretaria_usuario}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#15803D', marginTop: '3px' }}>
-                          📅 {formatFecha(tramiteAFirmas.firma_secretaria_fecha)}
-                        </div>
-                        <div style={{ marginTop: '8px', fontSize: '0.72rem', color: '#166534', fontStyle: 'italic' }}>
-                          Sello y rúbrica electrónica registrada conforme a Ley.
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '6px' }}>
-                        Firma reglamentaria de la Secretaría General del Concejo Municipal pendiente de estampado.
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ marginTop: '12px' }}>
-                    <button
-                      type="button"
-                      onClick={() => handleFirmar('SECRETARIA')}
-                      disabled={firmando}
-                      className="btn btn-sm"
-                      style={{
-                        width: '100%',
-                        backgroundColor: tramiteAFirmas.firma_secretaria ? '#059669' : '#0D9488',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        padding: '7px 12px',
-                        borderRadius: '4px',
-                        fontWeight: 600,
-                        fontSize: '0.8rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {firmando ? <RefreshCw size={13} className="spin-animation" /> : <Stamp size={14} />}
-                      <span>{tramiteAFirmas.firma_secretaria ? 'Re-confirmar Firma Secretaría' : 'Estampar Firma Secretaría'}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Observaciones de Firma */}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                  Observaciones adicionales de rúbrica (opcional)
-                </label>
-                <input
-                  type="text"
-                  value={observacionesFirma}
-                  onChange={(e) => setObservacionesFirma(e.target.value)}
-                  placeholder="Ej: Suscrito en Sala de Sesiones con constancia de quórum reglamentario."
-                  className="form-control"
-                  style={{
-                    width: '100%',
-                    padding: '7px 10px',
-                    borderRadius: '4px',
-                    border: '1px solid #CBD5E1',
-                    fontSize: '0.85rem'
-                  }}
-                />
-              </div>
-
-              {/* Resumen de estado de firmas */}
-              <div
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: '6px',
-                  backgroundColor: (tramiteAFirmas.firma_presidencia && tramiteAFirmas.firma_secretaria) ? '#ECFDF5' : '#FFFBEB',
-                  border: `1px solid ${(tramiteAFirmas.firma_presidencia && tramiteAFirmas.firma_secretaria) ? '#A7F3D0' : '#FDE68A'}`,
-                  fontSize: '0.85rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                {(tramiteAFirmas.firma_presidencia && tramiteAFirmas.firma_secretaria) ? (
-                  <>
-                    <CheckCheck size={18} color="#059669" />
-                    <span style={{ color: '#065F46', fontWeight: 600 }}>
-                      ¡Firmas duales concurrentes 100% completas! El trámite se encuentra habilitado para el Despacho Final.
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle size={18} color="#D97706" />
-                    <span style={{ color: '#92400E' }}>
-                      Rúbricas incompletas ({tramiteAFirmas.firma_presidencia || tramiteAFirmas.firma_secretaria ? '1 de 2 registradas' : '0 de 2 registradas'}). El Despacho Final permanecerá bloqueado hasta estampar ambas firmas.
-                    </span>
-                  </>
-                )}
-              </div>
-
-              {firmasError && (
-                <div style={{ backgroundColor: '#FEE2E2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '8px 12px', borderRadius: '4px', fontSize: '0.82rem' }}>
-                  {firmasError}
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div
-              className="modal-footer"
-              style={{
-                padding: '1rem 1.5rem',
-                borderTop: '1px solid #E2E8F0',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '0.75rem',
-                backgroundColor: '#F8F9FA'
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setFirmasModalOpen(false)}
-                className="btn btn-secondary"
-              >
-                Cerrar
-              </button>
-              {tramiteAFirmas.firma_presidencia && tramiteAFirmas.firma_secretaria && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFirmasModalOpen(false);
-                    handleAbrirDespacho(tramiteAFirmas);
-                  }}
-                  className="btn btn-primary"
-                  style={{
-                    backgroundColor: '#7C3AED',
-                    borderColor: '#7C3AED',
-                    color: '#FFFFFF',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <FileCheck size={15} />
-                  <span>Proceder al Despacho Final</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ─────────────────────────────────────────────────────────────
           MODAL: DESPACHO FINAL AL EJECUTIVO O DESTINO EXTERNO CMS

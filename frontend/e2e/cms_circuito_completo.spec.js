@@ -184,13 +184,39 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
       await modalIniciar.locator('button:has-text("Confirmar Inicio de Elaboración")').click();
       await page.waitForTimeout(1500);
     }
+
     const btnConcluirInforme = modalDetalle.locator('button:has-text("Concluir Elaboración de Informe")');
     if (await btnConcluirInforme.isVisible()) {
-      await btnConcluirInforme.click();
-      await page.waitForTimeout(1500);
+      // 4.1 Verificar que antes de subir el PDF, el botón Concluir está deshabilitado
+      const fileInput = modalDetalle.locator('input[type="file"]#informe-comision-file-input');
+      if (await fileInput.isVisible()) {
+        await expect(btnConcluirInforme).toBeDisabled();
+
+        // 4.2 Subir el archivo PDF del informe
+        const dummyPdf = Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF');
+        await fileInput.setInputFiles({
+          name: 'informe_comision_tecnica.pdf',
+          mimeType: 'application/pdf',
+          buffer: dummyPdf
+        });
+        await modalDetalle.locator('button:has-text("Subir Informe PDF")').click();
+        await page.waitForTimeout(2000);
+
+        // 4.3 Verificar que subir el PDF NO concluye automáticamente el paso (Paso 2 sigue bloqueado)
+        await expect(modalDetalle.locator('text=Sesión del Pleno Bloqueada (Paso 2)')).toBeVisible();
+
+        // 4.4 Ahora concluir el informe explícitamente
+        await expect(btnConcluirInforme).toBeEnabled();
+        await btnConcluirInforme.click();
+        await page.waitForTimeout(2000);
+      }
     }
 
-    const btnAbrirPleno = modalDetalle.locator('button:has-text("+ Registrar Aprobación Plenaria"), button:has-text("Pleno (Modificar)"), button:has-text("Pleno CMS")').first();
+    // Validar que en estado CONCLUIDO se muestre el botón de Ver PDF
+    await expect(modalDetalle.locator('text=1. ELABORACIÓN DE INFORME DE COMISIÓN (CONCLUIDO)')).toBeVisible();
+    await expect(modalDetalle.locator('a:has-text("Ver PDF")')).toBeVisible();
+
+    const btnAbrirPleno = modalDetalle.locator('button:has-text("+ Registrar Aprobación Plenaria"), button:has-text("Modificar Sesión")').first();
     await expect(btnAbrirPleno).toBeVisible();
     await btnAbrirPleno.click();
 
@@ -198,10 +224,10 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     const modalPleno = page.locator('.modal-backdrop').last();
     await expect(modalPleno.locator('h3:has-text("Aprobación en Sesión del Pleno del CMS")')).toBeVisible({ timeout: 5000 });
 
-    // Validar campos requeridos
+    // Validar campos requeridos y que NO existe "Instrumento Legislativo Proyectado"
     await expect(modalPleno.locator('label:has-text("Número o Denominación de la Sesión del Pleno")')).toBeVisible();
     await expect(modalPleno.locator('label:has-text("Resultado del Pleno Camaral")')).toBeVisible();
-    await expect(modalPleno.locator('label:has-text("Instrumento Legislativo Proyectado")')).toBeVisible();
+    await expect(modalPleno.locator('label:has-text("Instrumento Legislativo Proyectado")')).toHaveCount(0);
 
     // Probar chip de sugerencia rápida de sesión ordinaria
     const chipOrdinaria = modalPleno.locator('button:has-text("+ Ordinaria N° 045")').first();
@@ -212,9 +238,6 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
 
     // Seleccionar Resultado: Aprobado por Unanimidad
     await modalPleno.locator('select').first().selectOption('APROBADO_UNANIMIDAD');
-
-    // Seleccionar Instrumento Proyectado MINUTA
-    await modalPleno.locator('button:has-text("MINUTA")').first().click();
 
     // Rellenar considerandos
     await modalPleno.locator('textarea').fill('Aprobado por el Pleno Camaral del CMS tras debate en Sala de Sesiones con quórum reglamentario.');
@@ -282,8 +305,19 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
       await modalIniciar.locator('button:has-text("Confirmar Inicio de Elaboración")').click();
       await page.waitForTimeout(1000);
     }
+    const fileInput5 = modalDetalle.locator('input[type="file"]#informe-comision-file-input');
+    if (await fileInput5.isVisible()) {
+      const dummyPdf = Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF');
+      await fileInput5.setInputFiles({
+        name: 'informe_comision_tecnica.pdf',
+        mimeType: 'application/pdf',
+        buffer: dummyPdf
+      });
+      await modalDetalle.locator('button:has-text("Subir Informe PDF")').click();
+      await page.waitForTimeout(1500);
+    }
     const btnConcluirInforme5 = modalDetalle.locator('button:has-text("Concluir Elaboración de Informe")');
-    if (await btnConcluirInforme5.isVisible()) {
+    if (await btnConcluirInforme5.isVisible() && await btnConcluirInforme5.isEnabled()) {
       await btnConcluirInforme5.click();
       await page.waitForTimeout(1000);
     }
@@ -298,36 +332,25 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
       await page.waitForTimeout(1500);
     }
 
-    // Abrir Firmas Duales
-    const btnFirmas = modalDetalle.locator('button:has-text("Firmas Duales"), button:has-text("Estampar Firma Presidencia")').first();
-    await expect(btnFirmas).toBeVisible({ timeout: 10000 });
-    await btnFirmas.click();
+    // 5.1 Estampar Firma de Presidencia directamente en el panel de firmas duales
+    const btnFirmaPresidencia = modalDetalle.locator('button:has-text("Estampar Firma Presidencia")').first();
+    if (await btnFirmaPresidencia.isVisible()) {
+      await btnFirmaPresidencia.click();
+      await page.waitForTimeout(1200);
+      await expect(modalDetalle.locator('text=🏛️ PRESIDENCIA DEL CMS').locator('..').locator('text=RÚBRICA VALIDADA')).toBeVisible();
+    }
 
-    // Validar apertura del Modal de Firmas Duales Concurrentes
-    const modalFirmas = page.locator('.modal-backdrop').last();
-    await expect(modalFirmas.locator('h3:has-text("Firmas Duales Concurrentes (CMS)")')).toBeVisible({ timeout: 5000 });
-
-    // Validar ambos paneles de sello (Presidencia y Secretaría General)
-    await expect(modalFirmas.locator('text=PRESIDENCIA CMS')).toBeVisible();
-    await expect(modalFirmas.locator('text=SECRETARÍA GENERAL CMS')).toBeVisible();
-
-    // 5.1 Estampar Firma de Presidencia
-    const btnFirmaPresidencia = modalFirmas.locator('button:has-text("Firma Presidencia")').first();
-    await btnFirmaPresidencia.click();
-    await page.waitForTimeout(1000);
-
-    // 5.2 Estampar Firma de Secretaría General
-    const btnFirmaSecretaria = modalFirmas.locator('button:has-text("Firma Secretaría")').first();
-    await btnFirmaSecretaria.click();
-    await page.waitForTimeout(1000);
+    // 5.2 Estampar Firma de Secretaría General directamente en el panel de firmas duales
+    const btnFirmaSecretaria = modalDetalle.locator('button:has-text("Estampar Firma Secretaría")').first();
+    if (await btnFirmaSecretaria.isVisible()) {
+      await btnFirmaSecretaria.click();
+      await page.waitForTimeout(1200);
+      await expect(modalDetalle.locator('text=✍️ SECRETARÍA GENERAL CMS').locator('..').locator('text=RÚBRICA VALIDADA')).toBeVisible();
+    }
 
     // 5.3 Validar que con ambas firmas completadas se habilite el botón de Despacho Final
-    await expect(modalFirmas.locator('text=¡Firmas duales concurrentes 100% completas!')).toBeVisible({ timeout: 10000 });
-    const btnProcederDespacho = modalFirmas.locator('button:has-text("Proceder al Despacho Final")');
-    await expect(btnProcederDespacho).toBeVisible();
-
-    // Cerrar modal de firmas
-    await modalFirmas.locator('button:has-text("Cerrar")').click();
+    const btnDespachoFinal = modalDetalle.locator('button:has-text("+ Despacho Final")');
+    await expect(btnDespachoFinal).toBeEnabled();
 
     // Cerrar modal de detalle
     const btnCerrar = page.locator('.modal-backdrop button:has-text("Cerrar")').first();
@@ -384,8 +407,19 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
       await modalIniciar.locator('button:has-text("Confirmar Inicio de Elaboración")').click();
       await page.waitForTimeout(1000);
     }
+    const fileInput6 = modalDetalle.locator('input[type="file"]#informe-comision-file-input');
+    if (await fileInput6.isVisible()) {
+      const dummyPdf = Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF');
+      await fileInput6.setInputFiles({
+        name: 'informe_comision_tecnica.pdf',
+        mimeType: 'application/pdf',
+        buffer: dummyPdf
+      });
+      await modalDetalle.locator('button:has-text("Subir Informe PDF")').click();
+      await page.waitForTimeout(1500);
+    }
     const btnConcluirInforme6 = modalDetalle.locator('button:has-text("Concluir Elaboración de Informe")');
-    if (await btnConcluirInforme6.isVisible()) {
+    if (await btnConcluirInforme6.isVisible() && await btnConcluirInforme6.isEnabled()) {
       await btnConcluirInforme6.click();
       await page.waitForTimeout(1000);
     }
@@ -400,30 +434,24 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
       await page.waitForTimeout(1500);
     }
 
-    // Asegurar Firmas Duales
-    const btnAbrirFirmas = modalDetalle.locator('button:has-text("Firmas Duales"), button:has-text("Estampar Firma Presidencia")').first();
-    if (await btnAbrirFirmas.isVisible()) {
-      await btnAbrirFirmas.click();
-      const modalFirmas = page.locator('.modal-backdrop').last();
-      await modalFirmas.locator('button:has-text("Firma Presidencia")').first().click();
-      await page.waitForTimeout(800);
-      await modalFirmas.locator('button:has-text("Firma Secretaría")').first().click();
-      await page.waitForTimeout(800);
-      const btnProceder = modalFirmas.locator('button:has-text("Proceder al Despacho Final")');
-      if (await btnProceder.isVisible()) {
-        await btnProceder.click();
-      } else {
-        await modalFirmas.locator('button:has-text("Cerrar")').click();
-      }
+    // Asegurar Firmas Duales estampadas directamente
+    const btnFirmaPres6 = modalDetalle.locator('button:has-text("Estampar Firma Presidencia")').first();
+    if (await btnFirmaPres6.isVisible()) {
+      await btnFirmaPres6.click();
+      await page.waitForTimeout(1200);
+    }
+    const btnFirmaSec6 = modalDetalle.locator('button:has-text("Estampar Firma Secretaría")').first();
+    if (await btnFirmaSec6.isVisible()) {
+      await btnFirmaSec6.click();
+      await page.waitForTimeout(1200);
     }
 
-    // Abrir Despacho Final si no se abrió automáticamente
+    // Abrir Despacho Final directamente desde el botón habilitado
+    const btnDespacho = modalDetalle.locator('button:has-text("+ Despacho Final")').first();
+    await expect(btnDespacho).toBeEnabled();
+    await btnDespacho.click();
+
     const modalDespacho = page.locator('.modal-backdrop').last();
-    if (!await modalDespacho.locator('h3:has-text("Despacho Final al Ejecutivo Municipal")').isVisible()) {
-      const btnDespacho = modalDetalle.locator('button:has-text("+ Despacho Final"), button:has-text("Despacho Final")').first();
-      await btnDespacho.click();
-    }
-
     await expect(modalDespacho.locator('h3:has-text("Despacho Final al Ejecutivo Municipal")')).toBeVisible({ timeout: 10000 });
 
     // Rellenar CITE Oficial de Despacho
@@ -528,8 +556,21 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     await modalIniciar7.locator('button:has-text("Confirmar Inicio de Elaboración")').click();
     await page.waitForTimeout(1000);
 
+    const fileInput7 = modalDetalle.locator('input[type="file"]#informe-comision-file-input');
+    if (await fileInput7.isVisible()) {
+      const dummyPdf = Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF');
+      await fileInput7.setInputFiles({
+        name: 'informe_comision_tecnica.pdf',
+        mimeType: 'application/pdf',
+        buffer: dummyPdf
+      });
+      await modalDetalle.locator('button:has-text("Subir Informe PDF")').click();
+      await page.waitForTimeout(1500);
+    }
+
     const btnConcluirInforme7 = modalDetalle.locator('button:has-text("Concluir Elaboración de Informe")');
     await expect(btnConcluirInforme7).toBeVisible();
+    await expect(btnConcluirInforme7).toBeEnabled();
     await btnConcluirInforme7.click();
     await page.waitForTimeout(1000);
 
@@ -541,25 +582,25 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
     await expect(modalPleno.locator('h3:has-text("Aprobación en Sesión del Pleno del CMS")')).toBeVisible();
 
     await modalPleno.locator('button:has-text("+ Ordinaria N° 045")').first().click();
-    await modalPleno.locator('button:has-text("MINUTA")').first().click();
     await modalPleno.locator('textarea').fill('Aprobación plena e integral por el Pleno en sesión ordinaria.');
     await modalPleno.locator('button:has-text("Registrar Aprobación en Pleno")').click();
     await page.waitForTimeout(1500);
 
-    // PASO 2: FIRMAS DUALES - Ahora desbloqueadas tras registrar el Pleno
-    const btnFirmas = modalDetalle.locator('button:has-text("Estampar Firma Presidencia"), button:has-text("Firmas Duales")').first();
-    await btnFirmas.click();
-    const modalFirmas = page.locator('.modal-backdrop').last();
-    await expect(modalFirmas.locator('h3:has-text("Firmas Duales Concurrentes (CMS)")')).toBeVisible();
+    // PASO 2: FIRMAS DUALES - Ahora desbloqueadas tras registrar el Pleno, estampadas directamente
+    const btnFirmasPres7 = modalDetalle.locator('button:has-text("Estampar Firma Presidencia")').first();
+    await expect(btnFirmasPres7).toBeVisible();
+    await btnFirmasPres7.click();
+    await page.waitForTimeout(1200);
 
-    await modalFirmas.locator('button:has-text("Firma Presidencia")').first().click();
-    await page.waitForTimeout(800);
-    await modalFirmas.locator('button:has-text("Firma Secretaría")').first().click();
-    await page.waitForTimeout(800);
+    const btnFirmasSec7 = modalDetalle.locator('button:has-text("Estampar Firma Secretaría")').first();
+    await expect(btnFirmasSec7).toBeVisible();
+    await btnFirmasSec7.click();
+    await page.waitForTimeout(1200);
 
-    // Proceder al despacho desde el modal de firmas
-    await expect(modalFirmas.locator('button:has-text("Proceder al Despacho Final")')).toBeVisible();
-    await modalFirmas.locator('button:has-text("Proceder al Despacho Final")').click();
+    // PASO 3: DESPACHO FINAL AL EJECUTIVO - Abrir despacho
+    const btnDespachoFinal7 = modalDetalle.locator('button:has-text("+ Despacho Final")').first();
+    await expect(btnDespachoFinal7).toBeEnabled();
+    await btnDespachoFinal7.click();
 
     // PASO 3: DESPACHO FINAL AL EJECUTIVO
     const modalDespacho = page.locator('.modal-backdrop').last();
