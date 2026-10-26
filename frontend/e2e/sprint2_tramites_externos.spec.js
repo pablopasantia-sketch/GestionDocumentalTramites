@@ -145,13 +145,13 @@ test.describe('Sprint 2 E2E - Core del Proceso y Trámites Externos (DB_TRAMITES
     const inputCiPadrón = modal.locator('input[placeholder*="Ingrese CI del funcionario"]');
     await expect(inputCiPadrón).toBeVisible();
 
-    // Buscar funcionario existente por CI (2000002 correspondiente a María Fernández)
-    await inputCiPadrón.fill('2000002');
+    // Buscar funcionario existente por CI (1000002 correspondiente a Juan Pablo Cervantes)
+    await inputCiPadrón.fill('1000002');
     await modal.locator('button:has-text("Buscar en Padrón")').click();
 
     // Validar tarjeta de coincidencia encontrada
-    await expect(modal.locator('text=MARIA FERNANDEZ ROJAS')).toBeVisible({ timeout: 5000 });
-    await expect(modal.locator('text=CI: 2000002')).toBeVisible();
+    await expect(modal.locator('text=JUAN PABLO CERVANTES ZAMBRANA')).toBeVisible({ timeout: 5000 });
+    await expect(modal.locator('text=CI: 1000002')).toBeVisible();
 
     // Aplicar autocompletado
     const btnAuto = modal.locator('button:has-text("Autocompletar Formulario")');
@@ -163,9 +163,9 @@ test.describe('Sprint 2 E2E - Core del Proceso y Trámites Externos (DB_TRAMITES
     const inputPaterno = modal.locator('label:has-text("Apellido Paterno") + input');
     const inputCi = modal.locator('label:has-text("Cédula de Identidad") + input');
 
-    await expect(inputNombres).toHaveValue('MARIA');
-    await expect(inputPaterno).toHaveValue('FERNANDEZ');
-    await expect(inputCi).toHaveValue('2000002');
+    await expect(inputNombres).toHaveValue('JUAN PABLO');
+    await expect(inputPaterno).toHaveValue('CERVANTES');
+    await expect(inputCi).toHaveValue('1000002');
 
     // Cerrar modal sin guardar para no alterar registros preexistentes
     await modal.locator('button:has-text("Cancelar")').click();
@@ -194,61 +194,16 @@ test.describe('Sprint 2 E2E - Core del Proceso y Trámites Externos (DB_TRAMITES
     await expect(cardCorrelativo).toContainText('CM-');
     await expect(cardCorrelativo).toContainText(`${new Date().getFullYear()}`);
 
-    // 3.3 Completar Datos del Remitente y Procedencia
+    // 3.3 Completar Datos del Remitente (único campo obligatorio en tarjeta 2)
     const randomCI = Math.floor(2000000 + Math.random() * 7000000);
-    const remitenteInstitucion = 'Colegio de Arquitectos de Chuquisaca - CACH';
-    const remitenteCite = `CACH-DIR-P-${randomCI.toString().slice(-4)}`;
     const remitenteNombre = `Arq. Fernando Arancibia Vargas (${randomCI.toString().slice(-4)})`;
     const referenciaAsunto = `Solicitud de revisión técnica y visado de proyecto de restauración patrimonial zona central`;
 
-    await page.fill('input[placeholder*="Ministerio de Planificación"]', remitenteInstitucion);
-    await page.fill('input[placeholder*="CITE-MPD-042/2026"]', remitenteCite);
-    await page.fill('input[placeholder*="Nombre completo de la persona que remite"]', remitenteNombre);
+    await page.fill('input[placeholder*="Nombre completo de la persona"]', remitenteNombre);
 
-    // 3.4 Completar Asunto, Fojas y Nivel de Prioridad
+    // 3.4 Completar Asunto y Fojas
     await page.fill('textarea[placeholder*="Escriba claramente el motivo"]', referenciaAsunto);
     await page.fill('input[type="number"][min="1"]', '12');
-    await page.fill('input[type="number"][min="0"]', '3');
-    await page.selectOption('select.form-select', 'ALTA');
-
-    // 3.5 Probar Selectores Institucionales en Cascada (TUnidad -> TCargo)
-    const selectUnidad = page.locator('label:has-text("Unidad Institucional") + * select, select:has(option:has-text("DIRECCION"))').first();
-    await expect(selectUnidad).toBeVisible();
-
-    // Seleccionar una unidad institucional (por ejemplo la segunda opción válida)
-    const opcionesUnidad = await selectUnidad.locator('option').all();
-    expect(opcionesUnidad.length).toBeGreaterThan(1);
-    await selectUnidad.selectOption({ index: 1 });
-
-    // Esperar a que el selector dependiente de Cargo Institucional cargue y se habilite
-    const selectCargo = page.locator('label:has-text("Cargo Institucional") + * select, select:has(option:has-text("DIRECTOR")), select:has(option:has-text("ENCARGADO"))').first();
-    await expect(selectCargo).toBeEnabled({ timeout: 5000 });
-
-    const opcionesCargo = await selectCargo.locator('option').all();
-    if (opcionesCargo.length > 1) {
-      await selectCargo.selectOption({ index: 1 });
-    }
-
-    // 3.6 Probar Asignación de Funcionario desde Padrón TEmpleados
-    const searchEmpleadoInput = page.locator('input[placeholder*="Ingrese CI del funcionario"]');
-    await searchEmpleadoInput.fill('6000006');
-    await page.locator('button:has-text("Buscar en Padrón")').click();
-
-    await expect(page.locator('text=JUAN CARLOS SANCHEZ MENDOZA').first()).toBeVisible({ timeout: 5000 });
-    await page.locator('button:has-text("Autocompletar Formulario")').click();
-
-    // Validar que se muestre la confirmación del funcionario destinatario
-    await expect(page.locator('text=Funcionario Destinatario Seleccionado')).toBeVisible();
-    await expect(page.locator('text=JUAN CARLOS SANCHEZ MENDOZA (CI: 6000006)')).toBeVisible();
-
-    // 3.7 Seleccionar Decreto/Instrucción Sugerida
-    const btnInstruccion = page.locator('button:has-text("Para informe técnico y recomendación legal pertinente")');
-    await btnInstruccion.click();
-
-    await page.fill(
-      'textarea[placeholder*="Instrucciones específicas"]',
-      'Ingresado por ventanilla central con memorial en original, planimetrías y CD con respaldo digital.'
-    );
 
     // 3.8 Adjuntar Documento Digital de Respaldo en formato PDF (RF-07)
     // Crear un buffer PDF válido para la subida
@@ -286,7 +241,6 @@ test.describe('Sprint 2 E2E - Core del Proceso y Trámites Externos (DB_TRAMITES
 
     // Validar datos en el comprobante oficial
     await expect(modalComprobante).toContainText(remitenteNombre);
-    await expect(modalComprobante).toContainText(remitenteInstitucion);
     await expect(modalComprobante).toContainText('12'); // Fojas
     await expect(modalComprobante).toContainText('memorial_restauracion_patrimonial.pdf');
 

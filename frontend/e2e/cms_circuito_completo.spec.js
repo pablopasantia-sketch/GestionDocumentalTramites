@@ -8,11 +8,11 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
       await dialog.accept();
     });
 
-    // Autenticación institucional con credenciales oficiales de Administrador de Sistema
+    // Autenticación institucional con credenciales oficiales del Presidente del Concejo (jcervantes)
     await page.goto('/login');
     await expect(page.locator('h1')).toContainText('Acceso Institucional');
 
-    await page.fill('#username', 'admin');
+    await page.fill('#username', 'jcervantes');
     await page.fill('#password', 'admin123');
     await page.click('button[type="submit"]');
 

@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
 
 export default function ProtectedRoute({ children, allowedRoles = null }) {
-  const { isAuthenticated, activeRole, loading } = useAuth();
+  const { isAuthenticated, activeRole, user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -22,7 +22,8 @@ export default function ProtectedRoute({ children, allowedRoles = null }) {
   }
 
   if (allowedRoles && allowedRoles.length > 0) {
-    const hasRole = allowedRoles.includes(activeRole?.rol_codigo);
+    const hasRole = allowedRoles.includes(activeRole?.rol_codigo) ||
+      (user?.roles && user.roles.some(r => allowedRoles.includes(r.rol_codigo)));
     if (!hasRole) {
       return (
         <div style={{ maxWidth: '600px', margin: '3rem auto', textAlign: 'center' }}>

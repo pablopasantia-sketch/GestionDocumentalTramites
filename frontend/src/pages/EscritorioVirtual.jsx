@@ -594,7 +594,7 @@ export default function EscritorioVirtual() {
         const movimientos = data.historial;
         const miUnidad = tramite.destinatario_unidad || tramite.unidad_actual_nombre;
         // Buscar hacia atrás el último movimiento cuyo origen provenga de una unidad distinta
-        const pasoPrevio = [...movimientos].reverse().find(m => 
+        const pasoPrevio = [...movimientos].reverse().find(m =>
           m.unidad_origen && (!miUnidad || m.unidad_origen.trim().toLowerCase() !== miUnidad.trim().toLowerCase())
         ) || movimientos[0];
 
@@ -1990,10 +1990,10 @@ export default function EscritorioVirtual() {
                               item.firma_presidencia && item.firma_secretaria
                                 ? 'Firmas duales concurrentes completas (Presidencia y Secretaría)'
                                 : item.firma_presidencia
-                                ? 'Firma Presidencia registrada. Pendiente Secretaría General'
-                                : item.firma_secretaria
-                                ? 'Firma Secretaría General registrada. Pendiente Presidencia'
-                                : 'Pendiente de firmas duales concurrentes'
+                                  ? 'Firma Presidencia registrada. Pendiente Secretaría General'
+                                  : item.firma_secretaria
+                                    ? 'Firma Secretaría General registrada. Pendiente Presidencia'
+                                    : 'Pendiente de firmas duales concurrentes'
                             }
                           >
                             ✍️ Duales {item.firma_presidencia && item.firma_secretaria ? '2/2' : (item.firma_presidencia || item.firma_secretaria) ? '1/2' : '0/2'}
@@ -2446,567 +2446,567 @@ export default function EscritorioVirtual() {
 
                   {/* Circuito Plenario, Firmas Duales Concurrentes y Despacho Final CMS */}
                   {tramiteDetalle && !['CREADO', 'POR_RECIBIR', 'EN_TRANSITO'].includes(tramiteDetalle.estado) && (
-                  <div
-                    style={{
-                      marginBottom: '1.5rem',
-                      padding: '1.25rem',
-                      backgroundColor: '#F8FAFC',
-                      borderRadius: '8px',
-                      border: '1px solid #CBD5E1',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid #E2E8F0', paddingBottom: '0.5rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Award size={18} color="#1B365D" />
-                        <h4 style={{ margin: 0, fontSize: '0.98rem', color: '#1B365D', fontWeight: 700 }}>
-                          Circuito Plenario, Firmas Duales y Despacho Final (CMS)
-                        </h4>
+                    <div
+                      style={{
+                        marginBottom: '1.5rem',
+                        padding: '1.25rem',
+                        backgroundColor: '#F8FAFC',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid #E2E8F0', paddingBottom: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Award size={18} color="#1B365D" />
+                          <h4 style={{ margin: 0, fontSize: '0.98rem', color: '#1B365D', fontWeight: 700 }}>
+                            Circuito Plenario, Firmas Duales y Despacho Final (CMS)
+                          </h4>
+                        </div>
+                        <span className="badge" style={{ backgroundColor: '#1B365D', color: '#FFFFFF', fontSize: '10px' }}>
+                          Normativa CMS
+                        </span>
                       </div>
-                      <span className="badge" style={{ backgroundColor: '#1B365D', color: '#FFFFFF', fontSize: '10px' }}>
-                        Normativa CMS
-                      </span>
-                    </div>
 
-                    {/* 1. Sub-sección: Elaboración de Informe de Comisión (5 a 15 días reglamentarios) */}
-                    {(() => {
-                      const esInformeConcluido = Boolean(
-                        tramiteDetalle.fecha_fin_informe ||
-                        (tramiteDetalle.adjuntos && tramiteDetalle.adjuntos.length > 0 && tramiteDetalle.fecha_inicio_informe) ||
-                        tramiteDetalle.sesion_pleno_nro
-                      );
+                      {/* 1. Sub-sección: Elaboración de Informe de Comisión (5 a 15 días reglamentarios) */}
+                      {(() => {
+                        const esInformeConcluido = Boolean(
+                          tramiteDetalle.fecha_fin_informe ||
+                          (tramiteDetalle.adjuntos && tramiteDetalle.adjuntos.length > 0 && tramiteDetalle.fecha_inicio_informe) ||
+                          tramiteDetalle.sesion_pleno_nro
+                        );
 
-                      return (
-                        <>
-                          <div style={{ marginBottom: '1rem' }}>
-                            {!tramiteDetalle.fecha_inicio_informe ? (
-                              <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0D9488', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                    <Clock size={15} color="#0D9488" />
-                                    <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (5 A 15 DÍAS)</span>
-                                  </span>
-                                  {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleAbrirIniciarInforme(tramiteDetalle)}
-                                      className="btn btn-sm"
-                                      style={{
-                                        backgroundColor: '#0D9488',
-                                        color: '#FFFFFF',
-                                        padding: '4px 10px',
-                                        fontSize: '0.74rem',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        fontWeight: 600,
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '4px'
-                                      }}
-                                    >
-                                      <Clock size={13} />
-                                      <span>+ Iniciar Elaboración de Informe</span>
-                                    </button>
-                                  )}
-                                </div>
-                                <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '0.8rem', lineHeight: '1.4' }}>
-                                  Conforme al Reglamento del CMS, las comisiones técnicas disponen de un plazo perentorio de <strong>5 a 15 días hábiles</strong> para la elaboración del informe técnico o proyecto normativo. Presione <strong>+ Iniciar Elaboración de Informe</strong> para activar el cómputo del plazo perentorio.
-                                </p>
-                              </div>
-                            ) : esPlazoInformeExpirado(tramiteDetalle) ? (
-                              <div style={{
-                                backgroundColor: '#FEF2F2',
-                                border: '2px solid #DC2626',
-                                borderRadius: '6px',
-                                padding: '14px 16px',
-                                color: '#991B1B'
-                              }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <AlertTriangle size={18} color="#DC2626" />
-                                    <strong style={{ fontSize: '0.88rem', color: '#991B1B' }}>
-                                      ⛔ SISTEMA CERRADO: PLAZO DE ELABORACIÓN EXPIRADO
-                                    </strong>
-                                  </div>
-                                  <span className="badge" style={{ backgroundColor: '#DC2626', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
-                                    BLOQUEO AUTOMÁTICO CMS
-                                  </span>
-                                </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', fontSize: '0.82rem', marginBottom: '8px' }}>
-                                  <div>
-                                    <small style={{ color: '#7F1D1D', display: 'block', fontWeight: 600 }}>FECHA DE INICIO</small>
-                                    <span>{formatFecha(tramiteDetalle.fecha_inicio_informe)}</span>
-                                  </div>
-                                  <div>
-                                    <small style={{ color: '#7F1D1D', display: 'block', fontWeight: 600 }}>PLAZO REGLAMENTARIO</small>
-                                    <span>{tramiteDetalle.dias_plazo_informe || 10} días hábiles</span>
-                                  </div>
-                                  <div>
-                                    <small style={{ color: '#7F1D1D', display: 'block', fontWeight: 600 }}>FECHA LÍMITE (VENCIDA)</small>
-                                    <span style={{ fontWeight: 700, color: '#B91C1C' }}>{formatFecha(tramiteDetalle.fecha_limite_respuesta)}</span>
-                                  </div>
-                                </div>
-                                <p style={{ margin: 0, fontSize: '0.8rem', color: '#991B1B', lineHeight: '1.4' }}>
-                                  El plazo de <strong>{tramiteDetalle.dias_plazo_informe || 10} días</strong> para emitir y presentar el informe de comisión venció el <strong>{formatFecha(tramiteDetalle.fecha_limite_respuesta)}</strong>. <strong>El sistema se encuentra CERRADO:</strong> no se permite la subida ni presentación de informes o adjuntos extemporáneos.
-                                </p>
-                              </div>
-                            ) : esInformeConcluido ? (
-                              <div style={{
-                                backgroundColor: '#F0FDF4',
-                                border: '1.5px solid #22C55E',
-                                borderRadius: '6px',
-                                padding: '12px 14px'
-                              }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <CheckCircle2 size={16} color="#16A34A" />
-                                    <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (CONCLUIDO)</span>
-                                  </span>
-                                  <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
-                                    ✓ INFORME CONCLUIDO Y HABILITADO PARA EL PLENO
-                                  </span>
-                                </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', fontSize: '0.82rem', marginBottom: '8px' }}>
-                                  <div>
-                                    <small style={{ color: '#166534', display: 'block' }}>FECHA DE INICIO</small>
-                                    <strong>{formatFecha(tramiteDetalle.fecha_inicio_informe)}</strong>
-                                  </div>
-                                  <div>
-                                    <small style={{ color: '#166534', display: 'block' }}>PLAZO REGLAMENTARIO</small>
-                                    <strong>{tramiteDetalle.dias_plazo_informe || 10} días hábiles</strong>
-                                  </div>
-                                  <div>
-                                    <small style={{ color: '#166534', display: 'block' }}>FECHA DE CONCLUSIÓN</small>
-                                    <strong style={{ color: '#15803D' }}>{formatFecha(tramiteDetalle.fecha_fin_informe || tramiteDetalle.updated_at)}</strong>
-                                  </div>
-                                </div>
-                                {tramiteDetalle.adjuntos && tramiteDetalle.adjuntos.length > 0 && (
-                                  <div style={{ borderTop: '1px dashed #86EFAC', paddingTop: '6px', marginTop: '6px', fontSize: '0.78rem', color: '#166534' }}>
-                                    📎 <strong>Informe digital adjunto al expediente:</strong> {tramiteDetalle.adjuntos[0].nombre_original}
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <div style={{
-                                backgroundColor: '#F0FDF4',
-                                border: '1.5px solid #22C55E',
-                                borderRadius: '6px',
-                                padding: '12px 14px'
-                              }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <Clock size={16} color="#16A34A" />
-                                    <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (EN CURSO)</span>
-                                  </span>
-                                  <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
-                                    ⏱️ VIGENTE: {calcularDiasRestantes(tramiteDetalle.fecha_limite_respuesta)} DÍAS RESTANTES
-                                  </span>
-                                </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', fontSize: '0.82rem', marginBottom: '8px' }}>
-                                  <div>
-                                    <small style={{ color: '#166534', display: 'block' }}>FECHA DE INICIO</small>
-                                    <strong>{formatFecha(tramiteDetalle.fecha_inicio_informe)}</strong>
-                                  </div>
-                                  <div>
-                                    <small style={{ color: '#166534', display: 'block' }}>PLAZO ASIGNADO</small>
-                                    <strong>{tramiteDetalle.dias_plazo_informe || 10} días hábiles</strong>
-                                  </div>
-                                  <div>
-                                    <small style={{ color: '#166534', display: 'block' }}>FECHA LÍMITE DE ENTREGA</small>
-                                    <strong style={{ color: '#15803D' }}>{formatFecha(tramiteDetalle.fecha_limite_respuesta)}</strong>
-                                  </div>
-                                </div>
-
-                                {/* Carga digital del informe PDF y botón de Conclusión */}
-                                {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                                  <div style={{ borderTop: '1px dashed #86EFAC', paddingTop: '8px', marginTop: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                      <Paperclip size={14} color="#15803D" />
-                                      <span style={{ fontSize: '0.78rem', color: '#166534', fontWeight: 600 }}>Cargar Informe Digital (PDF):</span>
-                                      <input
-                                        type="file"
-                                        accept=".pdf"
-                                        id="informe-comision-file-input"
-                                        onChange={(e) => setArchivoInformePdf(e.target.files[0] || null)}
-                                        style={{ fontSize: '0.75rem' }}
-                                      />
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '6px' }}>
+                        return (
+                          <>
+                            <div style={{ marginBottom: '1rem' }}>
+                              {!tramiteDetalle.fecha_inicio_informe ? (
+                                <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0D9488', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                      <Clock size={15} color="#0D9488" />
+                                      <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (5 A 15 DÍAS)</span>
+                                    </span>
+                                    {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
                                       <button
                                         type="button"
-                                        onClick={() => handleSubirInformePdf(tramiteDetalle.id)}
-                                        disabled={!archivoInformePdf || subiendoInforme}
-                                        className="btn btn-sm"
-                                        style={{
-                                          backgroundColor: '#16A34A',
-                                          color: '#FFFFFF',
-                                          padding: '3px 10px',
-                                          fontSize: '0.74rem',
-                                          border: 'none',
-                                          borderRadius: '4px',
-                                          cursor: (!archivoInformePdf || subiendoInforme) ? 'not-allowed' : 'pointer'
-                                        }}
-                                      >
-                                        {subiendoInforme ? 'Subiendo...' : 'Subir Informe PDF'}
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleConcluirInforme(tramiteDetalle.id)}
-                                        disabled={concluyendoInforme}
+                                        onClick={() => handleAbrirIniciarInforme(tramiteDetalle)}
                                         className="btn btn-sm"
                                         style={{
                                           backgroundColor: '#0D9488',
                                           color: '#FFFFFF',
-                                          padding: '3px 10px',
+                                          padding: '4px 10px',
                                           fontSize: '0.74rem',
                                           border: 'none',
                                           borderRadius: '4px',
-                                          fontWeight: 700,
-                                          cursor: concluyendoInforme ? 'not-allowed' : 'pointer'
-                                        }}
-                                      >
-                                        {concluyendoInforme ? 'Concluyendo...' : '✓ Concluir Elaboración de Informe'}
-                                      </button>
-                                    </div>
-                                  </div>
-                                )}
-                                {subidaInformeSuccess && (
-                                  <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#15803D', fontWeight: 600 }}>
-                                    ✅ {subidaInformeSuccess}
-                                  </div>
-                                )}
-                                {subidaInformeError && (
-                                  <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#DC2626', fontWeight: 600 }}>
-                                    ⚠️ {subidaInformeError}
-                                  </div>
-                                )}
-                                {concluirInformeError && (
-                                  <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#DC2626', fontWeight: 600 }}>
-                                    ⚠️ {concluirInformeError}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* 2. Sub-sección: Aprobación en Sesión del Pleno */}
-                          <div style={{ marginBottom: '1rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1E3A8A', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                🏛️ 2. SESIÓN DEL PLENO DEL CMS
-                              </span>
-                            </div>
-                            {!esInformeConcluido ? (
-                              <div
-                                style={{
-                                  padding: '12px 14px',
-                                  borderRadius: '6px',
-                                  backgroundColor: '#FFFBEB',
-                                  border: '1.5px dashed #F59E0B',
-                                  color: '#92400E',
-                                  fontSize: '0.8rem',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '8px'
-                                }}
-                              >
-                                <Lock size={16} color="#D97706" />
-                                <span>
-                                  <strong>Sesión del Pleno Bloqueada (Paso 2):</strong> Debe completar primero la <strong>Elaboración de Informe de Comisión (Paso 1)</strong> antes de habilitar el tratamiento y aprobación en el Pleno Camaral.
-                                </span>
-                              </div>
-                            ) : (
-                              <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1E3A8A' }}>
-                                    Registro de Aprobación Plenaria
-                                  </span>
-                                  {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                                    esPlazoInformeExpirado(tramiteDetalle) ? (
-                                      <button
-                                        type="button"
-                                        disabled={true}
-                                        className="btn btn-sm"
-                                        style={{
-                                          backgroundColor: '#94A3B8',
-                                          color: '#FFFFFF',
-                                          padding: '3px 8px',
-                                          fontSize: '0.72rem',
-                                          border: 'none',
-                                          borderRadius: '4px',
-                                          cursor: 'not-allowed',
+                                          cursor: 'pointer',
+                                          fontWeight: 600,
                                           display: 'inline-flex',
                                           alignItems: 'center',
                                           gap: '4px'
                                         }}
-                                        title="Sistema cerrado por vencimiento de plazo reglamentario de 5 a 15 días"
                                       >
-                                        <Lock size={12} />
-                                        <span>⛔ Bloqueado: Plazo Vencido</span>
+                                        <Clock size={13} />
+                                        <span>+ Iniciar Elaboración de Informe</span>
                                       </button>
-                                    ) : (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleAbrirPleno(tramiteDetalle)}
-                                        className="btn btn-sm"
-                                        style={{
-                                          backgroundColor: '#1E3A8A',
-                                          color: '#FFFFFF',
-                                          padding: '3px 8px',
-                                          fontSize: '0.72rem',
-                                          border: 'none',
-                                          borderRadius: '4px',
-                                          cursor: 'pointer'
-                                        }}
-                                      >
-                                        {tramiteDetalle.sesion_pleno_nro ? 'Modificar Sesión' : '+ Registrar Aprobación Plenaria'}
-                                      </button>
-                                    )
-                                  )}
+                                    )}
+                                  </div>
+                                  <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '0.8rem', lineHeight: '1.4' }}>
+                                    Conforme al Reglamento del CMS, las comisiones técnicas disponen de un plazo perentorio de <strong>5 a 15 días hábiles</strong> para la elaboración del informe técnico o proyecto normativo. Presione <strong>+ Iniciar Elaboración de Informe</strong> para activar el cómputo del plazo perentorio.
+                                  </p>
                                 </div>
-                                {tramiteDetalle.sesion_pleno_nro ? (
-                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
+                              ) : esPlazoInformeExpirado(tramiteDetalle) ? (
+                                <div style={{
+                                  backgroundColor: '#FEF2F2',
+                                  border: '2px solid #DC2626',
+                                  borderRadius: '6px',
+                                  padding: '14px 16px',
+                                  color: '#991B1B'
+                                }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <AlertTriangle size={18} color="#DC2626" />
+                                      <strong style={{ fontSize: '0.88rem', color: '#991B1B' }}>
+                                        ⛔ SISTEMA CERRADO: PLAZO DE ELABORACIÓN EXPIRADO
+                                      </strong>
+                                    </div>
+                                    <span className="badge" style={{ backgroundColor: '#DC2626', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                                      BLOQUEO AUTOMÁTICO CMS
+                                    </span>
+                                  </div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', fontSize: '0.82rem', marginBottom: '8px' }}>
                                     <div>
-                                      <small style={{ color: '#64748B', display: 'block' }}>NRO DE SESIÓN</small>
-                                      <strong style={{ color: '#1E3A8A' }}>{tramiteDetalle.sesion_pleno_nro}</strong>
+                                      <small style={{ color: '#7F1D1D', display: 'block', fontWeight: 600 }}>FECHA DE INICIO</small>
+                                      <span>{formatFecha(tramiteDetalle.fecha_inicio_informe)}</span>
                                     </div>
                                     <div>
-                                      <small style={{ color: '#64748B', display: 'block' }}>FECHA DE TRATAMIENTO</small>
-                                      <span>{formatFecha(tramiteDetalle.sesion_pleno_fecha)}</span>
+                                      <small style={{ color: '#7F1D1D', display: 'block', fontWeight: 600 }}>PLAZO REGLAMENTARIO</small>
+                                      <span>{tramiteDetalle.dias_plazo_informe || 10} días hábiles</span>
                                     </div>
                                     <div>
-                                      <small style={{ color: '#64748B', display: 'block' }}>RESULTADO DE VOTACIÓN</small>
-                                      <span className="badge" style={{ backgroundColor: '#059669', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
-                                        {tramiteDetalle.sesion_pleno_resultado}
-                                      </span>
+                                      <small style={{ color: '#7F1D1D', display: 'block', fontWeight: 600 }}>FECHA LÍMITE (VENCIDA)</small>
+                                      <span style={{ fontWeight: 700, color: '#B91C1C' }}>{formatFecha(tramiteDetalle.fecha_limite_respuesta)}</span>
                                     </div>
                                   </div>
-                                ) : (
-                                  <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '0.8rem', fontStyle: 'italic' }}>
-                                    Trámite pendiente de tratamiento en Sesión del Pleno del Concejo Municipal de Sucre.
+                                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#991B1B', lineHeight: '1.4' }}>
+                                    El plazo de <strong>{tramiteDetalle.dias_plazo_informe || 10} días</strong> para emitir y presentar el informe de comisión venció el <strong>{formatFecha(tramiteDetalle.fecha_limite_respuesta)}</strong>. <strong>El sistema se encuentra CERRADO:</strong> no se permite la subida ni presentación de informes o adjuntos extemporáneos.
                                   </p>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </>
-                      );
-                    })()}
+                                </div>
+                              ) : esInformeConcluido ? (
+                                <div style={{
+                                  backgroundColor: '#F0FDF4',
+                                  border: '1.5px solid #22C55E',
+                                  borderRadius: '6px',
+                                  padding: '12px 14px'
+                                }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <CheckCircle2 size={16} color="#16A34A" />
+                                      <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (CONCLUIDO)</span>
+                                    </span>
+                                    <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                                      ✓ INFORME CONCLUIDO Y HABILITADO PARA EL PLENO
+                                    </span>
+                                  </div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', fontSize: '0.82rem', marginBottom: '8px' }}>
+                                    <div>
+                                      <small style={{ color: '#166534', display: 'block' }}>FECHA DE INICIO</small>
+                                      <strong>{formatFecha(tramiteDetalle.fecha_inicio_informe)}</strong>
+                                    </div>
+                                    <div>
+                                      <small style={{ color: '#166534', display: 'block' }}>PLAZO REGLAMENTARIO</small>
+                                      <strong>{tramiteDetalle.dias_plazo_informe || 10} días hábiles</strong>
+                                    </div>
+                                    <div>
+                                      <small style={{ color: '#166534', display: 'block' }}>FECHA DE CONCLUSIÓN</small>
+                                      <strong style={{ color: '#15803D' }}>{formatFecha(tramiteDetalle.fecha_fin_informe || tramiteDetalle.updated_at)}</strong>
+                                    </div>
+                                  </div>
+                                  {tramiteDetalle.adjuntos && tramiteDetalle.adjuntos.length > 0 && (
+                                    <div style={{ borderTop: '1px dashed #86EFAC', paddingTop: '6px', marginTop: '6px', fontSize: '0.78rem', color: '#166534' }}>
+                                      📎 <strong>Informe digital adjunto al expediente:</strong> {tramiteDetalle.adjuntos[0].nombre_original}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div style={{
+                                  backgroundColor: '#F0FDF4',
+                                  border: '1.5px solid #22C55E',
+                                  borderRadius: '6px',
+                                  padding: '12px 14px'
+                                }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <Clock size={16} color="#16A34A" />
+                                      <span>1. ELABORACIÓN DE INFORME DE COMISIÓN (EN CURSO)</span>
+                                    </span>
+                                    <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                                      ⏱️ VIGENTE: {calcularDiasRestantes(tramiteDetalle.fecha_limite_respuesta)} DÍAS RESTANTES
+                                    </span>
+                                  </div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', fontSize: '0.82rem', marginBottom: '8px' }}>
+                                    <div>
+                                      <small style={{ color: '#166534', display: 'block' }}>FECHA DE INICIO</small>
+                                      <strong>{formatFecha(tramiteDetalle.fecha_inicio_informe)}</strong>
+                                    </div>
+                                    <div>
+                                      <small style={{ color: '#166534', display: 'block' }}>PLAZO ASIGNADO</small>
+                                      <strong>{tramiteDetalle.dias_plazo_informe || 10} días hábiles</strong>
+                                    </div>
+                                    <div>
+                                      <small style={{ color: '#166534', display: 'block' }}>FECHA LÍMITE DE ENTREGA</small>
+                                      <strong style={{ color: '#15803D' }}>{formatFecha(tramiteDetalle.fecha_limite_respuesta)}</strong>
+                                    </div>
+                                  </div>
 
-                    {/* 3. Sub-sección: Firmas Duales Concurrentes */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0F172A', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <Stamp size={15} color="#0D9488" />
-                        <span>3. FIRMAS DUALES CONCURRENTES (Suscripción Notificada CMS)</span>
-                      </div>
-                      {!tramiteDetalle.sesion_pleno_nro ? (
-                        <div
-                          style={{
-                            padding: '12px 14px',
-                            borderRadius: '6px',
-                            backgroundColor: '#FFFBEB',
-                            border: '1.5px dashed #F59E0B',
-                            color: '#92400E',
-                            fontSize: '0.8rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                          }}
-                        >
-                          <Lock size={16} color="#D97706" />
-                          <span>
-                            <strong>Firmas Duales Bloqueadas (Paso 3):</strong> Debe registrar primero la <strong>Aprobación en Sesión del Pleno</strong> (Paso 2) antes de habilitar las firmas duales reglamentarias.
-                          </span>
+                                  {/* Carga digital del informe PDF y botón de Conclusión */}
+                                  {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                                    <div style={{ borderTop: '1px dashed #86EFAC', paddingTop: '8px', marginTop: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Paperclip size={14} color="#15803D" />
+                                        <span style={{ fontSize: '0.78rem', color: '#166534', fontWeight: 600 }}>Cargar Informe Digital (PDF):</span>
+                                        <input
+                                          type="file"
+                                          accept=".pdf"
+                                          id="informe-comision-file-input"
+                                          onChange={(e) => setArchivoInformePdf(e.target.files[0] || null)}
+                                          style={{ fontSize: '0.75rem' }}
+                                        />
+                                      </div>
+                                      <div style={{ display: 'flex', gap: '6px' }}>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleSubirInformePdf(tramiteDetalle.id)}
+                                          disabled={!archivoInformePdf || subiendoInforme}
+                                          className="btn btn-sm"
+                                          style={{
+                                            backgroundColor: '#16A34A',
+                                            color: '#FFFFFF',
+                                            padding: '3px 10px',
+                                            fontSize: '0.74rem',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: (!archivoInformePdf || subiendoInforme) ? 'not-allowed' : 'pointer'
+                                          }}
+                                        >
+                                          {subiendoInforme ? 'Subiendo...' : 'Subir Informe PDF'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleConcluirInforme(tramiteDetalle.id)}
+                                          disabled={concluyendoInforme}
+                                          className="btn btn-sm"
+                                          style={{
+                                            backgroundColor: '#0D9488',
+                                            color: '#FFFFFF',
+                                            padding: '3px 10px',
+                                            fontSize: '0.74rem',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            fontWeight: 700,
+                                            cursor: concluyendoInforme ? 'not-allowed' : 'pointer'
+                                          }}
+                                        >
+                                          {concluyendoInforme ? 'Concluyendo...' : '✓ Concluir Elaboración de Informe'}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {subidaInformeSuccess && (
+                                    <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#15803D', fontWeight: 600 }}>
+                                      ✅ {subidaInformeSuccess}
+                                    </div>
+                                  )}
+                                  {subidaInformeError && (
+                                    <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#DC2626', fontWeight: 600 }}>
+                                      ⚠️ {subidaInformeError}
+                                    </div>
+                                  )}
+                                  {concluirInformeError && (
+                                    <div style={{ marginTop: '6px', fontSize: '0.76rem', color: '#DC2626', fontWeight: 600 }}>
+                                      ⚠️ {concluirInformeError}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* 2. Sub-sección: Aprobación en Sesión del Pleno */}
+                            <div style={{ marginBottom: '1rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1E3A8A', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  🏛️ 2. SESIÓN DEL PLENO DEL CMS
+                                </span>
+                              </div>
+                              {!esInformeConcluido ? (
+                                <div
+                                  style={{
+                                    padding: '12px 14px',
+                                    borderRadius: '6px',
+                                    backgroundColor: '#FFFBEB',
+                                    border: '1.5px dashed #F59E0B',
+                                    color: '#92400E',
+                                    fontSize: '0.8rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px'
+                                  }}
+                                >
+                                  <Lock size={16} color="#D97706" />
+                                  <span>
+                                    <strong>Sesión del Pleno Bloqueada (Paso 2):</strong> Debe completar primero la <strong>Elaboración de Informe de Comisión (Paso 1)</strong> antes de habilitar el tratamiento y aprobación en el Pleno Camaral.
+                                  </span>
+                                </div>
+                              ) : (
+                                <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1E3A8A' }}>
+                                      Registro de Aprobación Plenaria
+                                    </span>
+                                    {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                                      esPlazoInformeExpirado(tramiteDetalle) ? (
+                                        <button
+                                          type="button"
+                                          disabled={true}
+                                          className="btn btn-sm"
+                                          style={{
+                                            backgroundColor: '#94A3B8',
+                                            color: '#FFFFFF',
+                                            padding: '3px 8px',
+                                            fontSize: '0.72rem',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: 'not-allowed',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '4px'
+                                          }}
+                                          title="Sistema cerrado por vencimiento de plazo reglamentario de 5 a 15 días"
+                                        >
+                                          <Lock size={12} />
+                                          <span>⛔ Bloqueado: Plazo Vencido</span>
+                                        </button>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleAbrirPleno(tramiteDetalle)}
+                                          className="btn btn-sm"
+                                          style={{
+                                            backgroundColor: '#1E3A8A',
+                                            color: '#FFFFFF',
+                                            padding: '3px 8px',
+                                            fontSize: '0.72rem',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer'
+                                          }}
+                                        >
+                                          {tramiteDetalle.sesion_pleno_nro ? 'Modificar Sesión' : '+ Registrar Aprobación Plenaria'}
+                                        </button>
+                                      )
+                                    )}
+                                  </div>
+                                  {tramiteDetalle.sesion_pleno_nro ? (
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
+                                      <div>
+                                        <small style={{ color: '#64748B', display: 'block' }}>NRO DE SESIÓN</small>
+                                        <strong style={{ color: '#1E3A8A' }}>{tramiteDetalle.sesion_pleno_nro}</strong>
+                                      </div>
+                                      <div>
+                                        <small style={{ color: '#64748B', display: 'block' }}>FECHA DE TRATAMIENTO</small>
+                                        <span>{formatFecha(tramiteDetalle.sesion_pleno_fecha)}</span>
+                                      </div>
+                                      <div>
+                                        <small style={{ color: '#64748B', display: 'block' }}>RESULTADO DE VOTACIÓN</small>
+                                        <span className="badge" style={{ backgroundColor: '#059669', color: '#FFFFFF', fontSize: '10px', fontWeight: 700 }}>
+                                          {tramiteDetalle.sesion_pleno_resultado}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                                      Trámite pendiente de tratamiento en Sesión del Pleno del Concejo Municipal de Sucre.
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        );
+                      })()}
+
+                      {/* 3. Sub-sección: Firmas Duales Concurrentes */}
+                      <div style={{ marginBottom: '1rem' }}>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0F172A', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <Stamp size={15} color="#0D9488" />
+                          <span>3. FIRMAS DUALES CONCURRENTES (Suscripción Notificada CMS)</span>
                         </div>
-                      ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-                          {/* Sello Presidencia CMS */}
+                        {!tramiteDetalle.sesion_pleno_nro ? (
                           <div
                             style={{
                               padding: '12px 14px',
                               borderRadius: '6px',
-                              backgroundColor: tramiteDetalle.firma_presidencia ? '#F0FDF4' : '#FFFFFF',
-                              border: tramiteDetalle.firma_presidencia ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
+                              backgroundColor: '#FFFBEB',
+                              border: '1.5px dashed #F59E0B',
+                              color: '#92400E',
+                              fontSize: '0.8rem',
                               display: 'flex',
-                              flexDirection: 'column',
-                              gap: '6px'
+                              alignItems: 'center',
+                              gap: '8px'
                             }}
                           >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#166534' }}>
-                                🏛️ PRESIDENCIA DEL CMS
-                              </span>
+                            <Lock size={16} color="#D97706" />
+                            <span>
+                              <strong>Firmas Duales Bloqueadas (Paso 3):</strong> Debe registrar primero la <strong>Aprobación en Sesión del Pleno</strong> (Paso 2) antes de habilitar las firmas duales reglamentarias.
+                            </span>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                            {/* Sello Presidencia CMS */}
+                            <div
+                              style={{
+                                padding: '12px 14px',
+                                borderRadius: '6px',
+                                backgroundColor: tramiteDetalle.firma_presidencia ? '#F0FDF4' : '#FFFFFF',
+                                border: tramiteDetalle.firma_presidencia ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '6px'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#166534' }}>
+                                  🏛️ PRESIDENCIA DEL CMS
+                                </span>
+                                {tramiteDetalle.firma_presidencia ? (
+                                  <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700 }}>
+                                    ✓ RÚBRICA VALIDADA
+                                  </span>
+                                ) : (
+                                  <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px' }}>
+                                    PENDIENTE
+                                  </span>
+                                )}
+                              </div>
                               {tramiteDetalle.firma_presidencia ? (
-                                <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700 }}>
-                                  ✓ RÚBRICA VALIDADA
-                                </span>
+                                <div style={{ fontSize: '0.8rem', color: '#166534' }}>
+                                  <div><strong>Firmado por:</strong> {tramiteDetalle.firma_presidencia_usuario}</div>
+                                  <div><small>{formatFecha(tramiteDetalle.firma_presidencia_fecha)}</small></div>
+                                </div>
                               ) : (
-                                <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px' }}>
-                                  PENDIENTE
-                                </span>
+                                <div>
+                                  <p style={{ margin: '2px 0 6px', fontSize: '0.75rem', color: '#64748B' }}>
+                                    Pendiente de firma y rúbrica de la Presidencia del Concejo Municipal.
+                                  </p>
+                                  {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleAbrirFirmas(tramiteDetalle)}
+                                      className="btn btn-sm"
+                                      style={{
+                                        backgroundColor: '#0D9488',
+                                        color: '#FFFFFF',
+                                        fontSize: '0.72rem',
+                                        padding: '3px 8px',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer'
+                                      }}
+                                    >
+                                      Estampar Firma Presidencia
+                                    </button>
+                                  )}
+                                </div>
                               )}
                             </div>
-                            {tramiteDetalle.firma_presidencia ? (
-                              <div style={{ fontSize: '0.8rem', color: '#166534' }}>
-                                <div><strong>Firmado por:</strong> {tramiteDetalle.firma_presidencia_usuario}</div>
-                                <div><small>{formatFecha(tramiteDetalle.firma_presidencia_fecha)}</small></div>
-                              </div>
-                            ) : (
-                              <div>
-                                <p style={{ margin: '2px 0 6px', fontSize: '0.75rem', color: '#64748B' }}>
-                                  Pendiente de firma y rúbrica de la Presidencia del Concejo Municipal.
-                                </p>
-                                {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleAbrirFirmas(tramiteDetalle)}
-                                    className="btn btn-sm"
-                                    style={{
-                                      backgroundColor: '#0D9488',
-                                      color: '#FFFFFF',
-                                      fontSize: '0.72rem',
-                                      padding: '3px 8px',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    Estampar Firma Presidencia
-                                  </button>
+
+                            {/* Sello Secretaría General CMS */}
+                            <div
+                              style={{
+                                padding: '12px 14px',
+                                borderRadius: '6px',
+                                backgroundColor: tramiteDetalle.firma_secretaria ? '#F0FDF4' : '#FFFFFF',
+                                border: tramiteDetalle.firma_secretaria ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '6px'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#166534' }}>
+                                  ✍️ SECRETARÍA GENERAL CMS
+                                </span>
+                                {tramiteDetalle.firma_secretaria ? (
+                                  <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700 }}>
+                                    ✓ RÚBRICA VALIDADA
+                                  </span>
+                                ) : (
+                                  <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px' }}>
+                                    PENDIENTE
+                                  </span>
                                 )}
                               </div>
-                            )}
-                          </div>
-
-                          {/* Sello Secretaría General CMS */}
-                          <div
-                            style={{
-                              padding: '12px 14px',
-                              borderRadius: '6px',
-                              backgroundColor: tramiteDetalle.firma_secretaria ? '#F0FDF4' : '#FFFFFF',
-                              border: tramiteDetalle.firma_secretaria ? '1.5px solid #22C55E' : '1.5px dashed #CBD5E1',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '6px'
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#166534' }}>
-                                ✍️ SECRETARÍA GENERAL CMS
-                              </span>
                               {tramiteDetalle.firma_secretaria ? (
-                                <span className="badge" style={{ backgroundColor: '#22C55E', color: '#FFFFFF', fontSize: '9px', fontWeight: 700 }}>
-                                  ✓ RÚBRICA VALIDADA
-                                </span>
+                                <div style={{ fontSize: '0.8rem', color: '#166534' }}>
+                                  <div><strong>Firmado por:</strong> {tramiteDetalle.firma_secretaria_usuario}</div>
+                                  <div><small>{formatFecha(tramiteDetalle.firma_secretaria_fecha)}</small></div>
+                                </div>
                               ) : (
-                                <span className="badge" style={{ backgroundColor: '#94A3B8', color: '#FFFFFF', fontSize: '9px' }}>
-                                  PENDIENTE
-                                </span>
+                                <div>
+                                  <p style={{ margin: '2px 0 6px', fontSize: '0.75rem', color: '#64748B' }}>
+                                    Pendiente de firma y rúbrica de la Secretaría General del Concejo Municipal.
+                                  </p>
+                                  {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleAbrirFirmas(tramiteDetalle)}
+                                      className="btn btn-sm"
+                                      style={{
+                                        backgroundColor: '#0D9488',
+                                        color: '#FFFFFF',
+                                        fontSize: '0.72rem',
+                                        padding: '3px 8px',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer'
+                                      }}
+                                    >
+                                      Estampar Firma Secretaría
+                                    </button>
+                                  )}
+                                </div>
                               )}
                             </div>
-                            {tramiteDetalle.firma_secretaria ? (
-                              <div style={{ fontSize: '0.8rem', color: '#166534' }}>
-                                <div><strong>Firmado por:</strong> {tramiteDetalle.firma_secretaria_usuario}</div>
-                                <div><small>{formatFecha(tramiteDetalle.firma_secretaria_fecha)}</small></div>
-                              </div>
-                            ) : (
-                              <div>
-                                <p style={{ margin: '2px 0 6px', fontSize: '0.75rem', color: '#64748B' }}>
-                                  Pendiente de firma y rúbrica de la Secretaría General del Concejo Municipal.
-                                </p>
-                                {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleAbrirFirmas(tramiteDetalle)}
-                                    className="btn btn-sm"
-                                    style={{
-                                      backgroundColor: '#0D9488',
-                                      color: '#FFFFFF',
-                                      fontSize: '0.72rem',
-                                      padding: '3px 8px',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    Estampar Firma Secretaría
-                                  </button>
-                                )}
-                              </div>
-                            )}
                           </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 4. Sub-sección: Despacho Final al Ejecutivo */}
-                    <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#7C3AED', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          📬 4. DESPACHO FINAL AL EJECUTIVO / DESTINO EXTERNO
-                        </span>
-                        {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                          <button
-                            type="button"
-                            onClick={() => handleAbrirDespacho(tramiteDetalle)}
-                            disabled={!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria}
-                            className="btn btn-sm"
-                            style={{
-                              backgroundColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#7C3AED' : '#CBD5E1',
-                              color: '#FFFFFF',
-                              padding: '3px 8px',
-                              fontSize: '0.72rem',
-                              border: 'none',
-                              borderRadius: '4px',
-                              cursor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? 'pointer' : 'not-allowed'
-                            }}
-                            title={
-                              (!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria)
-                                ? 'Requiere ambas firmas duales completas antes de habilitar el despacho'
-                                : 'Proceder al despacho final al Alcalde Municipal o institución externa'
-                            }
-                          >
-                            + Despacho Final
-                          </button>
                         )}
                       </div>
-                      {tramiteDetalle.despacho_final_cite ? (
-                        <>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
-                            <div>
-                              <small style={{ color: '#64748B', display: 'block' }}>CITE OFICIAL SALIENTE</small>
-                              <strong style={{ color: '#7C3AED' }}>{tramiteDetalle.despacho_final_cite}</strong>
-                            </div>
-                            <div>
-                              <small style={{ color: '#64748B', display: 'block' }}>DESTINATARIO OFICIAL</small>
-                              <span>{tramiteDetalle.despacho_final_destinatario || 'Alcalde Municipal de Sucre'}</span>
-                            </div>
-                            <div>
-                              <small style={{ color: '#64748B', display: 'block' }}>FECHA DE REMISIÓN</small>
-                              <span>{formatFecha(tramiteDetalle.despacho_final_fecha)}</span>
-                            </div>
-                          </div>
-                          <div style={{ marginTop: '8px', padding: '6px 10px', backgroundColor: '#F0FDF4', borderRadius: '4px', border: '1px solid #BBF7D0', color: '#15803D', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <CheckCircle2 size={14} color="#16A34A" />
-                            <span><strong>Trámite Atendido y Despachado:</strong> Circuito legislativo concluido exitosamente. El botón <strong>Avanzar</strong> está habilitado para archivar o derivar a otra unidad.</span>
-                          </div>
-                        </>
-                      ) : (
-                        <div style={{ fontSize: '0.78rem', color: '#64748B' }}>
-                          {(!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria) ? (
-                            <span style={{ color: '#B45309', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              ⚠️ <em>Despacho Final bloqueado: Requiere la suscripción concurrente de ambas firmas reglamentarias (Presidencia y Secretaría General).</em>
-                            </span>
-                          ) : (
-                            <span style={{ color: '#15803D', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              ✅ <em>Firmas duales completas. El trámite está habilitado para ser despachado formalmente al Alcalde Municipal.</em>
-                            </span>
+
+                      {/* 4. Sub-sección: Despacho Final al Ejecutivo */}
+                      <div style={{ backgroundColor: '#FFFFFF', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#7C3AED', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            📬 4. DESPACHO FINAL AL EJECUTIVO / DESTINO EXTERNO
+                          </span>
+                          {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                            <button
+                              type="button"
+                              onClick={() => handleAbrirDespacho(tramiteDetalle)}
+                              disabled={!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria}
+                              className="btn btn-sm"
+                              style={{
+                                backgroundColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#7C3AED' : '#CBD5E1',
+                                color: '#FFFFFF',
+                                padding: '3px 8px',
+                                fontSize: '0.72rem',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? 'pointer' : 'not-allowed'
+                              }}
+                              title={
+                                (!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria)
+                                  ? 'Requiere ambas firmas duales completas antes de habilitar el despacho'
+                                  : 'Proceder al despacho final al Alcalde Municipal o institución externa'
+                              }
+                            >
+                              + Despacho Final
+                            </button>
                           )}
                         </div>
-                      )}
+                        {tramiteDetalle.despacho_final_cite ? (
+                          <>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
+                              <div>
+                                <small style={{ color: '#64748B', display: 'block' }}>CITE OFICIAL SALIENTE</small>
+                                <strong style={{ color: '#7C3AED' }}>{tramiteDetalle.despacho_final_cite}</strong>
+                              </div>
+                              <div>
+                                <small style={{ color: '#64748B', display: 'block' }}>DESTINATARIO OFICIAL</small>
+                                <span>{tramiteDetalle.despacho_final_destinatario || 'Alcalde Municipal de Sucre'}</span>
+                              </div>
+                              <div>
+                                <small style={{ color: '#64748B', display: 'block' }}>FECHA DE REMISIÓN</small>
+                                <span>{formatFecha(tramiteDetalle.despacho_final_fecha)}</span>
+                              </div>
+                            </div>
+                            <div style={{ marginTop: '8px', padding: '6px 10px', backgroundColor: '#F0FDF4', borderRadius: '4px', border: '1px solid #BBF7D0', color: '#15803D', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <CheckCircle2 size={14} color="#16A34A" />
+                              <span><strong>Trámite Atendido y Despachado:</strong> Circuito legislativo concluido exitosamente. El botón <strong>Avanzar</strong> está habilitado para archivar o derivar a otra unidad.</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div style={{ fontSize: '0.78rem', color: '#64748B' }}>
+                            {(!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria) ? (
+                              <span style={{ color: '#B45309', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                ⚠️ <em>Despacho Final bloqueado: Requiere la suscripción concurrente de ambas firmas reglamentarias (Presidencia y Secretaría General).</em>
+                              </span>
+                            ) : (
+                              <span style={{ color: '#15803D', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                ✅ <em>Firmas duales completas. El trámite está habilitado para ser despachado formalmente al Alcalde Municipal.</em>
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
                   )}
 
                   {/* Documentos Adjuntos PDF (RF-07) */}
@@ -4760,7 +4760,7 @@ export default function EscritorioVirtual() {
                             <input
                               type="checkbox"
                               checked={isChecked}
-                              onChange={() => {}} // Manejado por onClick del contenedor
+                              onChange={() => { }} // Manejado por onClick del contenedor
                               style={{ accentColor: inst.color, cursor: 'pointer' }}
                             />
                             <span style={{ fontWeight: 800, fontSize: '0.82rem', color: isChecked ? inst.color : '#1E293B' }}>
@@ -5104,20 +5104,6 @@ export default function EscritorioVirtual() {
 
             {/* Body */}
             <div className="modal-body" style={{ padding: '1.25rem 1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: '6px',
-                  backgroundColor: '#EFF6FF',
-                  border: '1px solid #BFDBFE',
-                  color: '#1E40AF',
-                  fontSize: '0.82rem',
-                  lineHeight: '1.4'
-                }}
-              >
-                ⚖️ <strong>Reglamento Interno CMS:</strong> Se asigna un plazo perentorio de <strong>5 a 15 días hábiles</strong> a la comisión para la emisión de su informe técnico/legislativo. Si el informe no se presenta dentro del plazo estipulado, <strong>el sistema se cerrará automáticamente</strong>, bloqueando la subida de informes y actuaciones extemporáneas.
-              </div>
-
               {/* Selector de Plazo Reglamentario (5 a 15 días) */}
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#0F766E', marginBottom: '6px' }}>
