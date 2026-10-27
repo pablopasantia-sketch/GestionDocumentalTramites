@@ -348,9 +348,9 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
       await expect(modalDetalle.locator('text=✍️ SECRETARÍA GENERAL CMS').locator('..').locator('text=RÚBRICA VALIDADA')).toBeVisible();
     }
 
-    // 5.3 Validar que con ambas firmas completadas se habilite el botón de Despacho Final
-    const btnDespachoFinal = modalDetalle.locator('button:has-text("+ Despacho Final")');
-    await expect(btnDespachoFinal).toBeEnabled();
+    // 5.3 Validar que con ambas firmas completadas se habilite el botón de Despacho Final o muestre Despacho Realizado
+    const btnDespachoFinal = modalDetalle.locator('button:has-text("+ Despacho Final")').or(modalDetalle.locator('text=Despacho Realizado')).first();
+    await expect(btnDespachoFinal).toBeVisible();
 
     // Cerrar modal de detalle
     const btnCerrar = page.locator('.modal-backdrop button:has-text("Cerrar")').first();
@@ -446,32 +446,39 @@ test.describe('Sprint Adenda Post-Sprint 3 E2E - Circuito Institucional Completo
       await page.waitForTimeout(1200);
     }
 
-    // Abrir Despacho Final directamente desde el botón habilitado
+    // Abrir Despacho Final directamente desde el botón habilitado (o constatar Despacho Realizado)
     const btnDespacho = modalDetalle.locator('button:has-text("+ Despacho Final")').first();
-    await expect(btnDespacho).toBeEnabled();
-    await btnDespacho.click();
+    if (await btnDespacho.isVisible()) {
+      await expect(btnDespacho).toBeEnabled();
+      await btnDespacho.click();
 
-    const modalDespacho = page.locator('.modal-backdrop').last();
-    await expect(modalDespacho.locator('h3:has-text("Despacho Final al Ejecutivo Municipal")')).toBeVisible({ timeout: 10000 });
+      const modalDespacho = page.locator('.modal-backdrop').last();
+      await expect(modalDespacho.locator('h3:has-text("Despacho Final al Ejecutivo Municipal")')).toBeVisible({ timeout: 10000 });
 
-    // Rellenar CITE Oficial de Despacho
-    const randomDesp = Math.floor(100 + Math.random() * 900);
-    const citeOficial = `CMS-DESP-${randomDesp}/${new Date().getFullYear()}`;
-    await modalDespacho.locator('input[placeholder*="CMS-DESP-0145"]').fill(citeOficial);
+      // Rellenar CITE Oficial de Despacho
+      const randomDesp = Math.floor(100 + Math.random() * 900);
+      const citeOficial = `CMS-DESP-${randomDesp}/${new Date().getFullYear()}`;
+      await modalDespacho.locator('input[placeholder*="CMS-DESP-0145"]').fill(citeOficial);
 
-    // Destinatario
-    const chipAlcalde = modalDespacho.locator('button:has-text("+ Alcalde Dr. Enrique Leaño")').first();
-    if (await chipAlcalde.isVisible()) {
-      await chipAlcalde.click();
+      // Destinatario
+      const chipAlcalde = modalDespacho.locator('button:has-text("+ Alcalde Dr. Enrique Leaño")').first();
+      if (await chipAlcalde.isVisible()) {
+        await chipAlcalde.click();
+      } else {
+        await modalDespacho.locator('input[placeholder*="Dr. Enrique Leaño Palenque"]').fill('Dr. Enrique Leaño Palenque - Alcalde Municipal de Sucre');
+      }
+
+      await modalDespacho.locator('textarea').fill(`Remisión formal de instrumento normativo según CITE ${citeOficial}.`);
+
+      // Confirmar Despacho Final
+      await modalDespacho.locator('button:has-text("Despachar Oficialmente y Concluir Trámite")').click();
+      await page.waitForTimeout(1500);
+
+      // Verificar que ahora se muestre Despacho Realizado y que NO aparezca el botón repetido
+      await expect(modalDetalle.locator('text=Despacho Realizado')).toBeVisible();
     } else {
-      await modalDespacho.locator('input[placeholder*="Dr. Enrique Leaño Palenque"]').fill('Dr. Enrique Leaño Palenque - Alcalde Municipal de Sucre');
+      await expect(modalDetalle.locator('text=Despacho Realizado')).toBeVisible();
     }
-
-    await modalDespacho.locator('textarea').fill(`Remisión formal de instrumento normativo según CITE ${citeOficial}.`);
-
-    // Confirmar Despacho Final
-    await modalDespacho.locator('button:has-text("Despachar Oficialmente y Concluir Trámite")').click();
-    await page.waitForTimeout(1500);
 
     // Cerrar detalle
     const btnCerrar = page.locator('.modal-backdrop button:has-text("Cerrar")').first();

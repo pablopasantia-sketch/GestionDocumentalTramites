@@ -822,7 +822,8 @@ export default function EscritorioVirtual() {
       if (detalleModalOpen) {
         await handleVerDetalle(tramiteId);
       }
-      fetchTramites(bandejaActiva);
+      cargarDatos();
+      cargarResumen();
       setTimeout(() => setSubidaInformeSuccess(null), 6000);
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Error al subir el informe digital.';
@@ -851,7 +852,8 @@ export default function EscritorioVirtual() {
       setSubidaInformeSuccess('¡Informe de comisión concluido exitosamente! 🏛️ Paso 2 (Sesión del Pleno) ahora habilitado.');
       setTimeout(() => setSubidaInformeSuccess(null), 6000);
       await handleVerDetalle(tramiteId);
-      fetchTramites(bandejaActiva);
+      cargarDatos();
+      cargarResumen();
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Error al concluir el informe de comisión.';
       setConcluirInformeError(msg);
@@ -901,8 +903,7 @@ export default function EscritorioVirtual() {
         sesion_pleno_nro: sesionPlenoNro.trim(),
         sesion_pleno_fecha: sesionPlenoFecha ? new Date(sesionPlenoFecha).toISOString() : new Date().toISOString(),
         sesion_pleno_resultado: sesionPlenoResultado,
-        proveido: proveidoPleno.trim() || undefined,
-        instrumento_generado: 'RESOLUCION'
+        proveido: proveidoPleno.trim() || undefined
       };
       await tramitesService.registrarAprobacionPleno(tramiteAPleno.id, payload);
       setAlertSuccess(`¡Constancia de Aprobación en ${sesionPlenoNro} registrada exitosamente! Listo para firmas duales reglamentarias.`);
@@ -948,7 +949,8 @@ export default function EscritorioVirtual() {
         };
         setTramiteDetalle(norm);
       }
-      fetchTramites(bandejaActiva);
+      cargarDatos();
+      cargarResumen();
       const cargoTexto = tipoFirma === 'PRESIDENCIA' ? 'Presidencia del CMS' : 'Secretaría General del CMS';
       setAlertSuccess(`¡Rúbrica oficial de ${cargoTexto} estampada exitosamente en el expediente!`);
       setTimeout(() => setAlertSuccess(null), 6000);
@@ -2623,63 +2625,70 @@ export default function EscritorioVirtual() {
                                     </div>
                                   </div>
                                   {tramiteDetalle.adjuntos && tramiteDetalle.adjuntos.length > 0 && (
-                                    <div style={{ borderTop: '1px solid #BBF7D0', paddingTop: '10px', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem', color: '#166534' }}>
-                                        <FileText size={18} color="#16A34A" />
-                                        <div>
-                                          <div style={{ fontWeight: 600 }}>{tramiteDetalle.adjuntos[0].nombre_original}</div>
-                                          <small style={{ color: '#15803D' }}>
-                                            {tramiteDetalle.adjuntos[0].tamano_bytes ? `${(tramiteDetalle.adjuntos[0].tamano_bytes / 1024).toFixed(1)} KB` : 'Documento PDF'} • Subido por: {tramiteDetalle.adjuntos[0].subido_por_nombre || 'Comisión Técnica'}
-                                          </small>
+                                    <div style={{ borderTop: '1px solid #BBF7D0', paddingTop: '10px', marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#166534', marginBottom: '2px' }}>
+                                        📄 Documentos del Informe Digital ({tramiteDetalle.adjuntos.length}):
+                                      </div>
+                                      {tramiteDetalle.adjuntos.map((adj, adjIdx) => (
+                                        <div key={adj.id || adjIdx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', padding: '6px 0', borderBottom: adjIdx < tramiteDetalle.adjuntos.length - 1 ? '1px dashed #BBF7D0' : 'none' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem', color: '#166534' }}>
+                                            <FileText size={18} color="#16A34A" />
+                                            <div>
+                                              <div style={{ fontWeight: 600 }}>{adj.nombre_original}</div>
+                                              <small style={{ color: '#15803D' }}>
+                                                {adj.tamano_bytes ? `${(adj.tamano_bytes / 1024).toFixed(1)} KB` : 'Documento PDF'} • Subido por: {adj.subido_por_nombre || 'Comisión Técnica'}
+                                              </small>
+                                            </div>
+                                          </div>
+                                          <div style={{ display: 'flex', gap: '8px' }}>
+                                            <a
+                                              href={adjuntosService.getViewUrl(adj.id)}
+                                              target="_blank"
+                                              rel="noreferrer"
+                                              className="btn btn-sm"
+                                              style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                backgroundColor: '#16A34A',
+                                                color: '#FFFFFF',
+                                                padding: '6px 14px',
+                                                fontSize: '0.82rem',
+                                                fontWeight: 600,
+                                                borderRadius: '6px',
+                                                textDecoration: 'none',
+                                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                                cursor: 'pointer'
+                                              }}
+                                            >
+                                              <Eye size={14} />
+                                              <span>Ver PDF</span>
+                                            </a>
+                                            <a
+                                              href={adjuntosService.getDownloadUrl(adj.id)}
+                                              download
+                                              className="btn btn-sm"
+                                              style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                backgroundColor: '#059669',
+                                                color: '#FFFFFF',
+                                                padding: '6px 14px',
+                                                fontSize: '0.82rem',
+                                                fontWeight: 600,
+                                                borderRadius: '6px',
+                                                textDecoration: 'none',
+                                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                                cursor: 'pointer'
+                                              }}
+                                            >
+                                              <Download size={14} />
+                                              <span>Descargar</span>
+                                            </a>
+                                          </div>
                                         </div>
-                                      </div>
-                                      <div style={{ display: 'flex', gap: '8px' }}>
-                                        <a
-                                          href={adjuntosService.getViewUrl(tramiteDetalle.adjuntos[0].id)}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="btn btn-sm"
-                                          style={{
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            backgroundColor: '#16A34A',
-                                            color: '#FFFFFF',
-                                            padding: '6px 14px',
-                                            fontSize: '0.82rem',
-                                            fontWeight: 600,
-                                            borderRadius: '6px',
-                                            textDecoration: 'none',
-                                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                            cursor: 'pointer'
-                                          }}
-                                        >
-                                          <Eye size={14} />
-                                          <span>Ver PDF</span>
-                                        </a>
-                                        <a
-                                          href={adjuntosService.getDownloadUrl(tramiteDetalle.adjuntos[0].id)}
-                                          download
-                                          className="btn btn-sm"
-                                          style={{
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            backgroundColor: '#059669',
-                                            color: '#FFFFFF',
-                                            padding: '6px 14px',
-                                            fontSize: '0.82rem',
-                                            fontWeight: 600,
-                                            borderRadius: '6px',
-                                            textDecoration: 'none',
-                                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                            cursor: 'pointer'
-                                          }}
-                                        >
-                                          <Download size={14} />
-                                          <span>Descargar</span>
-                                        </a>
-                                      </div>
+                                      ))}
                                     </div>
                                   )}
                                 </div>
@@ -2720,12 +2729,19 @@ export default function EscritorioVirtual() {
                                     <div style={{ borderTop: '1px solid #BBF7D0', paddingTop: '10px', marginTop: '10px' }}>
                                       {/* Banner si ya se cargó un PDF previamente */}
                                       {tramiteDetalle.adjuntos && tramiteDetalle.adjuntos.length > 0 && (
-                                        <div style={{ marginBottom: '10px', padding: '8px 12px', backgroundColor: '#DCFCE7', borderRadius: '6px', border: '1px solid #86EFAC', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#166534' }}>
-                                            <FileCheck size={16} color="#16A34A" />
-                                            <span><strong>PDF Adjunto en expediente:</strong> {tramiteDetalle.adjuntos[0].nombre_original}</span>
+                                        <div style={{ marginBottom: '10px', padding: '8px 12px', backgroundColor: '#DCFCE7', borderRadius: '6px', border: '1px solid #86EFAC', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#166534' }}>
+                                              📎 Documentos Adjuntos Incorporados ({tramiteDetalle.adjuntos.length}):
+                                            </span>
+                                            <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 600 }}>Listo para Concluir</span>
                                           </div>
-                                          <span className="badge" style={{ backgroundColor: '#16A34A', color: '#FFFFFF', fontSize: '10px', fontWeight: 600 }}>Listo para Concluir</span>
+                                          {tramiteDetalle.adjuntos.map((adj, idx) => (
+                                            <div key={adj.id || idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#166534' }}>
+                                              <FileCheck size={14} color="#16A34A" />
+                                              <span><strong>PDF #{idx + 1}:</strong> {adj.nombre_original} ({adj.tamano_bytes ? `${(adj.tamano_bytes / 1024).toFixed(1)} KB` : ''})</span>
+                                            </div>
+                                          ))}
                                         </div>
                                       )}
 
@@ -3126,36 +3142,56 @@ export default function EscritorioVirtual() {
                           <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#7C3AED', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             📬 4. DESPACHO FINAL AL EJECUTIVO / DESTINO EXTERNO
                           </span>
-                          {tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
-                            <button
-                              type="button"
-                              onClick={() => handleAbrirDespacho(tramiteDetalle)}
-                              disabled={!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria}
-                              className="btn btn-sm"
+                          {tramiteDetalle.despacho_final_cite ? (
+                            <span
+                              className="badge"
                               style={{
-                                backgroundColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#7C3AED' : '#CBD5E1',
+                                backgroundColor: '#16A34A',
                                 color: '#FFFFFF',
-                                padding: '6px 14px',
+                                padding: '6px 12px',
                                 fontSize: '0.82rem',
-                                border: 'none',
-                                borderRadius: '6px',
-                                cursor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? 'pointer' : 'not-allowed',
                                 fontWeight: 600,
+                                borderRadius: '6px',
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '6px',
-                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                transition: 'all 0.15s ease'
+                                gap: '6px'
                               }}
-                              title={
-                                (!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria)
-                                  ? 'Requiere ambas firmas duales completas antes de habilitar el despacho'
-                                  : 'Proceder al despacho final al Alcalde Municipal o institución externa'
-                              }
                             >
-                              <Send size={14} />
-                              <span>+ Despacho Final</span>
-                            </button>
+                              <CheckCircle2 size={14} />
+                              <span>Despacho Realizado</span>
+                            </span>
+                          ) : (
+                            tramiteDetalle.estado !== 'CONCLUIDO' && tramiteDetalle.estado !== 'ANULADO' && (
+                              <button
+                                type="button"
+                                onClick={() => handleAbrirDespacho(tramiteDetalle)}
+                                disabled={!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria}
+                                className="btn btn-sm"
+                                style={{
+                                  backgroundColor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? '#7C3AED' : '#CBD5E1',
+                                  color: '#FFFFFF',
+                                  padding: '6px 14px',
+                                  fontSize: '0.82rem',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  cursor: (tramiteDetalle.firma_presidencia && tramiteDetalle.firma_secretaria) ? 'pointer' : 'not-allowed',
+                                  fontWeight: 600,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                  transition: 'all 0.15s ease'
+                                }}
+                                title={
+                                  (!tramiteDetalle.firma_presidencia || !tramiteDetalle.firma_secretaria)
+                                    ? 'Requiere ambas firmas duales completas antes de habilitar el despacho'
+                                    : 'Proceder al despacho final al Alcalde Municipal o institución externa'
+                                }
+                              >
+                                <Send size={14} />
+                                <span>+ Despacho Final</span>
+                              </button>
+                            )
                           )}
                         </div>
                         {tramiteDetalle.despacho_final_cite ? (
@@ -3608,7 +3644,7 @@ export default function EscritorioVirtual() {
                                 )}
 
                                 {/* Producto(s) Normativo(s) Generado(s) (CMS) */}
-                                {(mov.instrumentos_generados || mov.instrumento_generado) && (
+                                {mov.tipo_movimiento !== 'APROBACION_PLENO' && (mov.instrumentos_generados || mov.instrumento_generado) && (
                                   <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                     {(mov.instrumentos_generados || mov.instrumento_generado)
                                       .split(',')
@@ -3662,7 +3698,7 @@ export default function EscritorioVirtual() {
                                 )}
 
                                 {/* Plazo Reglamentario Otorgado en este Movimiento */}
-                                {(mov.fecha_limite_respuesta || (mov.tiempo_estimado_minutos && mov.tiempo_estimado_minutos > 0)) && (
+                                {Boolean(mov.fecha_limite_respuesta || (mov.tiempo_estimado_minutos > 0)) && (
                                   <div
                                     style={{
                                       marginTop: '6px',
