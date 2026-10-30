@@ -217,6 +217,14 @@ namespace GestionDocumental.Api.DTOs.Tramites
         public string Motivo { get; set; } = string.Empty;
     }
 
+    public class HabilitarTramiteDto
+    {
+        [Required(ErrorMessage = "El motivo de habilitación es obligatorio")]
+        [MinLength(5, ErrorMessage = "El motivo debe contener al menos 5 caracteres")]
+        [JsonPropertyName("motivo")]
+        public string Motivo { get; set; } = string.Empty;
+    }
+
     public class BloquearTramiteDto
     {
         [Required(ErrorMessage = "El motivo o proveído de bloqueo es obligatorio")]

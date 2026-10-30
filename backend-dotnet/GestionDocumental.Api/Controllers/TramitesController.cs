@@ -1029,6 +1029,57 @@ namespace GestionDocumental.Api.Controllers
         }
 
         /// <summary>
+        /// Habilitación y reactivación de trámite concluido (RF-10.2)
+        /// Permite al Administrador de Trámites reactivar el flujo de un expediente finalizado.
+        /// </summary>
+        [Authorize]
+        [HttpPost("{id}/habilitar")]
+        public async Task<IActionResult> Habilitar(int id, [FromBody] HabilitarTramiteDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return BadRequest(ApiResponse.ErrorResult(string.IsNullOrEmpty(errors) ? "Motivo de habilitación requerido." : errors));
+            }
+
+            var rolCodigo = User.FindFirst("rolCodigo")?.Value ?? User.FindFirst(ClaimTypes.Role)?.Value;
+            bool esAdmin = rolCodigo == "ADMIN_SISTEMA" || rolCodigo == "ADMIN_TRAMITES";
+            if (!esAdmin)
+            {
+                return StatusCode(403, ApiResponse.ErrorResult("Acceso denegado: La habilitación de trámites concluidos es una operación reservada para el Administrador de Trámites o Administrador del Sistema (RF-10.2)."));
+            }
+
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+            if (ubiClaim == null || ubicacionId <= 0) ubicacionId = 3;
+
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_Habilitar",
+                    new SqlParameter("@Id", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@Motivo", SqlDbType.NVarChar, -1) { Value = dto.Motivo.Trim() },
+                    new SqlParameter("@UserId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@UbicacionId", SqlDbType.Int) { Value = ubicacionId }
+                );
+
+                return Ok(ApiResponse.SuccessResult("Trámite habilitado y reactivado exitosamente."));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse.ErrorResult("Error interno al procesar la habilitación del trámite: " + ex.Message));
+            }
+        }
+
+        /// <summary>
         /// Bloqueo administrativo temporal de trámite (RF-11.1, RF-11.2, RF-11.3)
         /// Permite a Ventanilla Única y Administración suspender temporalmente el flujo operativo.
         /// </summary>

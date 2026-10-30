@@ -251,6 +251,10 @@ export const tramitesService = {
     const response = await api.post(`/tramites/${id}/desbloquear`, { motivo });
     return response.data;
   },
+  habilitar: async (id, motivo) => {
+    const response = await api.post(`/tramites/${id}/habilitar`, { motivo });
+    return response.data;
+  },
   // Métodos del Escritorio Virtual (Sprint 3 - RF-04)
   getBandeja: async (params = {}) => {
     const response = await api.get('/tramites/bandeja', { params });

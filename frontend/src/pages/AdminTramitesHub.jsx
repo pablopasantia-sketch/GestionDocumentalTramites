@@ -23,7 +23,8 @@ import {
   ArrowRight,
   Printer,
   Lock,
-  Unlock
+  Unlock,
+  PlayCircle
 } from 'lucide-react';
 import { tramitesService, tiposProcesoService, ubicacionesService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -67,6 +68,12 @@ export default function AdminTramitesHub() {
   const [tramiteToDesbloquear, setTramiteToDesbloquear] = useState(null);
   const [motivoDesbloqueo, setMotivoDesbloqueo] = useState('');
   const [desbloquearError, setDesbloquearError] = useState(null);
+
+  // Modal Habilitar Trámite Concluido (RF-10.2)
+  const [habilitarModalOpen, setHabilitarModalOpen] = useState(false);
+  const [tramiteToHabilitar, setTramiteToHabilitar] = useState(null);
+  const [motivoHabilitacion, setMotivoHabilitacion] = useState('');
+  const [habilitarError, setHabilitarError] = useState(null);
 
   // Modal Crear / Editar Tipo de Proceso (RF-03)
   const [tipoModalOpen, setTipoModalOpen] = useState(false);
@@ -226,6 +233,40 @@ export default function AdminTramitesHub() {
       }
     } catch (err) {
       setDesbloquearError(err.response?.data?.message || err.message || 'Error al desbloquear trámite.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ----------------------------------------------------
+  // MANEJADORES: HABILITAR TRÁMITE CONCLUIDO (RF-10.2)
+  // ----------------------------------------------------
+  const handleOpenHabilitarModal = (tramite) => {
+    setTramiteToHabilitar(tramite);
+    setMotivoHabilitacion('');
+    setHabilitarError(null);
+    setHabilitarModalOpen(true);
+  };
+
+  const handleConfirmHabilitacion = async (e) => {
+    e.preventDefault();
+    if (!motivoHabilitacion.trim() || motivoHabilitacion.trim().length < 5) {
+      setHabilitarError('El motivo o justificación de habilitación es obligatorio (mínimo 5 caracteres).');
+      return;
+    }
+
+    setActionLoading(true);
+    setHabilitarError(null);
+    try {
+      const res = await tramitesService.habilitar(tramiteToHabilitar.id, motivoHabilitacion.trim());
+      if (res.success) {
+        showFeedbackMsg('success', `El trámite ${tramiteToHabilitar.numero_correlativo} fue habilitado y reactivado al flujo operativo.`);
+        setHabilitarModalOpen(false);
+        setTramiteToHabilitar(null);
+        loadAllData();
+      }
+    } catch (err) {
+      setHabilitarError(err.response?.data?.message || err.message || 'Error al habilitar trámite.');
     } finally {
       setActionLoading(false);
     }
@@ -778,6 +819,30 @@ export default function AdminTramitesHub() {
                             <span>Anular</span>
                           </button>
                         )}
+
+                        {/* Botón Habilitar trámite concluido (RF-10.2 - Admin Trámites) */}
+                        {t.estado === 'CONCLUIDO' && (
+                          <button
+                            onClick={() => handleOpenHabilitarModal(t)}
+                            className="btn btn-sm"
+                            title="Operación Especial: Habilitar y reactivar trámite concluido (RF-10.2)"
+                            style={{
+                              padding: '4px 8px',
+                              backgroundColor: '#0284C7',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontWeight: 600
+                            }}
+                          >
+                            <PlayCircle size={13} />
+                            <span>Habilitar</span>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -1142,6 +1207,97 @@ export default function AdminTramitesHub() {
                   }}
                 >
                   {actionLoading ? 'Procesando...' : 'Confirmar Anulación'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================== */}
+      {/* MODAL: HABILITAR TRÁMITE CONCLUIDO (RF-10.2) */}
+      {/* ========================================================== */}
+      {habilitarModalOpen && tramiteToHabilitar && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.65)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1200,
+          padding: '1rem'
+        }}>
+          <div className="card" style={{ maxWidth: '520px', width: '100%', padding: '1.5rem', borderTop: '5px solid #0284C7' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0284C7', marginBottom: '0.5rem' }}>
+              <PlayCircle size={22} />
+              <h2 style={{ fontSize: '1.2rem', margin: 0, color: '#0284C7' }}>
+                Reactivación: Habilitar Trámite Concluido
+              </h2>
+            </div>
+            
+            <p style={{ fontSize: '0.85rem', color: '#6C757D', marginBottom: '1rem' }}>
+              Esta acción reactivará el trámite devolviéndolo a estado <strong>EN ATENCIÓN</strong> y restablecerá la fecha de conclusión. Esta operación genera un registro inmutable en la bitácora de auditoría.
+            </p>
+
+            <div style={{ background: '#F8F9FA', padding: '10px', borderRadius: '4px', marginBottom: '1rem', border: '1px solid #E2E8F0', fontSize: '0.82rem' }}>
+              <div>Correlativo: <strong style={{ color: '#800000' }}>{tramiteToHabilitar.numero_correlativo}</strong></div>
+              <div>Remitente: <strong>{tramiteToHabilitar.remitente}</strong></div>
+              <div>Referencia: {tramiteToHabilitar.referencia}</div>
+              {tramiteToHabilitar.fecha_conclusion && (
+                <div>Concluido en fecha: <strong>{new Date(tramiteToHabilitar.fecha_conclusion).toLocaleString()}</strong></div>
+              )}
+            </div>
+
+            {habilitarError && (
+              <div style={{ background: '#F8D7DA', color: '#721C24', padding: '8px 12px', borderRadius: '4px', fontSize: '0.82rem', marginBottom: '1rem' }}>
+                {habilitarError}
+              </div>
+            )}
+
+            <form onSubmit={handleConfirmHabilitacion}>
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                  Motivo o Justificación de Habilitación (*):
+                </label>
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  required
+                  placeholder="Explique el requerimiento técnico o legal para reabrir este trámite concluido..."
+                  value={motivoHabilitacion}
+                  onChange={(e) => setMotivoHabilitacion(e.target.value)}
+                  style={{ fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setHabilitarModalOpen(false)}
+                  className="btn btn-secondary btn-sm"
+                  disabled={actionLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-sm"
+                  disabled={actionLoading}
+                  style={{ 
+                    backgroundColor: '#0284C7', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '4px',
+                    padding: '6px 14px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {actionLoading ? 'Procesando...' : 'Confirmar Habilitación'}
                 </button>
               </div>
             </form>

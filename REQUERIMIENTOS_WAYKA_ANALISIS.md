@@ -630,7 +630,7 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 
 - [X] Bloquear / Desbloquear procesos
 - [X] Anular proceso (Admin Tramites)
-- [ ] Habilitar proceso concluido
+- [X] Habilitar proceso concluido
 - [ ] Redireccionar procesos entre usuarios
 - [ ] Generación de Hoja de Ruta imprimible (HTML/PDF)
 - [ ] Supervisión integral de Wayka y tiempos SLA
