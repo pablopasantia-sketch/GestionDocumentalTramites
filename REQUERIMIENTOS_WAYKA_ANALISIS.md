@@ -632,7 +632,7 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 - [X] Anular proceso (Admin Tramites)
 - [X] Habilitar proceso concluido
 - [ ] Generación de Hoja de Ruta imprimible (HTML/PDF)
-- [ ] Supervisión integral de Tramites y tiempos SLA
+- [ ] Supervisión integral de Wayka y tiempos SLA
 
 ### Sprint 5 (27 Oct - 09 Nov): Reportes y Transparencia
 
