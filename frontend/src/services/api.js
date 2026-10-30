@@ -255,6 +255,9 @@ export const tramitesService = {
     const response = await api.post(`/tramites/${id}/habilitar`, { motivo });
     return response.data;
   },
+  getHojaDeRutaHtmlUrl: (id, autoprint = false) => {
+    return `${API_BASE_URL}/tramites/${id}/hoja-de-ruta/html${autoprint ? '?autoprint=true' : ''}`;
+  },
   // Métodos del Escritorio Virtual (Sprint 3 - RF-04)
   getBandeja: async (params = {}) => {
     const response = await api.get('/tramites/bandeja', { params });

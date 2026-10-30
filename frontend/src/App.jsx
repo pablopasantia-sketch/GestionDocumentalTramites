@@ -11,6 +11,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminHub from './pages/AdminHub';
 import VentanillaUnica from './pages/VentanillaUnica';
 import EscritorioVirtual from './pages/EscritorioVirtual';
+import HojaDeRutaPage from './pages/HojaDeRutaPage';
 
 // Componente para vistas en desarrollo con estilo Gaceta Sucre
 function PlaceholderView({ title, description, badge }) {
@@ -88,6 +89,11 @@ export default function App() {
                   <AdminHub />
                 </ProtectedRoute>
               } 
+            />
+
+            <Route 
+              path="/tramite/:id/hoja-de-ruta" 
+              element={<HojaDeRutaPage />} 
             />
 
             {/* Fallback */}

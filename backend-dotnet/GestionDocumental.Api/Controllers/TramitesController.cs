@@ -755,6 +755,17 @@ namespace GestionDocumental.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
+            var detalle = await ObtenerDetalleCompletoAsync(id);
+            if (detalle == null)
+            {
+                return NotFound(ApiResponse.ErrorResult("Trámite no encontrado."));
+            }
+
+            return Ok(ApiResponse<TramiteDetalleCompletoDto>.Ok(detalle));
+        }
+
+        private async Task<TramiteDetalleCompletoDto?> ObtenerDetalleCompletoAsync(int id)
+        {
             TramiteDetalleCompletoDto? detalle = null;
             var historial = new List<MovimientoTimelineDto>();
             var adjuntos = new List<GestionDocumental.Api.DTOs.Adjuntos.AdjuntoItemDto>();
@@ -875,13 +886,418 @@ namespace GestionDocumental.Api.Controllers
                 new SqlParameter("@Id", SqlDbType.Int) { Value = id }
             );
 
+            return detalle;
+        }
+
+        /// <summary>
+        /// Generar Hoja de Ruta imprimible en formato HTML/PDF (RF-08 / Sprint 4)
+        /// Permite visualización e impresión directa con diseño institucional Gaceta Sucre.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("{id}/hoja-de-ruta/html")]
+        public async Task<IActionResult> GenerarHojaDeRutaHtml(int id, [FromQuery] bool autoprint = false)
+        {
+            var detalle = await ObtenerDetalleCompletoAsync(id);
             if (detalle == null)
             {
-                return NotFound(ApiResponse.ErrorResult("Trámite no encontrado."));
+                return NotFound("<h3>Error: Trámite u Hoja de Ruta no encontrado.</h3>");
             }
 
-            return Ok(ApiResponse<TramiteDetalleCompletoDto>.Ok(detalle));
+            var html = RenderHojaDeRutaHtml(detalle, autoprint);
+            return Content(html, "text/html; charset=utf-8");
         }
+
+        private static string RenderHojaDeRutaHtml(TramiteDetalleCompletoDto d, bool autoprint)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.Append("<!DOCTYPE html>");
+            sb.Append("<html lang=\"es\">");
+            sb.Append("<head>");
+            sb.Append("<meta charset=\"UTF-8\" />");
+            sb.Append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />");
+            sb.Append($"<title>Hoja de Ruta - {System.Net.WebUtility.HtmlEncode(d.NumeroCorrelativo)}</title>");
+            sb.Append("<style>");
+            sb.Append(@"
+                @page { size: letter portrait; margin: 10mm 12mm 12mm 12mm; }
+                * { box-sizing: border-box; }
+                body {
+                    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+                    font-size: 11px;
+                    color: #1A202C;
+                    background-color: #F8F9FA;
+                    margin: 0;
+                    padding: 20px;
+                }
+                .toolbar {
+                    max-width: 800px;
+                    margin: 0 auto 15px auto;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    background: #1B365D;
+                    color: white;
+                    padding: 10px 18px;
+                    border-radius: 6px;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+                }
+                .toolbar button {
+                    background: #800000;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    font-weight: 600;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .toolbar button:hover { background: #9B111E; }
+                .page {
+                    max-width: 800px;
+                    margin: 0 auto;
+                    background: #FFFFFF;
+                    padding: 25px 30px;
+                    border: 1px solid #CBD5E0;
+                    border-radius: 4px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+                }
+                .header-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 12px;
+                    border-bottom: 2px solid #800000;
+                    padding-bottom: 8px;
+                }
+                .header-table td { vertical-align: middle; }
+                .inst-title {
+                    font-size: 13px;
+                    font-weight: bold;
+                    color: #800000;
+                    letter-spacing: 0.5px;
+                    text-transform: uppercase;
+                }
+                .inst-sub {
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: #1B365D;
+                    margin-top: 2px;
+                }
+                .doc-title {
+                    font-size: 15px;
+                    font-weight: 800;
+                    color: #1B365D;
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-top: 4px;
+                }
+                .corr-box {
+                    border: 2px solid #800000;
+                    background: #FDF8F8;
+                    padding: 6px 12px;
+                    text-align: center;
+                    border-radius: 4px;
+                }
+                .corr-nro {
+                    font-size: 16px;
+                    font-weight: 800;
+                    color: #800000;
+                }
+                .corr-gestion {
+                    font-size: 10px;
+                    color: #4A5568;
+                    font-weight: 600;
+                }
+                .section-header {
+                    background: #1B365D;
+                    color: #FFFFFF;
+                    font-size: 10px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    padding: 4px 8px;
+                    margin-top: 10px;
+                    margin-bottom: 6px;
+                    border-left: 4px solid #800000;
+                }
+                .info-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 8px;
+                }
+                .info-table th {
+                    background: #EDF2F7;
+                    color: #2D3748;
+                    font-size: 9.5px;
+                    text-align: left;
+                    padding: 4px 6px;
+                    border: 1px solid #CBD5E0;
+                    width: 22%;
+                    font-weight: 600;
+                }
+                .info-table td {
+                    font-size: 10px;
+                    padding: 4px 6px;
+                    border: 1px solid #CBD5E0;
+                    color: #1A202C;
+                }
+                .timeline-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 6px;
+                    margin-bottom: 12px;
+                }
+                .timeline-table th {
+                    background: #800000;
+                    color: #FFFFFF;
+                    font-size: 9px;
+                    font-weight: 700;
+                    padding: 5px 6px;
+                    border: 1px solid #4A5568;
+                    text-align: center;
+                }
+                .timeline-table td {
+                    font-size: 9px;
+                    padding: 5px 6px;
+                    border: 1px solid #CBD5E0;
+                    vertical-align: top;
+                }
+                .timeline-table tr:nth-child(even) { background-color: #F7FAFC; }
+                .firma-box {
+                    height: 48px;
+                    border: 1px dashed #A0AEC0;
+                    background: #FFFFFF;
+                    text-align: center;
+                    font-size: 8px;
+                    color: #A0AEC0;
+                    display: flex;
+                    align-items: flex-end;
+                    justify-content: center;
+                    padding-bottom: 2px;
+                }
+                .manual-box {
+                    border: 1px solid #4A5568;
+                    background: #FFFFFF;
+                    padding: 6px;
+                    margin-bottom: 8px;
+                    font-size: 9px;
+                }
+                .manual-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 8px;
+                }
+                .footer {
+                    margin-top: 15px;
+                    border-top: 1px solid #CBD5E0;
+                    padding-top: 8px;
+                    font-size: 8.5px;
+                    color: #718096;
+                    display: flex;
+                    justify-content: space-between;
+                }
+                .badge {
+                    display: inline-block;
+                    padding: 2px 6px;
+                    border-radius: 3px;
+                    font-weight: 700;
+                    font-size: 8.5px;
+                }
+                .badge-concluido { background: #C6F6D5; color: #22543D; border: 1px solid #9AE6B4; }
+                .badge-atencion { background: #EBF8FF; color: #2B6CB0; border: 1px solid #BEE3F8; }
+                .badge-urgente { background: #FED7D7; color: #9B2C2C; border: 1px solid #FEB2B2; }
+                @media print {
+                    body { background: #FFFFFF; padding: 0; font-size: 10px; }
+                    .toolbar { display: none !important; }
+                    .page { border: none; box-shadow: none; padding: 0; max-width: 100%; }
+                    tr { page-break-inside: avoid; }
+                }
+            ");
+            sb.Append("</style>");
+            sb.Append("</head>");
+            sb.Append("<body>");
+
+            // Barra de herramientas para impresión
+            sb.Append("<div class=\"toolbar\">");
+            sb.Append($"<div><strong>Concejo Municipal de Sucre</strong> | Hoja de Ruta Oficial: {System.Net.WebUtility.HtmlEncode(d.NumeroCorrelativo)}</div>");
+            sb.Append("<div>");
+            sb.Append("<button onclick=\"window.print()\">🖨️ Imprimir / Guardar como PDF</button>");
+            sb.Append("</div>");
+            sb.Append("</div>");
+
+            // Documento de Hoja de Ruta
+            sb.Append("<div class=\"page\">");
+
+            // Encabezado
+            sb.Append("<table class=\"header-table\"><tr>");
+            sb.Append("<td style=\"width: 65px; text-align: center;\">");
+            sb.Append("<svg width=\"50\" height=\"50\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#800000\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/><polyline points=\"9 22 9 12 15 12 15 22\"/></svg>");
+            sb.Append("</td>");
+            sb.Append("<td>");
+            sb.Append("<div class=\"inst-title\">Gobierno Autónomo Municipal de Sucre</div>");
+            sb.Append("<div class=\"inst-sub\">CONCEJO MUNICIPAL DE SUCRE - GACETA OFICIAL</div>");
+            sb.Append("<div class=\"doc-title\">HOJA DE RUTA DE TRÁMITES Y CORRESPONDENCIA</div>");
+            sb.Append("</td>");
+            sb.Append("<td style=\"width: 190px;\">");
+            sb.Append("<div class=\"corr-box\">");
+            sb.Append("<div class=\"corr-gestion\">CÓDIGO DE HOJA DE RUTA</div>");
+            sb.Append($"<div class=\"corr-nro\">{System.Net.WebUtility.HtmlEncode(d.NumeroCorrelativo)}</div>");
+            sb.Append($"<div class=\"corr-gestion\">GESTIÓN: {d.Gestion} &bull; ESTADO: <span class=\"badge {(d.Estado == "CONCLUIDO" ? "badge-concluido" : "badge-atencion")}\">{System.Net.WebUtility.HtmlEncode(d.Estado)}</span></div>");
+            sb.Append("</div>");
+            sb.Append("</td>");
+            sb.Append("</tr></table>");
+
+            // Sección 1: Datos de Radicatoria y Remitente
+            sb.Append("<div class=\"section-header\">1. Datos de Radicatoria y Remitente</div>");
+            sb.Append("<table class=\"info-table\">");
+            sb.Append("<tr>");
+            sb.Append("<th>Tipo de Proceso / Asunto:</th>");
+            sb.Append($"<td><strong>{System.Net.WebUtility.HtmlEncode(d.TipoProcesoNombre)}</strong> ({System.Net.WebUtility.HtmlEncode(d.TipoProcesoCodigo)})</td>");
+            sb.Append("<th>Fecha y Hora Ingreso:</th>");
+            sb.Append($"<td>{d.FechaCreacion:dd/MM/yyyy HH:mm}</td>");
+            sb.Append("</tr>");
+            sb.Append("<tr>");
+            sb.Append("<th>Procedencia / Categoría:</th>");
+            sb.Append($"<td>{System.Net.WebUtility.HtmlEncode(d.TipoCategoria)} &bull; {System.Net.WebUtility.HtmlEncode(d.TipoCorres)}</td>");
+            sb.Append("<th>Prioridad / Fojas:</th>");
+            sb.Append($"<td><span class=\"badge {(d.Prioridad == "URGENTE" ? "badge-urgente" : "")}\">{System.Net.WebUtility.HtmlEncode(d.Prioridad)}</span> &bull; {d.NroHojas} foja(s), {d.NroAnexos} anexo(s)</td>");
+            sb.Append("</tr>");
+            sb.Append("<tr>");
+            sb.Append("<th>Remitente Oficial:</th>");
+            sb.Append($"<td><strong>{System.Net.WebUtility.HtmlEncode(d.Remitente)}</strong>{(string.IsNullOrEmpty(d.InstitucionRemitente) ? "" : $" &bull; {System.Net.WebUtility.HtmlEncode(d.InstitucionRemitente)}")}</td>");
+            sb.Append("<th>CITE Externo:</th>");
+            sb.Append($"<td>{(string.IsNullOrEmpty(d.CiteExterno) ? "S/C" : System.Net.WebUtility.HtmlEncode(d.CiteExterno))}</td>");
+            sb.Append("</tr>");
+            sb.Append("<tr>");
+            sb.Append("<th>Referencia / Objeto:</th>");
+            sb.Append($"<td colspan=\"3\"><strong>{System.Net.WebUtility.HtmlEncode(d.Referencia)}</strong></td>");
+            sb.Append("</tr>");
+            if (!string.IsNullOrWhiteSpace(d.Instruccion))
+            {
+                sb.Append("<tr>");
+                sb.Append("<th>Instrucción Inicial:</th>");
+                sb.Append($"<td colspan=\"3\">{System.Net.WebUtility.HtmlEncode(d.Instruccion)}</td>");
+                sb.Append("</tr>");
+            }
+            sb.Append("</table>");
+
+            // Sección 2: Asignación y Destino Inicial
+            sb.Append("<div class=\"section-header\">2. Asignación y Destino Inicial</div>");
+            sb.Append("<table class=\"info-table\">");
+            sb.Append("<tr>");
+            sb.Append("<th>Primer Destinatario:</th>");
+            sb.Append($"<td><strong>{System.Net.WebUtility.HtmlEncode(d.DestinatarioNombre ?? "No asignado")}</strong></td>");
+            sb.Append("<th>Cargo y Unidad:</th>");
+            sb.Append($"<td>{System.Net.WebUtility.HtmlEncode(d.DestinatarioCargo ?? "-")} &bull; {System.Net.WebUtility.HtmlEncode(d.DestinatarioUnidad ?? "-")}</td>");
+            sb.Append("</tr>");
+            sb.Append("<tr>");
+            sb.Append("<th>Ingresado por:</th>");
+            sb.Append($"<td>{System.Net.WebUtility.HtmlEncode(d.CreadoPorUsuario)} ({System.Net.WebUtility.HtmlEncode(d.UnidadOrigen)})</td>");
+            sb.Append("<th>Plazo de Respuesta:</th>");
+            sb.Append($"<td>{(d.FechaLimiteRespuesta.HasValue ? d.FechaLimiteRespuesta.Value.ToString("dd/MM/yyyy") : "Según reglamento")}</td>");
+            sb.Append("</tr>");
+            sb.Append("</table>");
+
+            // Sección 3: Resoluciones e Instrumentos Legislativos (si existen)
+            if (!string.IsNullOrEmpty(d.SesionPlenoNro) || d.FirmaPresidencia || d.FirmaSecretaria || !string.IsNullOrEmpty(d.DespachoFinalCite))
+            {
+                sb.Append("<div class=\"section-header\">3. Actuaciones del Pleno y Despacho Final</div>");
+                sb.Append("<table class=\"info-table\">");
+                sb.Append("<tr>");
+                sb.Append("<th>Sesión de Pleno:</th>");
+                sb.Append($"<td>{System.Net.WebUtility.HtmlEncode(d.SesionPlenoNro ?? "-")} &bull; Resultado: <strong>{System.Net.WebUtility.HtmlEncode(d.SesionPlenoResultado ?? "-")}</strong></td>");
+                sb.Append("<th>Firmas Directivas:</th>");
+                sb.Append($"<td>Presidencia: {(d.FirmaPresidencia ? "✅ Firmado" : "Pendiente")} | Secretaría: {(d.FirmaSecretaria ? "✅ Firmado" : "Pendiente")}</td>");
+                sb.Append("</tr>");
+                if (!string.IsNullOrEmpty(d.DespachoFinalCite))
+                {
+                    sb.Append("<tr>");
+                    sb.Append("<th>Despacho Final:</th>");
+                    sb.Append($"<td>CITE: <strong>{System.Net.WebUtility.HtmlEncode(d.DespachoFinalCite)}</strong></td>");
+                    sb.Append("<th>Destinatario Final:</th>");
+                    sb.Append($"<td>{System.Net.WebUtility.HtmlEncode(d.DespachoFinalDestinatario ?? "-")}</td>");
+                    sb.Append("</tr>");
+                }
+                sb.Append("</table>");
+            }
+
+            // Sección 4: Cadena de Custodia y Movimientos Registrados
+            sb.Append("<div class=\"section-header\">4. Cadena de Custodia y Movimientos Registrados en Sistema</div>");
+            sb.Append("<table class=\"timeline-table\">");
+            sb.Append("<thead>");
+            sb.Append("<tr>");
+            sb.Append("<th style=\"width: 25px;\">N°</th>");
+            sb.Append("<th style=\"width: 100px;\">Fecha / Hora</th>");
+            sb.Append("<th style=\"width: 130px;\">De (Remitente)</th>");
+            sb.Append("<th style=\"width: 130px;\">A (Destinatario)</th>");
+            sb.Append("<th>Proveído / Instrucción / Instrumento</th>");
+            sb.Append("<th style=\"width: 85px;\">Firma / Sello</th>");
+            sb.Append("</tr>");
+            sb.Append("</thead>");
+            sb.Append("<tbody>");
+
+            if (d.Historial == null || d.Historial.Count == 0)
+            {
+                sb.Append("<tr><td colspan=\"6\" style=\"text-align: center; color: #718096; padding: 10px;\">Sin movimientos registrados.</td></tr>");
+            }
+            else
+            {
+                foreach (var mov in d.Historial)
+                {
+                    sb.Append("<tr>");
+                    sb.Append($"<td style=\"text-align: center; font-weight: bold;\">{mov.Orden}</td>");
+                    sb.Append($"<td><div>Env: {mov.FechaEnvio:dd/MM/yy HH:mm}</div>{(mov.FechaRecepcion.HasValue ? $"<div>Rec: {mov.FechaRecepcion.Value:dd/MM/yy HH:mm}</div>" : "<div style=\"color:#C53030;\">Sin recepción</div>")}</td>");
+                    sb.Append($"<td><strong>{System.Net.WebUtility.HtmlEncode(mov.UsuarioOrigenNombre ?? "Ventanilla")}</strong><br/><span style=\"color:#718096; font-size:8px;\">{System.Net.WebUtility.HtmlEncode(mov.UnidadOrigen)}</span></td>");
+                    sb.Append($"<td><strong>{System.Net.WebUtility.HtmlEncode(mov.UsuarioDestinoNombre ?? "-")}</strong><br/><span style=\"color:#718096; font-size:8px;\">{System.Net.WebUtility.HtmlEncode(mov.UnidadDestino ?? "-")}</span></td>");
+                    sb.Append($"<td><div><strong>[{System.Net.WebUtility.HtmlEncode(mov.TipoMovimiento)}]</strong> {System.Net.WebUtility.HtmlEncode(mov.Proveido ?? mov.Instruccion ?? "-")}</div>{(!string.IsNullOrEmpty(mov.InstrumentosGenerados) ? $"<div style=\"color:#800000; font-weight:600; margin-top:2px;\">Doc: {System.Net.WebUtility.HtmlEncode(mov.InstrumentosGenerados)}</div>" : "")}</td>");
+                    sb.Append("<td><div class=\"firma-box\">Sello y Firma</div></td>");
+                    sb.Append("</tr>");
+                }
+            }
+            sb.Append("</tbody>");
+            sb.Append("</table>");
+
+            // Sección 5: Diligencias Físicas Complementarias
+            sb.Append("<div class=\"section-header\">5. Diligencias y Proveídos Físicos Siguientes (Continuación en Papel)</div>");
+            sb.Append("<div class=\"manual-grid\">");
+            for (int i = 1; i <= 2; i++)
+            {
+                sb.Append("<div class=\"manual-box\">");
+                sb.Append("<div style=\"display:flex; justify-content:space-between; margin-bottom:4px; font-weight:bold; color:#1B365D;\">");
+                sb.Append($"<span>ACTUACIÓN FÍSICA N° _____</span>");
+                sb.Append("<span>Fecha: ___/___/2026 Hora: ___:___</span>");
+                sb.Append("</div>");
+                sb.Append("<div style=\"margin-bottom:3px;\">DE: _________________________________ UNIDAD: _____________________</div>");
+                sb.Append("<div style=\"margin-bottom:3px;\">A: __________________________________ UNIDAD: _____________________</div>");
+                sb.Append("<div style=\"margin-bottom:4px;\">PROVEÍDO / INSTRUCCIÓN: ___________________________________________</div>");
+                sb.Append("<div style=\"margin-bottom:4px; border-bottom: 1px dotted #CBD5E0; height: 12px;\"></div>");
+                sb.Append("<div style=\"display:flex; justify-content:space-between; margin-top:6px; font-size:8px; color:#718096;\">");
+                sb.Append("<span>Fojas remitidas: _____</span>");
+                sb.Append("<span style=\"border:1px dashed #A0AEC0; padding:2px 12px;\">Sello y Firma Receptor</span>");
+                sb.Append("</div>");
+                sb.Append("</div>");
+            }
+            sb.Append("</div>");
+
+            // Pie de página oficial
+            sb.Append("<div class=\"footer\">");
+            sb.Append("<div>Documento Oficial emitido por el Sistema de Gestión Documental y Trámites &bull; Concejo Municipal de Sucre</div>");
+            sb.Append($"<div>Impresión: {DateTime.Now:dd/MM/yyyy HH:mm:ss} &bull; Validez oficial institucional</div>");
+            sb.Append("</div>");
+
+            sb.Append("</div>"); // Fin .page
+
+            if (autoprint)
+            {
+                sb.Append("<script>window.onload = function() { window.print(); };</script>");
+            }
+
+            sb.Append("</body>");
+            sb.Append("</html>");
+
+            return sb.ToString();
+        }
+
 
         /// <summary>
         /// Crear trámite / correspondencia externa unificada (Ventanilla Única y Despachos - RF-03)

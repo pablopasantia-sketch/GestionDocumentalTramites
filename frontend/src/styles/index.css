@@ -932,3 +932,75 @@ textarea::placeholder {
     opacity: 1; 
   }
 }
+
+/* ==============================================================================
+   REGLAS DE IMPRESIÓN OFICIAL (HOJA DE RUTA Y REPORTES)
+   ============================================================================== */
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 10mm 12mm 12mm 12mm;
+  }
+
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    font-size: 10pt;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Ocultar elementos de UI no imprimibles */
+  .no-print,
+  .top-banner,
+  .navbar-sucre,
+  .footer-sucre,
+  .modal-overlay:not(.print-hoja-de-ruta),
+  .modal-close-btn,
+  .modal-footer {
+    display: none !important;
+  }
+
+  /* Si se imprime desde el modal de Hoja de Ruta */
+  .modal-overlay.print-hoja-de-ruta {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    display: block !important;
+    z-index: auto !important;
+  }
+
+  .modal-overlay.print-hoja-de-ruta .modal-container,
+  .modal-overlay.print-hoja-de-ruta .card {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .modal-overlay.print-hoja-de-ruta .modal-header,
+  .modal-overlay.print-hoja-de-ruta .hoja-ruta-toolbar {
+    display: none !important;
+  }
+
+  .modal-overlay.print-hoja-de-ruta .modal-body {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .hoja-ruta-document {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  tr, .print-avoid-break {
+    page-break-inside: avoid !important;
+  }
+}

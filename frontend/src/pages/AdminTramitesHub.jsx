@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { tramitesService, tiposProcesoService, ubicacionesService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import HojaDeRutaModal from '../components/tramites/HojaDeRutaModal';
 
 export default function AdminTramitesHub() {
   const { user, activeRole } = useAuth();
@@ -74,6 +75,10 @@ export default function AdminTramitesHub() {
   const [tramiteToHabilitar, setTramiteToHabilitar] = useState(null);
   const [motivoHabilitacion, setMotivoHabilitacion] = useState('');
   const [habilitarError, setHabilitarError] = useState(null);
+
+  // Modal Hoja de Ruta Oficial
+  const [hojaDeRutaAdminOpen, setHojaDeRutaAdminOpen] = useState(false);
+  const [hojaDeRutaAdminTramiteId, setHojaDeRutaAdminTramiteId] = useState(null);
 
   // Modal Crear / Editar Tipo de Proceso (RF-03)
   const [tipoModalOpen, setTipoModalOpen] = useState(false);
@@ -1117,7 +1122,27 @@ export default function AdminTramitesHub() {
               </div>
             )}
 
-            <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
+            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button
+                onClick={() => {
+                  setHojaDeRutaAdminTramiteId(selectedTramite?.id);
+                  setHojaDeRutaAdminOpen(true);
+                }}
+                className="btn btn-sm"
+                style={{
+                  backgroundColor: '#800000',
+                  color: 'white',
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontWeight: 600
+                }}
+                title="Ver e imprimir la Hoja de Ruta oficial de este trámite"
+              >
+                <FileText size={14} />
+                <span>Hoja de Ruta Oficial</span>
+              </button>
               <button onClick={() => setSelectedTramite(null)} className="btn btn-secondary btn-sm">
                 Cerrar
               </button>
@@ -1614,6 +1639,13 @@ export default function AdminTramitesHub() {
           </div>
         </div>
       )}
+
+      {/* Modal Hoja de Ruta Oficial (Admin) */}
+      <HojaDeRutaModal
+        isOpen={hojaDeRutaAdminOpen}
+        onClose={() => setHojaDeRutaAdminOpen(false)}
+        tramiteId={hojaDeRutaAdminTramiteId}
+      />
     </div>
   );
 }

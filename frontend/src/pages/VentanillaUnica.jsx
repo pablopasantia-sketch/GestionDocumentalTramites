@@ -35,6 +35,7 @@ import { useAuth } from '../context/AuthContext';
 import InstitucionalSelectors from '../components/institucional/InstitucionalSelectors';
 import EmpleadoSearchAutocomplete from '../components/institucional/EmpleadoSearchAutocomplete';
 import PdfUploader from '../components/common/PdfUploader';
+import HojaDeRutaModal from '../components/tramites/HojaDeRutaModal';
 
 export const CANALES_CMS = {
   EXTERNA: {
@@ -98,9 +99,12 @@ export default function VentanillaUnica() {
   const [formError, setFormError] = useState(null);
   const [attachedPdfs, setAttachedPdfs] = useState([]);
 
-  // Modal de Hoja de Ruta generada
+  // Modal de éxito post-registro
   const [emittedTramite, setEmittedTramite] = useState(null);
   const [showEmittedModal, setShowEmittedModal] = useState(false);
+
+  // Modal Hoja de Ruta
+  const [hojaDeRutaOpen, setHojaDeRutaOpen] = useState(false);
 
   // Historial de la jornada
   const [historialTramites, setHistorialTramites] = useState([]);
@@ -1974,6 +1978,25 @@ export default function VentanillaUnica() {
 
                 <button
                   type="button"
+                  className="btn btn-sm"
+                  onClick={() => setHojaDeRutaOpen(true)}
+                  style={{
+                    backgroundColor: '#800000',
+                    color: 'white',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontWeight: 600
+                  }}
+                  title="Ver e imprimir la Hoja de Ruta oficial del trámite registrado"
+                >
+                  <FileText size={15} />
+                  <span>Ver Hoja de Ruta</span>
+                </button>
+
+                <button
+                  type="button"
                   className="btn btn-primary btn-sm"
                   onClick={() => {
                     setShowEmittedModal(false);
@@ -1989,6 +2012,14 @@ export default function VentanillaUnica() {
           </div>
         </div>
       )}
+
+      {/* Modal de Hoja de Ruta Oficial */}
+      <HojaDeRutaModal
+        isOpen={hojaDeRutaOpen}
+        onClose={() => setHojaDeRutaOpen(false)}
+        tramiteId={emittedTramite?.id || null}
+        initialData={emittedTramite}
+      />
     </div>
   );
 }

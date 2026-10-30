@@ -49,6 +49,7 @@ import { tramitesService, adjuntosService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import InstitucionalSelectors from '../components/institucional/InstitucionalSelectors';
 import EmpleadoSearchAutocomplete from '../components/institucional/EmpleadoSearchAutocomplete';
+import HojaDeRutaModal from '../components/tramites/HojaDeRutaModal';
 
 const INSTRUCCIONES_SUGERIDAS_DERIVACION = [
   'Para su atención y trámite correspondiente según normativa',
@@ -196,6 +197,7 @@ export default function EscritorioVirtual() {
   const [selectedTramiteId, setSelectedTramiteId] = useState(null);
   const [tramiteDetalle, setTramiteDetalle] = useState(null);
   const [loadingDetalle, setLoadingDetalle] = useState(false);
+  const [hojaDeRutaModalOpen, setHojaDeRutaModalOpen] = useState(false);
 
   const [recepcionarModalOpen, setRecepcionarModalOpen] = useState(false);
   const [tramiteARecepcionar, setTramiteARecepcionar] = useState(null);
@@ -3308,7 +3310,7 @@ export default function EscritorioVirtual() {
               <div>
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={() => setHojaDeRutaModalOpen(true)}
                   className="btn btn-secondary btn-sm"
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
                 >
@@ -3329,6 +3331,14 @@ export default function EscritorioVirtual() {
           </div>
         </div>
       )}
+
+      {/* MODAL HOJA DE RUTA INSTITUCIONAL (RF-08) */}
+      <HojaDeRutaModal 
+        isOpen={hojaDeRutaModalOpen}
+        onClose={() => setHojaDeRutaModalOpen(false)}
+        tramiteId={selectedTramiteId || tramiteDetalle?.id}
+        initialData={tramiteDetalle}
+      />
 
       {/* ─────────────────────────────────────────────────────────────
           8. MODAL DE DERIVACIÓN LIBRE / AVANZAR (RF-05.1, RF-03.9)
