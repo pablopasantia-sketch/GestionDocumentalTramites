@@ -21,7 +21,9 @@ import {
   User,
   ShieldAlert,
   ArrowRight,
-  Printer
+  Printer,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import { tramitesService, tiposProcesoService, ubicacionesService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -53,6 +55,18 @@ export default function AdminTramitesHub() {
   const [tramiteToAnular, setTramiteToAnular] = useState(null);
   const [motivoAnulacion, setMotivoAnulacion] = useState('');
   const [anularError, setAnularError] = useState(null);
+
+  // Modal Bloquear Trámite (RF-11)
+  const [bloquearModalOpen, setBloquearModalOpen] = useState(false);
+  const [tramiteToBloquear, setTramiteToBloquear] = useState(null);
+  const [motivoBloqueo, setMotivoBloqueo] = useState('');
+  const [bloquearError, setBloquearError] = useState(null);
+
+  // Modal Desbloquear Trámite (RF-11)
+  const [desbloquearModalOpen, setDesbloquearModalOpen] = useState(false);
+  const [tramiteToDesbloquear, setTramiteToDesbloquear] = useState(null);
+  const [motivoDesbloqueo, setMotivoDesbloqueo] = useState('');
+  const [desbloquearError, setDesbloquearError] = useState(null);
 
   // Modal Crear / Editar Tipo de Proceso (RF-03)
   const [tipoModalOpen, setTipoModalOpen] = useState(false);
@@ -147,6 +161,71 @@ export default function AdminTramitesHub() {
       }
     } catch (err) {
       setAnularError(err.response?.data?.message || err.message || 'Error al anular trámite.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ----------------------------------------------------
+  // MANEJADORES: BLOQUEO Y DESBLOQUEO DE TRÁMITES (RF-11)
+  // ----------------------------------------------------
+  const handleOpenBloquearModal = (tramite) => {
+    setTramiteToBloquear(tramite);
+    setMotivoBloqueo('');
+    setBloquearError(null);
+    setBloquearModalOpen(true);
+  };
+
+  const handleConfirmBloqueo = async (e) => {
+    e.preventDefault();
+    if (!motivoBloqueo.trim() || motivoBloqueo.trim().length < 3) {
+      setBloquearError('El motivo o proveído del bloqueo es obligatorio (mínimo 3 caracteres).');
+      return;
+    }
+
+    setActionLoading(true);
+    setBloquearError(null);
+    try {
+      const res = await tramitesService.bloquear(tramiteToBloquear.id, motivoBloqueo.trim());
+      if (res.success) {
+        showFeedbackMsg('success', `El trámite ${tramiteToBloquear.numero_correlativo} fue bloqueado temporalmente de forma exitosa.`);
+        setBloquearModalOpen(false);
+        setTramiteToBloquear(null);
+        loadAllData();
+      }
+    } catch (err) {
+      setBloquearError(err.response?.data?.message || err.message || 'Error al bloquear trámite.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleOpenDesbloquearModal = (tramite) => {
+    setTramiteToDesbloquear(tramite);
+    setMotivoDesbloqueo('');
+    setDesbloquearError(null);
+    setDesbloquearModalOpen(true);
+  };
+
+  const handleConfirmDesbloqueo = async (e) => {
+    e.preventDefault();
+    if (!motivoDesbloqueo.trim() || motivoDesbloqueo.trim().length < 3) {
+      setDesbloquearError('El motivo o proveído del desbloqueo es obligatorio (mínimo 3 caracteres).');
+      return;
+    }
+
+    setActionLoading(true);
+    setDesbloquearError(null);
+    try {
+      const res = await tramitesService.desbloquear(tramiteToDesbloquear.id, motivoDesbloqueo.trim());
+      if (res.success) {
+        showFeedbackMsg('success', `El trámite ${tramiteToDesbloquear.numero_correlativo} fue desbloqueado y reactivado exitosamente.`);
+        setDesbloquearModalOpen(false);
+        setTramiteToDesbloquear(null);
+        loadAllData();
+      }
+    } catch (err) {
+      setDesbloquearError(err.response?.data?.message || err.message || 'Error al desbloquear trámite.');
     } finally {
       setActionLoading(false);
     }
@@ -610,6 +689,53 @@ export default function AdminTramitesHub() {
                           <Eye size={13} />
                           <span>Trazabilidad</span>
                         </button>
+
+                        {/* Botón Bloquear / Desbloquear (RF-11) */}
+                        {t.estado === 'BLOQUEADO' ? (
+                          <button
+                            onClick={() => handleOpenDesbloquearModal(t)}
+                            className="btn btn-sm"
+                            title="Desbloquear y reactivar trámite (RF-11.4)"
+                            style={{
+                              padding: '4px 8px',
+                              backgroundColor: '#15803D',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontWeight: 600
+                            }}
+                          >
+                            <Unlock size={13} />
+                            <span>Desbloquear</span>
+                          </button>
+                        ) : (
+                          t.estado !== 'ANULADO' && t.estado !== 'CONCLUIDO' && t.estado !== 'POR_RECIBIR' && (
+                            <button
+                              onClick={() => handleOpenBloquearModal(t)}
+                              className="btn btn-sm"
+                              title="Bloquear temporalmente trámite (RF-11.1)"
+                              style={{
+                                padding: '4px 8px',
+                                backgroundColor: '#800000',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontWeight: 600
+                              }}
+                            >
+                              <Lock size={13} />
+                              <span>Bloquear</span>
+                            </button>
+                          )
+                        )}
 
                         {t.estado !== 'ANULADO' && t.estado !== 'CONCLUIDO' && (
                           <button
@@ -1140,6 +1266,172 @@ export default function AdminTramitesHub() {
                   disabled={actionLoading}
                 >
                   {actionLoading ? 'Guardando...' : tipoEditing ? 'Actualizar Tipo' : 'Crear Tipo de Proceso'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: BLOQUEAR TRÁMITE (RF-11) */}
+      {bloquearModalOpen && tramiteToBloquear && (
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget && !actionLoading) setBloquearModalOpen(false); }}>
+          <div className="modal-dialog" style={{ maxWidth: '550px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header" style={{ background: '#800000', color: 'white', padding: '1.25rem 1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Lock size={20} color="#FCA5A5" />
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'white' }}>
+                  Bloquear Proceso / Trámite
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => !actionLoading && setBloquearModalOpen(false)}
+                style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmBloqueo}>
+              <div className="modal-body" style={{ padding: '1.5rem' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '12px', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 700 }}>EXPEDIENTE</span>
+                    <strong style={{ fontSize: '1.05rem', color: '#800000' }}>{tramiteToBloquear.numero_correlativo}</strong>
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#1B365D', fontWeight: 600 }}>{tramiteToBloquear.remitente}</div>
+                  <div style={{ fontSize: '0.82rem', color: '#475569', marginTop: '2px' }}>{tramiteToBloquear.referencia}</div>
+                </div>
+
+                <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '6px', padding: '10px 12px', marginBottom: '1rem', fontSize: '0.82rem', color: '#92400E' }}>
+                  ⚠️ <strong>Efecto RF-11:</strong> El trámite quedará temporalmente inhabilitado y ningún usuario podrá trabajarlo hasta su reactivación formal.
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1B365D', marginBottom: '4px', display: 'block' }}>
+                    Motivo / Proveído de Bloqueo (*):
+                  </label>
+                  <textarea
+                    className="form-control"
+                    rows="3"
+                    required
+                    placeholder="Escriba el motivo o fundamento del bloqueo administrativo..."
+                    value={motivoBloqueo}
+                    onChange={(e) => setMotivoBloqueo(e.target.value)}
+                    style={{ fontSize: '0.85rem' }}
+                    disabled={actionLoading}
+                  />
+                </div>
+
+                {bloquearError && (
+                  <div className="alert alert-danger" style={{ fontSize: '0.84rem', padding: '8px 12px' }}>
+                    {bloquearError}
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer" style={{ padding: '1rem 1.5rem', background: '#F9FAFB', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setBloquearModalOpen(false)}
+                  disabled={actionLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-sm"
+                  disabled={actionLoading || !motivoBloqueo.trim()}
+                  style={{ background: '#800000', color: 'white', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Lock size={14} />
+                  <span>{actionLoading ? 'Bloqueando...' : 'Confirmar Bloqueo'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: DESBLOQUEAR TRÁMITE (RF-11.4) */}
+      {desbloquearModalOpen && tramiteToDesbloquear && (
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget && !actionLoading) setDesbloquearModalOpen(false); }}>
+          <div className="modal-dialog" style={{ maxWidth: '550px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header" style={{ background: '#15803D', color: 'white', padding: '1.25rem 1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Unlock size={20} color="#86EFAC" />
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'white' }}>
+                  Desbloquear y Reactivar Trámite
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => !actionLoading && setDesbloquearModalOpen(false)}
+                style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmDesbloqueo}>
+              <div className="modal-body" style={{ padding: '1.5rem' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '12px', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 700 }}>EXPEDIENTE</span>
+                    <strong style={{ fontSize: '1.05rem', color: '#15803D' }}>{tramiteToDesbloquear.numero_correlativo}</strong>
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#1B365D', fontWeight: 600 }}>{tramiteToDesbloquear.remitente}</div>
+                  <div style={{ fontSize: '0.82rem', color: '#475569', marginTop: '2px' }}>{tramiteToDesbloquear.referencia}</div>
+                </div>
+
+                {tramiteToDesbloquear.motivo_bloqueo && (
+                  <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '6px', padding: '10px 12px', marginBottom: '1rem', fontSize: '0.82rem', color: '#991B1B' }}>
+                    <strong>Motivo de Bloqueo Registrado:</strong> {tramiteToDesbloquear.motivo_bloqueo}
+                  </div>
+                )}
+
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1B365D', marginBottom: '4px', display: 'block' }}>
+                    Motivo / Proveído de Desbloqueo (*):
+                  </label>
+                  <textarea
+                    className="form-control"
+                    rows="3"
+                    required
+                    placeholder="Escriba el motivo por el cual se reactiva el expediente..."
+                    value={motivoDesbloqueo}
+                    onChange={(e) => setMotivoDesbloqueo(e.target.value)}
+                    style={{ fontSize: '0.85rem' }}
+                    disabled={actionLoading}
+                  />
+                </div>
+
+                {desbloquearError && (
+                  <div className="alert alert-danger" style={{ fontSize: '0.84rem', padding: '8px 12px' }}>
+                    {desbloquearError}
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer" style={{ padding: '1rem 1.5rem', background: '#F9FAFB', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setDesbloquearModalOpen(false)}
+                  disabled={actionLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-sm"
+                  disabled={actionLoading || !motivoDesbloqueo.trim()}
+                  style={{ background: '#15803D', color: 'white', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Unlock size={14} />
+                  <span>{actionLoading ? 'Reactivando...' : 'Confirmar Desbloqueo'}</span>
                 </button>
               </div>
             </form>

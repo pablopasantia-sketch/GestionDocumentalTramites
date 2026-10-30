@@ -24,7 +24,11 @@ import {
   UserCheck,
   Paperclip,
   Download,
-  ExternalLink
+  ExternalLink,
+  Lock,
+  Unlock,
+  ShieldAlert,
+  AlertTriangle
 } from 'lucide-react';
 import { tramitesService, tiposProcesoService, adjuntosService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -136,7 +140,7 @@ export default function VentanillaUnica() {
     setLoadingHistorial(true);
     try {
       const res = await tramitesService.getAll({
-        limit: 30
+        limit: 50
       });
       const list = Array.isArray(res) ? res : (res?.data || []);
       setHistorialTramites(list);
@@ -144,6 +148,131 @@ export default function VentanillaUnica() {
       console.error('Error cargando historial de ventanilla:', err);
     } finally {
       setLoadingHistorial(false);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // MÓDULO ADMINISTRACIÓN: BLOQUEAR / DESBLOQUEAR PROCESOS (RF-11 / SPRINT 4)
+  // -------------------------------------------------------------
+  const [bloqueoTramites, setBloqueoTramites] = useState([]);
+  const [loadingBloqueo, setLoadingBloqueo] = useState(false);
+  const [bloqueoSearchTerm, setBloqueoSearchTerm] = useState('');
+  const [bloqueoEstadoFilter, setBloqueoEstadoFilter] = useState('TODOS'); // 'TODOS' | 'ACTIVOS' | 'BLOQUEADOS'
+  const [bloqueoFeedback, setBloqueoFeedback] = useState(null);
+
+  // Modal Bloquear
+  const [bloquearModalOpen, setBloquearModalOpen] = useState(false);
+  const [tramiteABloquear, setTramiteABloquear] = useState(null);
+  const [motivoBloqueo, setMotivoBloqueo] = useState('');
+  const [bloquearLoading, setBloquearLoading] = useState(false);
+  const [bloquearError, setBloquearError] = useState(null);
+
+  // Modal Desbloquear
+  const [desbloquearModalOpen, setDesbloquearModalOpen] = useState(false);
+  const [tramiteADesbloquear, setTramiteADesbloquear] = useState(null);
+  const [motivoDesbloqueo, setMotivoDesbloqueo] = useState('');
+  const [desbloquearLoading, setDesbloquearLoading] = useState(false);
+  const [desbloquearError, setDesbloquearError] = useState(null);
+
+  // Modal Trazabilidad
+  const [trazabilidadModalOpen, setTrazabilidadModalOpen] = useState(false);
+  const [tramiteTrazabilidad, setTramiteTrazabilidad] = useState(null);
+  const [trazabilidadData, setTrazabilidadData] = useState(null);
+  const [trazabilidadLoading, setTrazabilidadLoading] = useState(false);
+
+  const loadBloqueoTramites = async () => {
+    setLoadingBloqueo(true);
+    try {
+      const res = await tramitesService.getAll({ limit: 100 });
+      const list = Array.isArray(res) ? res : (res?.data || []);
+      setBloqueoTramites(list);
+    } catch (err) {
+      console.error('Error al cargar trámites para bloqueo/desbloqueo:', err);
+      setBloqueoFeedback({ type: 'error', message: 'No se pudieron cargar los trámites para gestión de bloqueos.' });
+    } finally {
+      setLoadingBloqueo(false);
+    }
+  };
+
+  const showBloqueoMsg = (type, message) => {
+    setBloqueoFeedback({ type, message });
+    setTimeout(() => setBloqueoFeedback(null), 6000);
+  };
+
+  const handleOpenBloquear = (tramite) => {
+    setTramiteABloquear(tramite);
+    setMotivoBloqueo('');
+    setBloquearError(null);
+    setBloquearModalOpen(true);
+  };
+
+  const handleConfirmBloquear = async (e) => {
+    e.preventDefault();
+    if (!motivoBloqueo || motivoBloqueo.trim().length < 3) {
+      setBloquearError('El motivo o proveído del bloqueo es obligatorio y debe tener al menos 3 caracteres.');
+      return;
+    }
+    setBloquearLoading(true);
+    setBloquearError(null);
+    try {
+      await tramitesService.bloquear(tramiteABloquear.id, motivoBloqueo.trim());
+      showBloqueoMsg('success', `El trámite ${tramiteABloquear.numero_correlativo} fue bloqueado temporalmente de forma exitosa.`);
+      setBloquearModalOpen(false);
+      setTramiteABloquear(null);
+      setMotivoBloqueo('');
+      loadBloqueoTramites();
+      loadHistorial();
+    } catch (err) {
+      console.error('Error al bloquear trámite:', err);
+      setBloquearError(err.response?.data?.message || err.message || 'Error al procesar el bloqueo del trámite.');
+    } finally {
+      setBloquearLoading(false);
+    }
+  };
+
+  const handleOpenDesbloquear = (tramite) => {
+    setTramiteADesbloquear(tramite);
+    setMotivoDesbloqueo('');
+    setDesbloquearError(null);
+    setDesbloquearModalOpen(true);
+  };
+
+  const handleConfirmDesbloquear = async (e) => {
+    e.preventDefault();
+    if (!motivoDesbloqueo || motivoDesbloqueo.trim().length < 3) {
+      setDesbloquearError('El motivo o proveído del desbloqueo es obligatorio y debe tener al menos 3 caracteres.');
+      return;
+    }
+    setDesbloquearLoading(true);
+    setDesbloquearError(null);
+    try {
+      await tramitesService.desbloquear(tramiteADesbloquear.id, motivoDesbloqueo.trim());
+      showBloqueoMsg('success', `El trámite ${tramiteADesbloquear.numero_correlativo} fue desbloqueado y reactivado exitosamente.`);
+      setDesbloquearModalOpen(false);
+      setTramiteADesbloquear(null);
+      setMotivoDesbloqueo('');
+      loadBloqueoTramites();
+      loadHistorial();
+    } catch (err) {
+      console.error('Error al desbloquear trámite:', err);
+      setDesbloquearError(err.response?.data?.message || err.message || 'Error al procesar el desbloqueo del trámite.');
+    } finally {
+      setDesbloquearLoading(false);
+    }
+  };
+
+  const handleVerTrazabilidadVentanilla = async (tramite) => {
+    setTramiteTrazabilidad(tramite);
+    setTrazabilidadData(null);
+    setTrazabilidadLoading(true);
+    setTrazabilidadModalOpen(true);
+    try {
+      const res = await tramitesService.getById(tramite.id);
+      setTrazabilidadData(res.data || res);
+    } catch (err) {
+      console.error('Error al cargar trazabilidad:', err);
+    } finally {
+      setTrazabilidadLoading(false);
     }
   };
 
@@ -448,6 +577,20 @@ export default function VentanillaUnica() {
           >
             <FileText size={16} />
             <span>Correspondencias Recepcionadas ({historialTramites.length})</span>
+          </button>
+          <button
+            type="button"
+            className={`btn btn-sm ${activeTab === 'bloqueo' ? 'btn-primary' : 'btn-outline-secondary'}`}
+            onClick={() => { setActiveTab('bloqueo'); loadBloqueoTramites(); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <ShieldAlert size={16} />
+            <span>Bloquear / Desbloquear Procesos</span>
+            {bloqueoTramites.filter(t => t.estado === 'BLOQUEADO').length > 0 && (
+              <span className="badge" style={{ background: '#DC2626', color: 'white', padding: '1px 6px', fontSize: '0.7rem', borderRadius: '10px' }}>
+                {bloqueoTramites.filter(t => t.estado === 'BLOQUEADO').length} Bloqueado(s)
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -949,6 +1092,685 @@ export default function VentanillaUnica() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* 4. PESTAÑA: BLOQUEAR / DESBLOQUEAR PROCESOS (RF-11 / SPRINT 4) */}
+      {/* ------------------------------------------------------------- */}
+      {activeTab === 'bloqueo' && (
+        <div className="card" style={{ padding: '1.5rem' }}>
+          {/* Encabezado Institucional */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="badge badge-sucre">Sprint 4: Tarea 1</span>
+                <span className="badge" style={{ background: '#1B365D', color: 'white' }}>RF-11 Ventanilla Única</span>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1B365D', margin: '6px 0 2px 0' }}>
+                Administración de Procesos: Bloqueo y Desbloqueo Temporal
+              </h3>
+              <p style={{ fontSize: '0.84rem', color: '#64748B', margin: 0, maxWidth: '780px', lineHeight: 1.4 }}>
+                Permite a Ventanilla Única suspender temporalmente el curso de un expediente por falta de requisitos, subsanaciones o motivos administrativos, inhabilitando su tramitación operativa hasta su desbloqueo fundamentado.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn btn-outline-secondary btn-sm"
+                onClick={loadBloqueoTramites}
+                title="Actualizar listado de procesos"
+                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <RefreshCw size={14} className={loadingBloqueo ? 'spinning' : ''} />
+                <span>Actualizar</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Mensaje de Feedback Global */}
+          {bloqueoFeedback && (
+            <div
+              className={`alert ${bloqueoFeedback.type === 'success' ? 'alert-success' : 'alert-danger'}`}
+              style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px' }}
+            >
+              {bloqueoFeedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+              <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{bloqueoFeedback.message}</span>
+            </div>
+          )}
+
+          {/* Barra de Filtros y Búsqueda */}
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            alignItems: 'center',
+            background: '#F8FAFC',
+            padding: '12px',
+            borderRadius: '6px',
+            border: '1px solid #E2E8F0',
+            marginBottom: '1.5rem',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ position: 'relative', flex: '1', minWidth: '240px' }}>
+              <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
+              <input
+                type="text"
+                className="form-control form-control-sm"
+                style={{ paddingLeft: '32px' }}
+                placeholder="Buscar por correlativo, remitente, referencia o CITE..."
+                value={bloqueoSearchTerm}
+                onChange={e => setBloqueoSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#475569' }}>Filtrar Estado:</span>
+              <select
+                className="form-select form-select-sm"
+                value={bloqueoEstadoFilter}
+                onChange={e => setBloqueoEstadoFilter(e.target.value)}
+                style={{ width: '180px' }}
+              >
+                <option value="TODOS">Todos los Estados</option>
+                <option value="ACTIVOS">En Atención (Listos)</option>
+                <option value="BLOQUEADOS">Bloqueados ⛔</option>
+              </select>
+            </div>
+
+            <div style={{ fontSize: '0.82rem', color: '#64748B', marginLeft: 'auto' }}>
+              Mostrando <strong>{
+                bloqueoTramites.filter(t => {
+                  if (bloqueoEstadoFilter === 'BLOQUEADOS' && t.estado !== 'BLOQUEADO') return false;
+                  if (bloqueoEstadoFilter === 'ACTIVOS' && (t.estado === 'BLOQUEADO' || t.estado === 'CONCLUIDO' || t.estado === 'ANULADO')) return false;
+                  if (!bloqueoSearchTerm) return true;
+                  const term = bloqueoSearchTerm.toLowerCase();
+                  return (t.numero_correlativo || '').toLowerCase().includes(term) ||
+                         (t.remitente || '').toLowerCase().includes(term) ||
+                         (t.referencia || '').toLowerCase().includes(term) ||
+                         (t.cite_externo || '').toLowerCase().includes(term);
+                }).length
+              }</strong> de {bloqueoTramites.length} trámites
+            </div>
+          </div>
+
+          {/* Tabla de Procesos y Control de Bloqueo */}
+          {loadingBloqueo ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: '#64748B' }}>
+              <RefreshCw size={24} className="spinning" style={{ marginBottom: '8px' }} />
+              <div>Cargando expedientes institucionales...</div>
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <table className="table table-hover" style={{ fontSize: '0.86rem', verticalAlign: 'middle' }}>
+                <thead style={{ background: '#F1F5F9', color: '#1B365D', borderBottom: '2px solid #CBD5E1' }}>
+                  <tr>
+                    <th style={{ width: '150px' }}>Correlativo</th>
+                    <th style={{ width: '140px' }}>Tipo de Proceso</th>
+                    <th>Remitente & Asunto</th>
+                    <th style={{ width: '140px', textAlign: 'center' }}>Estado</th>
+                    <th style={{ width: '170px' }}>Ubicación / Responsable</th>
+                    <th style={{ width: '190px', textAlign: 'center' }}>Acciones RF-11</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bloqueoTramites
+                    .filter(t => {
+                      if (bloqueoEstadoFilter === 'BLOQUEADOS' && t.estado !== 'BLOQUEADO') return false;
+                      if (bloqueoEstadoFilter === 'ACTIVOS' && (t.estado === 'BLOQUEADO' || t.estado === 'CONCLUIDO' || t.estado === 'ANULADO')) return false;
+                      if (!bloqueoSearchTerm) return true;
+                      const term = bloqueoSearchTerm.toLowerCase();
+                      return (t.numero_correlativo || '').toLowerCase().includes(term) ||
+                             (t.remitente || '').toLowerCase().includes(term) ||
+                             (t.referencia || '').toLowerCase().includes(term) ||
+                             (t.cite_externo || '').toLowerCase().includes(term);
+                    })
+                    .map(t => {
+                      const isBloqueado = t.estado === 'BLOQUEADO';
+                      const isEnTransito = t.estado === 'POR_RECIBIR' || t.estado === 'EN_TRANSITO';
+                      const isConcluidoOAnulado = t.estado === 'CONCLUIDO' || t.estado === 'ANULADO';
+
+                      return (
+                        <tr key={t.id} style={{ background: isBloqueado ? '#FEF2F2' : 'transparent' }}>
+                          <td>
+                            <strong style={{ color: '#800000', fontSize: '0.92rem' }}>
+                              {t.numero_correlativo}
+                            </strong>
+                            <div style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                              Gestión {t.gestion}
+                            </div>
+                          </td>
+                          <td>
+                            <span className="badge badge-outline" style={{ fontSize: '0.74rem' }}>
+                              {t.tipo_proceso_nombre || 'Correspondencia'}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ fontWeight: 700, color: '#1B365D' }}>{t.remitente}</div>
+                            <div style={{
+                              color: '#475569',
+                              fontSize: '0.8rem',
+                              maxWidth: '340px',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }} title={t.referencia}>
+                              {t.referencia}
+                            </div>
+                            {isBloqueado && t.motivo_bloqueo && (
+                              <div style={{
+                                marginTop: '4px',
+                                background: '#FEE2E2',
+                                border: '1px solid #FCA5A5',
+                                borderRadius: '4px',
+                                padding: '4px 8px',
+                                fontSize: '0.76rem',
+                                color: '#991B1B'
+                              }}>
+                                <strong>Motivo de Bloqueo:</strong> {t.motivo_bloqueo}
+                              </div>
+                            )}
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            {isBloqueado ? (
+                              <span className="badge" style={{ background: '#DC2626', color: 'white', display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 8px' }}>
+                                <Lock size={12} />
+                                <span>BLOQUEADO</span>
+                              </span>
+                            ) : isEnTransito ? (
+                              <span className="badge" style={{ background: '#F59E0B', color: 'white', padding: '4px 8px' }}>
+                                🚚 EN TRÁNSITO
+                              </span>
+                            ) : isConcluidoOAnulado ? (
+                              <span className="badge" style={{ background: '#64748B', color: 'white', padding: '4px 8px' }}>
+                                {t.estado}
+                              </span>
+                            ) : (
+                              <span className="badge" style={{ background: '#10B981', color: 'white', padding: '4px 8px' }}>
+                                EN ATENCIÓN
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1F2937' }}>
+                              {t.usuario_actual_nombre || t.usuario_actual || 'Sin asignar'}
+                            </div>
+                            <div style={{ fontSize: '0.74rem', color: '#64748B' }}>
+                              {t.ubicacion_actual_nombre || t.ubicacion_actual || 'Ventanilla Única'}
+                            </div>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <div style={{ display: 'inline-flex', gap: '6px' }}>
+                              {/* Botón Bloquear o Desbloquear */}
+                              {isBloqueado ? (
+                                <button
+                                  type="button"
+                                  className="btn btn-sm"
+                                  onClick={() => handleOpenDesbloquear(t)}
+                                  style={{
+                                    background: '#15803D',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '4px 10px',
+                                    fontSize: '0.78rem',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    fontWeight: 700
+                                  }}
+                                  title="Desbloquear y reactivar este trámite"
+                                >
+                                  <Unlock size={14} />
+                                  <span>Desbloquear</span>
+                                </button>
+                              ) : isEnTransito ? (
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-secondary"
+                                  disabled
+                                  style={{ padding: '4px 8px', fontSize: '0.75rem', opacity: 0.6 }}
+                                  title="No se puede bloquear mientras esté en tránsito digital sin recepcionar (RF-11.1)"
+                                >
+                                  <Lock size={12} />
+                                  <span>En Tránsito</span>
+                                </button>
+                              ) : isConcluidoOAnulado ? (
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-secondary"
+                                  disabled
+                                  style={{ padding: '4px 8px', fontSize: '0.75rem', opacity: 0.6 }}
+                                  title="Los trámites concluidos o anulados no admiten bloqueo"
+                                >
+                                  Finalizado
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="btn btn-sm"
+                                  onClick={() => handleOpenBloquear(t)}
+                                  style={{
+                                    background: '#800000',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '4px 10px',
+                                    fontSize: '0.78rem',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    fontWeight: 700
+                                  }}
+                                  title="Bloquear temporalmente este proceso"
+                                >
+                                  <Lock size={14} />
+                                  <span>Bloquear</span>
+                                </button>
+                              )}
+
+                              {/* Botón Ver Trazabilidad */}
+                              <button
+                                type="button"
+                                className="btn btn-outline-secondary btn-sm"
+                                onClick={() => handleVerTrazabilidadVentanilla(t)}
+                                style={{ padding: '4px 8px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                title="Ver trazabilidad completa de movimientos"
+                              >
+                                <Eye size={13} />
+                                <span>Historial</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+
+                  {bloqueoTramites.length === 0 && (
+                    <tr>
+                      <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748B' }}>
+                        No hay trámites disponibles para administración en esta gestión.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODAL 1: BLOQUEAR PROCESO DE NEGOCIO (RF-11.1, RF-11.2)        */}
+      {/* ------------------------------------------------------------- */}
+      {bloquearModalOpen && tramiteABloquear && (
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget && !bloquearLoading) setBloquearModalOpen(false); }}>
+          <div className="modal-dialog" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header" style={{ background: '#800000', color: 'white', padding: '1.25rem 1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Lock size={22} color="#FCA5A5" />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'white' }}>
+                    Bloquear Proceso de Negocio
+                  </h3>
+                  <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>
+                    Ventanilla Única — Restricción Operativa Temporal (RF-11)
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => !bloquearLoading && setBloquearModalOpen(false)}
+                style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmBloquear}>
+              <div className="modal-body" style={{ padding: '1.5rem' }}>
+                {/* Cuadro Resumen del Trámite */}
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '12px 14px', marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>EXPEDIENTE A BLOQUEAR</span>
+                    <strong style={{ fontSize: '1.1rem', color: '#800000' }}>{tramiteABloquear.numero_correlativo}</strong>
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#1B365D', fontWeight: 600 }}>
+                    {tramiteABloquear.remitente}
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: '#475569', marginTop: '2px' }}>
+                    {tramiteABloquear.referencia}
+                  </div>
+                </div>
+
+                {/* Advertencia Institucional */}
+                <div style={{
+                  background: '#FFFBEB',
+                  border: '1px solid #FCD34D',
+                  borderRadius: '6px',
+                  padding: '10px 12px',
+                  marginBottom: '1.25rem',
+                  fontSize: '0.82rem',
+                  color: '#92400E',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '8px'
+                }}>
+                  <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <strong>Efecto Normativo:</strong> Al confirmar el bloqueo, el expediente quedará inhabilitado para avanzar, derivar, retroceder o concluir por parte de cualquier funcionario del Concejo Municipal hasta su desbloqueo expreso.
+                  </div>
+                </div>
+
+                {/* Campo de Motivo Obligatorio */}
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label style={{ fontSize: '0.86rem', fontWeight: 700, color: '#1B365D', marginBottom: '6px', display: 'block' }}>
+                    Motivo / Proveído del Bloqueo <span style={{ color: '#DC2626' }}>*</span>
+                  </label>
+                  <textarea
+                    className="form-control"
+                    rows="4"
+                    required
+                    placeholder="Escriba detalladamente el motivo o fundamento del bloqueo administrativo (ej. Por falta de documentación de respaldo, observación de planos, solicitud expresa de la comisión)..."
+                    value={motivoBloqueo}
+                    onChange={e => setMotivoBloqueo(e.target.value)}
+                    style={{ fontSize: '0.88rem' }}
+                    disabled={bloquearLoading}
+                  />
+                  <div style={{ fontSize: '0.74rem', color: '#64748B', marginTop: '4px' }}>
+                    Este motivo quedará asentado en el historial inmutable de movimientos de auditoría.
+                  </div>
+                </div>
+
+                {bloquearError && (
+                  <div className="alert alert-danger" style={{ fontSize: '0.85rem', padding: '8px 12px' }}>
+                    {bloquearError}
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer" style={{ padding: '1rem 1.5rem', background: '#F9FAFB', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setBloquearModalOpen(false)}
+                  disabled={bloquearLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-sm"
+                  disabled={bloquearLoading || !motivoBloqueo.trim()}
+                  style={{
+                    background: '#800000',
+                    color: 'white',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  {bloquearLoading ? (
+                    <>
+                      <RefreshCw size={14} className="spinning" />
+                      <span>Bloqueando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock size={14} />
+                      <span>Confirmar Bloqueo de Proceso</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODAL 2: DESBLOQUEAR PROCESO DE NEGOCIO (RF-11.4)              */}
+      {/* ------------------------------------------------------------- */}
+      {desbloquearModalOpen && tramiteADesbloquear && (
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget && !desbloquearLoading) setDesbloquearModalOpen(false); }}>
+          <div className="modal-dialog" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header" style={{ background: '#15803D', color: 'white', padding: '1.25rem 1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Unlock size={22} color="#86EFAC" />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'white' }}>
+                    Desbloquear y Reactivar Proceso
+                  </h3>
+                  <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>
+                    Ventanilla Única — Reactivación de Expediente (RF-11.4)
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => !desbloquearLoading && setDesbloquearModalOpen(false)}
+                style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmDesbloquear}>
+              <div className="modal-body" style={{ padding: '1.5rem' }}>
+                {/* Cuadro Resumen del Trámite */}
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '12px 14px', marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>EXPEDIENTE A REACTIVAR</span>
+                    <strong style={{ fontSize: '1.1rem', color: '#15803D' }}>{tramiteADesbloquear.numero_correlativo}</strong>
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#1B365D', fontWeight: 600 }}>
+                    {tramiteADesbloquear.remitente}
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: '#475569', marginTop: '2px' }}>
+                    {tramiteADesbloquear.referencia}
+                  </div>
+                </div>
+
+                {/* Motivo Original del Bloqueo */}
+                {tramiteADesbloquear.motivo_bloqueo && (
+                  <div style={{
+                    background: '#FEF2F2',
+                    border: '1px solid #FECACA',
+                    borderRadius: '6px',
+                    padding: '10px 12px',
+                    marginBottom: '1.25rem',
+                    fontSize: '0.84rem'
+                  }}>
+                    <div style={{ fontSize: '0.72rem', color: '#991B1B', fontWeight: 800, textTransform: 'uppercase' }}>
+                      Causa del Bloqueo Original
+                    </div>
+                    <div style={{ color: '#7F1D1D', marginTop: '2px', fontWeight: 500 }}>
+                      {tramiteADesbloquear.motivo_bloqueo}
+                    </div>
+                  </div>
+                )}
+
+                {/* Campo de Motivo de Desbloqueo Obligatorio */}
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label style={{ fontSize: '0.86rem', fontWeight: 700, color: '#1B365D', marginBottom: '6px', display: 'block' }}>
+                    Motivo / Proveído de Desbloqueo <span style={{ color: '#DC2626' }}>*</span>
+                  </label>
+                  <textarea
+                    className="form-control"
+                    rows="4"
+                    required
+                    placeholder="Escriba el motivo por el cual se reactiva el proceso (ej. Por completar la documentación solicitada, subsanación presentada en fecha)..."
+                    value={motivoDesbloqueo}
+                    onChange={e => setMotivoDesbloqueo(e.target.value)}
+                    style={{ fontSize: '0.88rem' }}
+                    disabled={desbloquearLoading}
+                  />
+                  <div style={{ fontSize: '0.74rem', color: '#64748B', marginTop: '4px' }}>
+                    El trámite volverá al estado operativo 'EN ATENCIÓN' para continuar su flujo regular.
+                  </div>
+                </div>
+
+                {desbloquearError && (
+                  <div className="alert alert-danger" style={{ fontSize: '0.85rem', padding: '8px 12px' }}>
+                    {desbloquearError}
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer" style={{ padding: '1rem 1.5rem', background: '#F9FAFB', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setDesbloquearModalOpen(false)}
+                  disabled={desbloquearLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-sm"
+                  disabled={desbloquearLoading || !motivoDesbloqueo.trim()}
+                  style={{
+                    background: '#15803D',
+                    color: 'white',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  {desbloquearLoading ? (
+                    <>
+                      <RefreshCw size={14} className="spinning" />
+                      <span>Reactivando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Unlock size={14} />
+                      <span>Confirmar Desbloqueo y Reactivación</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODAL 3: VER TRAZABILIDAD COMPLETA (HISTORIAL AUDITABLE)      */}
+      {/* ------------------------------------------------------------- */}
+      {trazabilidadModalOpen && tramiteTrazabilidad && (
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setTrazabilidadModalOpen(false); }}>
+          <div className="modal-dialog" style={{ maxWidth: '750px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header" style={{ background: '#1B365D', color: 'white', padding: '1.25rem 1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Clock size={22} color="#93C5FD" />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'white' }}>
+                    Trazabilidad de Movimientos y Auditoría
+                  </h3>
+                  <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>
+                    Expediente {tramiteTrazabilidad.numero_correlativo} — Historial Inmutable
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTrazabilidadModalOpen(false)}
+                style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ padding: '1.5rem', maxHeight: '70vh', overflowY: 'auto' }}>
+              {trazabilidadLoading ? (
+                <div style={{ textAlign: 'center', padding: '3rem', color: '#64748B' }}>
+                  <RefreshCw size={24} className="spinning" style={{ marginBottom: '8px' }} />
+                  <div>Cargando historial de movimientos...</div>
+                </div>
+              ) : trazabilidadData ? (
+                <div>
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '12px', marginBottom: '1.25rem' }}>
+                    <div style={{ fontWeight: 700, color: '#1B365D', fontSize: '0.95rem' }}>{trazabilidadData.tipo_proceso_nombre || trazabilidadData.tipo_proceso}</div>
+                    <div style={{ fontSize: '0.84rem', color: '#334155', marginTop: '2px' }}>Remitente: <strong>{trazabilidadData.remitente}</strong></div>
+                    <div style={{ fontSize: '0.84rem', color: '#475569' }}>Referencia: {trazabilidadData.referencia}</div>
+                    <div style={{ marginTop: '6px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <span className="badge" style={{ background: trazabilidadData.estado === 'BLOQUEADO' ? '#DC2626' : '#10B981', color: 'white' }}>
+                        {trazabilidadData.estado}
+                      </span>
+                      {trazabilidadData.motivo_bloqueo && (
+                        <span style={{ fontSize: '0.78rem', color: '#DC2626', fontWeight: 600 }}>
+                          Motivo Bloqueo: {trazabilidadData.motivo_bloqueo}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <h5 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1B365D', textTransform: 'uppercase', marginBottom: '12px' }}>
+                    Línea de Tiempo de Auditoría ({(trazabilidadData.movimientos || trazabilidadData.historial)?.length || 0} movimientos)
+                  </h5>
+
+                  <div style={{ position: 'relative', paddingLeft: '20px', borderLeft: '2px solid #CBD5E1', marginLeft: '10px' }}>
+                    {((trazabilidadData.movimientos || trazabilidadData.historial) || []).map((m, idx) => (
+                      <div key={idx} style={{ marginBottom: '1.25rem', position: 'relative' }}>
+                        <div style={{
+                          position: 'absolute',
+                          left: '-26px',
+                          top: '2px',
+                          width: '12px',
+                          height: '12px',
+                          borderRadius: '50%',
+                          background: m.tipo_movimiento === 'BLOQUEO' ? '#DC2626' : (m.tipo_movimiento === 'DESBLOQUEO' ? '#16A34A' : '#1B365D'),
+                          border: '2px solid white',
+                          boxShadow: '0 0 0 2px #CBD5E1'
+                        }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem', color: '#64748B' }}>
+                          <span style={{ fontWeight: 700, color: m.tipo_movimiento === 'BLOQUEO' ? '#DC2626' : '#1B365D' }}>
+                            {m.actividad_nombre || m.tipo_movimiento}
+                          </span>
+                          <span>
+                            {(m.fecha_envio || m.created_at) ? new Date(m.fecha_envio || m.created_at).toLocaleString() : '---'}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: '#334155', marginTop: '2px' }}>
+                          Por: <strong>{m.usuario_origen_nombre || m.usuario_origen || 'Operador'}</strong> ({m.ubicacion_origen_nombre || m.ubicacion_origen || 'Oficina'})
+                        </div>
+                        {m.proveido && (
+                          <div style={{
+                            background: m.tipo_movimiento === 'BLOQUEO' ? '#FEF2F2' : '#F1F5F9',
+                            border: `1px solid ${m.tipo_movimiento === 'BLOQUEO' ? '#FECACA' : '#E2E8F0'}`,
+                            borderRadius: '4px',
+                            padding: '6px 10px',
+                            marginTop: '4px',
+                            fontSize: '0.82rem',
+                            color: m.tipo_movimiento === 'BLOQUEO' ? '#991B1B' : '#1E293B',
+                            fontStyle: 'italic'
+                          }}>
+                            {m.proveido}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748B' }}>
+                  No se pudo cargar la trazabilidad del trámite.
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer" style={{ padding: '0.75rem 1.5rem', background: '#F9FAFB' }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setTrazabilidadModalOpen(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

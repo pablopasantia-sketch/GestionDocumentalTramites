@@ -217,6 +217,22 @@ namespace GestionDocumental.Api.DTOs.Tramites
         public string Motivo { get; set; } = string.Empty;
     }
 
+    public class BloquearTramiteDto
+    {
+        [Required(ErrorMessage = "El motivo o proveído de bloqueo es obligatorio")]
+        [MinLength(3, ErrorMessage = "El motivo de bloqueo debe contener al menos 3 caracteres")]
+        [JsonPropertyName("motivo")]
+        public string Motivo { get; set; } = string.Empty;
+    }
+
+    public class DesbloquearTramiteDto
+    {
+        [Required(ErrorMessage = "El motivo o proveído de desbloqueo es obligatorio")]
+        [MinLength(3, ErrorMessage = "El motivo de desbloqueo debe contener al menos 3 caracteres")]
+        [JsonPropertyName("motivo")]
+        public string Motivo { get; set; } = string.Empty;
+    }
+
     public class CreateTramiteExternoDto
     {
         [Required(ErrorMessage = "El tipo de proceso externo es obligatorio")]

@@ -321,7 +321,7 @@ El sistema consolida el motor de **Trámites y Correspondencias en un solo flujo
 | RF-08.6 | Mostrar**gráfica del flujo**: actividades concluidas (azul) y actividades pendientes (naranja)                                                                                                            | MEDIA     |
 | RF-08.7 | Registrar para cada paso: fecha/hora de recibido, fecha/hora de enviado                                                                                                                                          | ALTA      |
 | RF-08.8 | Calcular**tiempo transcurrido** (diferencia entre recibido y enviado)                                                                                                                                      | ALTA      |
-| RF-08.9 | Indicar**"Hasta hoy"** cuando el trámite aún está siendo atendido (sin despachar)                                                                                                                       | MEDIA     |
+| RF-08.9 | Indicar**"Hasta hoy"** cuando el trámite aún está siendo atendido (sin despachar)                                                                                                                             | MEDIA     |
 
 ### 4.9 RF-09: Búsqueda Pública de Trámites
 
@@ -623,12 +623,12 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 - [X] **Circuito Plenario, Firmas Duales y Despacho Final**:
   - [X] Trazabilidad del paso por **Asesoría del Pleno** y constancia de **Aprobación en Sesión del Pleno del CMS**.
   - [X] Registro de firmas duales concurrentes (Presidencia CMS y Secretaría General CMS) antes del despacho final al Alcalde Municipal o a instituciones externas.
-- [ ] **Pruebas End-to-End (E2E) con Playwright**:
-  - [ ] Suite E2E que valide el circuito institucional completo del CMS: Ventanilla Única → Presidencia CMS → Comisión → Asesor (plazo 5-15 días) → Generación de PIE/Minuta → Asesoría del Pleno → Firmas y Despacho.
+- [X] **Pruebas End-to-End (E2E) con Playwright**:
+  - [X] Suite E2E que valide el circuito institucional completo del CMS: Ventanilla Única → Presidencia CMS → Comisión → Asesor (plazo 5-15 días) → Generación de PIE/Minuta → Asesoría del Pleno → Firmas y Despacho.
 
 ### Sprint 4 (13 Oct - 26 Oct): Administración y Hoja de Ruta
 
-- [ ] Bloquear / Desbloquear procesos
+- [X] Bloquear / Desbloquear procesos
 - [ ] Anular proceso (Admin Tramites)
 - [ ] Habilitar proceso concluido
 - [ ] Redireccionar procesos entre usuarios
@@ -655,7 +655,9 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 ## 9. MODELO OPERATIVO Y FLUJOGRAMAS OFICIALES DEL CONCEJO MUNICIPAL DE SUCRE (CMS)
 
 ### 9.1 Contexto Institucional del Concejo Municipal de Sucre
+
 El Concejo Municipal de Sucre (CMS) es la máxima autoridad legislativa, deliberativa y fiscalizadora del Gobierno Autónomo Municipal. A diferencia de las instancias netamente administrativas del Órgano Ejecutivo (Alcaldía), la dinámica del CMS se rige por su **Reglamento General del Concejo**, caracterizado por:
+
 1. **Órgano Colegiado:** Las decisiones sustantivas no las toma un funcionario unipersonal, sino comisiones permanentes integradas por concejales y, en última instancia, el **Pleno del Concejo Municipal**.
 2. **Naturaleza de los Expedientes:** Una sola Nota Externa (ej. reclamo vecinal por obras públicas) puede generar múltiples instrumentos fiscalizadores simultáneos dirigidos al Ejecutivo Municipal.
 3. **Distribución Mixta (Digital y Mensajería Física):** Los expedientes físicos (carpetas encuadernadas con memoriales, planos y respaldos) se trasladan físicamente mediante auxiliares de mensajería (carrito distribuidor), debiendo coordinarse digitalmente con los estados de recepción de la plataforma.
@@ -698,6 +700,7 @@ graph TD
 ```
 
 #### Reglas Operativas de la Macro-Bifurcación:
+
 * **Canal Político-Legislativo (Notas Externas):**
   * Toda nota de ciudadanos, juntas vecinales, instituciones públicas o el Alcalde ingresa por Ventanilla Única y se deriva directamente a **Presidencia del Concejo**.
   * Presidencia analiza la nota y emite el proveído oficial destinándola a una de las **6 Comisiones Permanentes** o a la **Asesoría del Pleno**.
@@ -737,6 +740,7 @@ sequenceDiagram
 ```
 
 #### Ciclo de Vida Interno en Comisiones:
+
 1. **Sub-asignación:** El Presidente de Comisión (Concejal) recibe la nota y la asigna formalmente a su Asesor de Comisión.
 2. **Plazo Reglamentario (5 a 15 días hábiles):** Por normativa interna del CMS, la comisión cuenta con una ventana reglamentaria de **5 a 15 días** para emitir su criterio técnico-legal. El sistema calcula dinámicamente este SLA sobre el movimiento.
 3. **Los 5 Instrumentos Legislativos Salientes:**
@@ -796,6 +800,7 @@ sequenceDiagram
 ```
 
 #### Principios Clave de Diseño:
+
 1. **Preservación de la Hoja de Ruta Matriz:** Los instrumentos legislativos (PIE, PIO, Minutas) **no son trámites huérfanos**. Nacen vinculados al historial del expediente original (`CM-XX/2026`), preservando la cadena de custodia y los memoriales adjuntos.
 2. **Coexistencia con el Manual de Procedimientos Técnicos:** Cuando en fases futuras se incorporen trámites procedimentales específicos (catastro, auditorías, fiscalizaciones especiales), estos operarán como reglas de validación adicionales sobre las actividades de comisión sin alterar la estructura unificada de movimientos.
 3. **Flexibilidad con Derivación Libre:** El motor de derivación libre implementado en el backend soporta con naturalidad la secuencia completa descrita por los diagramas sin necesidad de codificar máquinas de estados rígidas.
@@ -803,4 +808,3 @@ sequenceDiagram
 ---
 
 > **NOTA:** Este documento es un contexto vivo. Debe ser actualizado conforme se tomen decisiones de diseño e implementación durante el desarrollo del MVP.
-

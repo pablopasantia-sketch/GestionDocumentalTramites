@@ -1011,5 +1011,93 @@ namespace GestionDocumental.Api.Controllers
                 return BadRequest(ApiResponse.ErrorResult(ex.Message));
             }
         }
+
+        /// <summary>
+        /// Bloqueo administrativo temporal de trámite (RF-11.1, RF-11.2, RF-11.3)
+        /// Permite a Ventanilla Única y Administración suspender temporalmente el flujo operativo.
+        /// </summary>
+        [Authorize]
+        [HttpPost("{id}/bloquear")]
+        public async Task<IActionResult> Bloquear(int id, [FromBody] BloquearTramiteDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return BadRequest(ApiResponse.ErrorResult(string.IsNullOrEmpty(errors) ? "Motivo o proveído de bloqueo inválido." : errors));
+            }
+
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+            if (ubiClaim == null || ubicacionId <= 0) ubicacionId = 3;
+
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_Bloquear",
+                    new SqlParameter("@Id", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@Motivo", SqlDbType.NVarChar, -1) { Value = dto.Motivo.Trim() },
+                    new SqlParameter("@UserId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@UbicacionId", SqlDbType.Int) { Value = ubicacionId }
+                );
+
+                return Ok(ApiResponse.SuccessResult("Trámite bloqueado temporalmente de forma exitosa."));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse.ErrorResult("Error interno al procesar el bloqueo: " + ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Desbloqueo y reactivación de trámite (RF-11.4)
+        /// Reactiva un trámite bloqueado retornándolo al estado operativo EN_ATENCION.
+        /// </summary>
+        [Authorize]
+        [HttpPost("{id}/desbloquear")]
+        public async Task<IActionResult> Desbloquear(int id, [FromBody] DesbloquearTramiteDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return BadRequest(ApiResponse.ErrorResult(string.IsNullOrEmpty(errors) ? "Motivo o proveído de desbloqueo inválido." : errors));
+            }
+
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+            if (userId <= 0) userId = 1;
+
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+            if (ubiClaim == null || ubicacionId <= 0) ubicacionId = 3;
+
+            try
+            {
+                await _sp.ExecuteNonQueryAsync(
+                    "dbo.usp_Tramites_Desbloquear",
+                    new SqlParameter("@Id", SqlDbType.Int) { Value = id },
+                    new SqlParameter("@Motivo", SqlDbType.NVarChar, -1) { Value = dto.Motivo.Trim() },
+                    new SqlParameter("@UserId", SqlDbType.Int) { Value = userId },
+                    new SqlParameter("@UbicacionId", SqlDbType.Int) { Value = ubicacionId }
+                );
+
+                return Ok(ApiResponse.SuccessResult("Trámite desbloqueado y reactivado exitosamente."));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse.ErrorResult("Error interno al procesar el desbloqueo: " + ex.Message));
+            }
+        }
     }
 }
