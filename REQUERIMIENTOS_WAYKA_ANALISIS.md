@@ -629,7 +629,7 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 ### Sprint 4 (13 Oct - 26 Oct): Administración y Hoja de Ruta
 
 - [X] Bloquear / Desbloquear procesos
-- [ ] Anular proceso (Admin Tramites)
+- [X] Anular proceso (Admin Tramites)
 - [ ] Habilitar proceso concluido
 - [ ] Redireccionar procesos entre usuarios
 - [ ] Generación de Hoja de Ruta imprimible (HTML/PDF)

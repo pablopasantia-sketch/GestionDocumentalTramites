@@ -979,12 +979,24 @@ namespace GestionDocumental.Api.Controllers
 
         /// <summary>
         /// Anulación de trámite (Operación especial - RF-10.1)
+        /// Exclusivo de Administrador de Trámites y Administrador del Sistema.
         /// </summary>
         [Authorize]
         [HttpPost("{id}/anular")]
         public async Task<IActionResult> Anular(int id, [FromBody] AnularTramiteDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ApiResponse.ErrorResult("Motivo de anulación requerido."));
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return BadRequest(ApiResponse.ErrorResult(string.IsNullOrEmpty(errors) ? "Motivo de anulación requerido." : errors));
+            }
+
+            var rolCodigo = User.FindFirst("rolCodigo")?.Value ?? User.FindFirst(ClaimTypes.Role)?.Value;
+            bool esAdmin = rolCodigo == "ADMIN_SISTEMA" || rolCodigo == "ADMIN_TRAMITES";
+            if (!esAdmin)
+            {
+                return StatusCode(403, ApiResponse.ErrorResult("Acceso denegado: La anulación de trámites es una operación reservada para el Administrador de Trámites o Administrador del Sistema (RF-10.1)."));
+            }
 
             var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(userIdClaim, out int userId);
@@ -1004,11 +1016,15 @@ namespace GestionDocumental.Api.Controllers
                     new SqlParameter("@UbicacionId", SqlDbType.Int) { Value = ubicacionId }
                 );
 
-                return Ok(ApiResponse.SuccessResult("Trámite anulado exitosamente."));
+                return Ok(ApiResponse.SuccessResult("Trámite anulado formalmente de forma exitosa."));
             }
             catch (SqlException ex)
             {
                 return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse.ErrorResult("Error interno al procesar la anulación del trámite: " + ex.Message));
             }
         }
 

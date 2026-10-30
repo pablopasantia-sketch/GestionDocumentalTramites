@@ -657,6 +657,19 @@ export default function AdminTramitesHub() {
                       <div style={{ fontSize: '0.78rem', color: '#6C757D', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {t.referencia}
                       </div>
+                      {t.estado === 'ANULADO' && t.motivo_anulacion && (
+                        <div style={{
+                          marginTop: '4px',
+                          background: '#FEE2E2',
+                          border: '1px solid #FCA5A5',
+                          borderRadius: '4px',
+                          padding: '3px 6px',
+                          fontSize: '0.74rem',
+                          color: '#991B1B'
+                        }}>
+                          <strong>Motivo Anulación:</strong> {t.motivo_anulacion}
+                        </div>
+                      )}
                     </td>
                     <td style={{ padding: '12px 14px' }}>
                       <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1B365D' }}>
@@ -741,14 +754,21 @@ export default function AdminTramitesHub() {
                           <button
                             onClick={() => handleOpenAnularModal(t)}
                             className="btn btn-sm"
-                            title="Operación Especial: Anular trámite (RF-08.1)"
+                            disabled={t.estado === 'BLOQUEADO' || t.estado === 'POR_RECIBIR' || t.estado === 'EN_TRANSITO'}
+                            title={
+                              t.estado === 'BLOQUEADO'
+                                ? 'No se puede anular un trámite Bloqueado. Debe ser desbloqueado previamente.'
+                                : (t.estado === 'POR_RECIBIR' || t.estado === 'EN_TRANSITO')
+                                ? 'No se puede anular un trámite que está en tránsito digital pendiente de recepción.'
+                                : 'Operación Especial: Anular trámite (RF-10.1)'
+                            }
                             style={{ 
                               padding: '4px 8px', 
-                              backgroundColor: '#DC3545', 
-                              color: 'white', 
+                              backgroundColor: (t.estado === 'BLOQUEADO' || t.estado === 'POR_RECIBIR' || t.estado === 'EN_TRANSITO') ? '#E2E8F0' : '#DC3545', 
+                              color: (t.estado === 'BLOQUEADO' || t.estado === 'POR_RECIBIR' || t.estado === 'EN_TRANSITO') ? '#94A3B8' : 'white', 
                               border: 'none', 
                               borderRadius: '4px',
-                              cursor: 'pointer',
+                              cursor: (t.estado === 'BLOQUEADO' || t.estado === 'POR_RECIBIR' || t.estado === 'EN_TRANSITO') ? 'not-allowed' : 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px'
