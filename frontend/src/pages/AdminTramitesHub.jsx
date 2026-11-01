@@ -29,16 +29,22 @@ import {
 import { tramitesService, tiposProcesoService, ubicacionesService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import HojaDeRutaModal from '../components/tramites/HojaDeRutaModal';
+import SupervisionSlaPanel from '../components/tramites/SupervisionSlaPanel';
 
 export default function AdminTramitesHub() {
   const { user, activeRole } = useAuth();
-  const [activeTab, setActiveTab] = useState('supervision'); // 'supervision' | 'tipos' | 'metricas'
+  const [activeTab, setActiveTab] = useState('supervision'); // 'supervision' | 'tipos' | 'sla' | 'metricas'
 
   // Estados de Datos
   const [tramites, setTramites] = useState([]);
   const [tiposProceso, setTiposProceso] = useState([]);
   const [ubicaciones, setUbicaciones] = useState([]);
   const [stats, setStats] = useState(null);
+
+  // Estados de Supervisión Integral SLA
+  const [slaData, setSlaData] = useState(null);
+  const [slaLoading, setSlaLoading] = useState(false);
+  const [slaGestion, setSlaGestion] = useState(new Date().getFullYear());
 
   // Estados de Carga y Feedback
   const [loading, setLoading] = useState(true);
@@ -111,11 +117,29 @@ export default function AdminTramitesHub() {
       if (resTipos.success) setTiposProceso(resTipos.data || []);
       if (resStats.success) setStats(resStats.data || null);
       if (resUbic.success) setUbicaciones(resUbic.data || []);
+
+      // Cargar métricas de supervisión SLA en paralelo
+      loadSlaData(slaGestion);
     } catch (err) {
       console.error('Error al cargar datos de supervisión de trámites:', err);
       showFeedbackMsg('error', 'No se pudieron cargar los datos de supervisión institucional.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadSlaData = async (targetGestion) => {
+    setSlaLoading(true);
+    try {
+      const year = targetGestion || slaGestion;
+      const res = await tramitesService.getSupervisionSla(year);
+      if (res && res.success) {
+        setSlaData(res.data);
+      }
+    } catch (err) {
+      console.error('Error al cargar métricas de supervisión SLA:', err);
+    } finally {
+      setSlaLoading(false);
     }
   };
 
@@ -576,8 +600,34 @@ export default function AdminTramitesHub() {
 
         <button
           onClick={() => {
+            setActiveTab('sla');
+            setSearchTerm('');
+            if (!slaData) loadSlaData(slaGestion);
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            color: activeTab === 'sla' ? '#800000' : '#6C757D',
+            borderBottom: activeTab === 'sla' ? '3px solid #800000' : '3px solid transparent',
+            marginBottom: '-2px'
+          }}
+        >
+          <ShieldAlert size={18} color={activeTab === 'sla' ? '#800000' : '#6C757D'} />
+          <span>Supervisión SLA y Tiempos {slaData?.total_vencidos > 0 && `(${slaData.total_vencidos} alertas)`}</span>
+        </button>
+
+        <button
+          onClick={() => {
             setActiveTab('metricas');
             setSearchTerm('');
+            if (!slaData) loadSlaData(slaGestion);
           }}
           style={{
             display: 'flex',
@@ -600,7 +650,7 @@ export default function AdminTramitesHub() {
       </div>
 
       {/* Barra de Filtros y Búsqueda */}
-      {activeTab !== 'metricas' && (
+      {activeTab !== 'metricas' && activeTab !== 'sla' && (
         <div
           style={{
             display: 'flex',
@@ -959,7 +1009,28 @@ export default function AdminTramitesHub() {
       )}
 
       {/* ========================================================== */}
-      {/* PESTAÑA 3: MÉTRICAS Y TRAZABILIDAD */}
+      {/* PESTAÑA 3: SUPERVISIÓN INTEGRAL SLA Y TIEMPOS */}
+      {/* ========================================================== */}
+      {activeTab === 'sla' && (
+        <SupervisionSlaPanel
+          data={slaData}
+          loading={slaLoading}
+          gestion={slaGestion}
+          onGestionChange={(newYear) => {
+            setSlaGestion(newYear);
+            loadSlaData(newYear);
+          }}
+          onRefresh={() => loadSlaData(slaGestion)}
+          onVerTramite={handleVerTrazabilidad}
+          onPrintHojaDeRuta={(id) => {
+            setHojaDeRutaAdminTramiteId(id);
+            setHojaDeRutaAdminOpen(true);
+          }}
+        />
+      )}
+
+      {/* ========================================================== */}
+      {/* PESTAÑA 4: MÉTRICAS Y TRAZABILIDAD */}
       {/* ========================================================== */}
       {activeTab === 'metricas' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
@@ -975,15 +1046,21 @@ export default function AdminTramitesHub() {
             <div style={{ display: 'grid', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: '#F8F9FA', borderRadius: '4px' }}>
                 <span style={{ fontSize: '0.85rem', color: '#212529', fontWeight: 500 }}>Tiempo Promedio de Atención:</span>
-                <strong style={{ color: '#10B981', fontSize: '0.95rem' }}>18.4 horas</strong>
+                <strong style={{ color: '#10B981', fontSize: '0.95rem' }}>
+                  {slaData ? `${slaData.promedio_horas_atencion} horas` : 'Calculando...'}
+                </strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: '#F8F9FA', borderRadius: '4px' }}>
                 <span style={{ fontSize: '0.85rem', color: '#212529', fontWeight: 500 }}>Cumplimiento de SLA Global:</span>
-                <strong style={{ color: '#1B365D', fontSize: '0.95rem' }}>96.2% en término</strong>
+                <strong style={{ color: '#1B365D', fontSize: '0.95rem' }}>
+                  {slaData ? `${slaData.porcentaje_cumplimiento_sla}% en término` : 'Calculando...'}
+                </strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: '#F8F9FA', borderRadius: '4px' }}>
-                <span style={{ fontSize: '0.85rem', color: '#212529', fontWeight: 500 }}>Tasa de Retención / Derivación:</span>
-                <strong style={{ color: '#800000', fontSize: '0.95rem' }}>1.8 derivaciones / trámite</strong>
+                <span style={{ fontSize: '0.85rem', color: '#212529', fontWeight: 500 }}>Alertas de Atraso / Vencidos:</span>
+                <strong style={{ color: (slaData?.total_vencidos || 0) > 0 ? '#DC2626' : '#10B981', fontSize: '0.95rem' }}>
+                  {slaData ? `${slaData.total_vencidos} vencido(s) / ${slaData.total_activos} en flujo` : 'Calculando...'}
+                </strong>
               </div>
             </div>
 

@@ -787,4 +787,148 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("proveido")]
         public string? Proveido { get; set; }
     }
+
+    public class SupervisionSlaDto
+    {
+        [JsonPropertyName("gestion")]
+        public int Gestion { get; set; }
+
+        [JsonPropertyName("total_tramites")]
+        public int TotalTramites { get; set; }
+
+        [JsonPropertyName("total_activos")]
+        public int TotalActivos { get; set; }
+
+        [JsonPropertyName("total_concluidos")]
+        public int TotalConcluidos { get; set; }
+
+        [JsonPropertyName("total_anulados")]
+        public int TotalAnulados { get; set; }
+
+        [JsonPropertyName("total_bloqueados")]
+        public int TotalBloqueados { get; set; }
+
+        [JsonPropertyName("total_vencidos")]
+        public int TotalVencidos { get; set; }
+
+        [JsonPropertyName("total_por_vencer")]
+        public int TotalPorVencer { get; set; }
+
+        [JsonPropertyName("total_urgentes")]
+        public int TotalUrgentes { get; set; }
+
+        [JsonPropertyName("con_plazo_activos")]
+        public int ConPlazoActivos { get; set; }
+
+        [JsonPropertyName("porcentaje_cumplimiento_sla")]
+        public decimal PorcentajeCumplimientoSla { get; set; } = 100.0m;
+
+        [JsonPropertyName("promedio_horas_atencion")]
+        public decimal PromedioHorasAtencion { get; set; }
+
+        [JsonPropertyName("max_dias_atraso")]
+        public int MaxDiasAtraso { get; set; }
+
+        [JsonPropertyName("en_transito")]
+        public int EnTransito { get; set; }
+
+        [JsonPropertyName("en_atencion")]
+        public int EnAtencion { get; set; }
+
+        [JsonPropertyName("atendidos_pendiente_cierre")]
+        public int AtendidosPendienteCierre { get; set; }
+
+        [JsonPropertyName("fecha_calculo")]
+        public DateTime? FechaCalculo { get; set; }
+
+        [JsonPropertyName("criticos")]
+        public List<SupervisionCriticoDto> Criticos { get; set; } = new();
+
+        [JsonPropertyName("distribucion_por_tipo")]
+        public List<SupervisionDistribucionTipoDto> DistribucionPorTipo { get; set; } = new();
+    }
+
+    public class SupervisionCriticoDto
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("numero_correlativo")]
+        public string NumeroCorrelativo { get; set; } = string.Empty;
+
+        [JsonPropertyName("gestion")]
+        public int Gestion { get; set; }
+
+        [JsonPropertyName("estado")]
+        public string Estado { get; set; } = string.Empty;
+
+        [JsonPropertyName("prioridad")]
+        public string Prioridad { get; set; } = string.Empty;
+
+        [JsonPropertyName("tipo_proceso_id")]
+        public int TipoProcesoId { get; set; }
+
+        [JsonPropertyName("tipo_proceso_nombre")]
+        public string TipoProcesoNombre { get; set; } = string.Empty;
+
+        [JsonPropertyName("tipo_proceso_codigo")]
+        public string TipoProcesoCodigo { get; set; } = string.Empty;
+
+        [JsonPropertyName("remitente")]
+        public string Remitente { get; set; } = string.Empty;
+
+        [JsonPropertyName("referencia")]
+        public string Referencia { get; set; } = string.Empty;
+
+        [JsonPropertyName("fecha_creacion")]
+        public DateTime FechaCreacion { get; set; }
+
+        [JsonPropertyName("fecha_limite_respuesta")]
+        public DateTime? FechaLimiteRespuesta { get; set; }
+
+        [JsonPropertyName("ubicacion_actual")]
+        public string UbicacionActual { get; set; } = string.Empty;
+
+        [JsonPropertyName("usuario_actual_login")]
+        public string UsuarioActualLogin { get; set; } = string.Empty;
+
+        [JsonPropertyName("dias_atraso")]
+        public int DiasAtraso { get; set; }
+
+        [JsonPropertyName("semaforo")]
+        public string Semaforo { get; set; } = "NORMAL";
+    }
+
+    public class SupervisionDistribucionTipoDto
+    {
+        [JsonPropertyName("tipo_proceso_id")]
+        public int TipoProcesoId { get; set; }
+
+        [JsonPropertyName("tipo_proceso_nombre")]
+        public string TipoProcesoNombre { get; set; } = string.Empty;
+
+        [JsonPropertyName("tipo_proceso_codigo")]
+        public string TipoProcesoCodigo { get; set; } = string.Empty;
+
+        [JsonPropertyName("tiempo_estimado_horas")]
+        public int TiempoEstimadoHoras { get; set; }
+
+        [JsonPropertyName("total")]
+        public int Total { get; set; }
+
+        [JsonPropertyName("activos")]
+        public int Activos { get; set; }
+
+        [JsonPropertyName("concluidos")]
+        public int Concluidos { get; set; }
+
+        [JsonPropertyName("vencidos")]
+        public int Vencidos { get; set; }
+
+        [JsonPropertyName("urgentes")]
+        public int Urgentes { get; set; }
+
+        [JsonPropertyName("porcentaje_cumplimiento")]
+        public decimal PorcentajeCumplimiento { get; set; }
+    }
 }

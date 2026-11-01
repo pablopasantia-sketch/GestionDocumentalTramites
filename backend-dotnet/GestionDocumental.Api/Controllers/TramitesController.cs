@@ -1582,5 +1582,112 @@ namespace GestionDocumental.Api.Controllers
                 return StatusCode(500, ApiResponse.ErrorResult("Error interno al procesar el desbloqueo: " + ex.Message));
             }
         }
+
+        /// <summary>
+        /// Supervisión integral de Wayka y métricas SLA institucional (Sprint 4)
+        /// Retorna métricas globales de cumplimiento SLA, semáforo, top 20 trámites críticos y distribución por tipo.
+        /// </summary>
+        [Authorize]
+        [HttpGet("supervision/sla")]
+        public async Task<IActionResult> GetSupervisionSla([FromQuery] int? gestion = null)
+        {
+            int year = gestion ?? DateTime.UtcNow.Year;
+            var resultado = new SupervisionSlaDto { Gestion = year };
+            var criticos = new List<SupervisionCriticoDto>();
+            var distribucion = new List<SupervisionDistribucionTipoDto>();
+
+            try
+            {
+                await _sp.ExecuteMultiReaderAsync(
+                    "dbo.usp_Supervision_ObtenerMetricasSLA",
+                    async reader =>
+                    {
+                        // RS1: Métricas globales
+                        if (await reader.ReadAsync())
+                        {
+                            resultado.Gestion = reader.GetSafeInt32("gestion", year);
+                            resultado.TotalTramites = reader.GetSafeInt32("total_tramites");
+                            resultado.TotalActivos = reader.GetSafeInt32("total_activos");
+                            resultado.TotalConcluidos = reader.GetSafeInt32("total_concluidos");
+                            resultado.TotalAnulados = reader.GetSafeInt32("total_anulados");
+                            resultado.TotalBloqueados = reader.GetSafeInt32("total_bloqueados");
+                            resultado.TotalVencidos = reader.GetSafeInt32("total_vencidos");
+                            resultado.TotalPorVencer = reader.GetSafeInt32("total_por_vencer");
+                            resultado.TotalUrgentes = reader.GetSafeInt32("total_urgentes");
+                            resultado.ConPlazoActivos = reader.GetSafeInt32("con_plazo_activos");
+                            resultado.PorcentajeCumplimientoSla = reader.GetSafeDecimal("porcentaje_cumplimiento_sla", 100.0m);
+                            resultado.PromedioHorasAtencion = reader.GetSafeDecimal("promedio_horas_atencion", 0.0m);
+                            resultado.MaxDiasAtraso = reader.GetSafeInt32("max_dias_atraso");
+                            resultado.EnTransito = reader.GetSafeInt32("en_transito");
+                            resultado.EnAtencion = reader.GetSafeInt32("en_atencion");
+                            resultado.AtendidosPendienteCierre = reader.GetSafeInt32("atendidos_pendiente_cierre");
+                            resultado.FechaCalculo = reader.GetNullableDateTime("fecha_calculo");
+                        }
+
+                        // RS2: Top 20 Trámites Críticos
+                        if (await reader.NextResultAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                criticos.Add(new SupervisionCriticoDto
+                                {
+                                    Id = reader.GetSafeInt32("id"),
+                                    NumeroCorrelativo = reader.GetSafeString("numero_correlativo"),
+                                    Gestion = reader.GetSafeInt32("gestion", year),
+                                    Estado = reader.GetSafeString("estado"),
+                                    Prioridad = reader.GetSafeString("prioridad"),
+                                    TipoProcesoId = reader.GetSafeInt32("tipo_proceso_id"),
+                                    TipoProcesoNombre = reader.GetSafeString("tipo_proceso_nombre"),
+                                    TipoProcesoCodigo = reader.GetSafeString("tipo_proceso_codigo"),
+                                    Remitente = reader.GetSafeString("remitente"),
+                                    Referencia = reader.GetSafeString("referencia"),
+                                    FechaCreacion = reader.GetSafeDateTime("fecha_creacion"),
+                                    FechaLimiteRespuesta = reader.GetNullableDateTime("fecha_limite_respuesta"),
+                                    UbicacionActual = reader.GetSafeString("ubicacion_actual"),
+                                    UsuarioActualLogin = reader.GetSafeString("usuario_actual_login"),
+                                    DiasAtraso = reader.GetSafeInt32("dias_atraso"),
+                                    Semaforo = reader.GetSafeString("semaforo", "NORMAL")
+                                });
+                            }
+                        }
+
+                        // RS3: Distribución por Tipo de Proceso
+                        if (await reader.NextResultAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                distribucion.Add(new SupervisionDistribucionTipoDto
+                                {
+                                    TipoProcesoId = reader.GetSafeInt32("tipo_proceso_id"),
+                                    TipoProcesoNombre = reader.GetSafeString("tipo_proceso_nombre"),
+                                    TipoProcesoCodigo = reader.GetSafeString("tipo_proceso_codigo"),
+                                    TiempoEstimadoHoras = reader.GetSafeInt32("tiempo_estimado_horas"),
+                                    Total = reader.GetSafeInt32("total"),
+                                    Activos = reader.GetSafeInt32("activos"),
+                                    Concluidos = reader.GetSafeInt32("concluidos"),
+                                    Vencidos = reader.GetSafeInt32("vencidos"),
+                                    Urgentes = reader.GetSafeInt32("urgentes"),
+                                    PorcentajeCumplimiento = reader.GetSafeDecimal("porcentaje_cumplimiento", 100.0m)
+                                });
+                            }
+                        }
+                    },
+                    new SqlParameter("@Gestion", SqlDbType.Int) { Value = year }
+                );
+
+                resultado.Criticos = criticos;
+                resultado.DistribucionPorTipo = distribucion;
+
+                return Ok(ApiResponse<SupervisionSlaDto>.Ok(resultado));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse.ErrorResult("Error interno al obtener métricas de supervisión SLA: " + ex.Message));
+            }
+        }
     }
 }

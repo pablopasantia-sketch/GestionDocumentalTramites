@@ -101,5 +101,19 @@ namespace GestionDocumental.Api.Data
             if (ordinal < 0 || reader.IsDBNull(ordinal)) return DateTime.MinValue;
             return reader.GetDateTime(ordinal);
         }
+
+        public static decimal? GetNullableDecimal(this SqlDataReader reader, string columnName)
+        {
+            int ordinal = GetOrdinalSafe(reader, columnName);
+            if (ordinal < 0 || reader.IsDBNull(ordinal)) return null;
+            return Convert.ToDecimal(reader.GetValue(ordinal));
+        }
+
+        public static decimal GetSafeDecimal(this SqlDataReader reader, string columnName, decimal defaultValue = 0m)
+        {
+            int ordinal = GetOrdinalSafe(reader, columnName);
+            if (ordinal < 0 || reader.IsDBNull(ordinal)) return defaultValue;
+            return Convert.ToDecimal(reader.GetValue(ordinal));
+        }
     }
 }
