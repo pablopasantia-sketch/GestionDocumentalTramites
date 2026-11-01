@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Search,
   FileText,
@@ -17,11 +17,24 @@ import {
   Send,
   Lock,
   ChevronRight,
-  Users
+  Users,
+  Printer,
+  ExternalLink,
+  Paperclip,
+  Share2,
+  Copy,
+  Check,
+  Calendar,
+  Flame,
+  Download
 } from 'lucide-react';
 import { tramitesService } from '../services/api';
+import FlujoGraficoTramite from '../components/tramites/FlujoGraficoTramite';
+import HojaDeRutaModal from '../components/tramites/HojaDeRutaModal';
 
 export default function Home() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   // Estado para el buscador público de trámites (RF-09.1)
   const [correlativoSearch, setCorrelativoSearch] = useState('');
   const [gestionSearch, setGestionSearch] = useState(new Date().getFullYear().toString());
@@ -29,20 +42,35 @@ export default function Home() {
   const [searchResult, setSearchResult] = useState(null);
   const [searchError, setSearchError] = useState(null);
 
-  const handleSearchTramite = async (e) => {
-    e.preventDefault();
-    if (!correlativoSearch.trim()) return;
+  // Modal Hoja de Ruta Imprimible
+  const [hojaModalOpen, setHojaModalOpen] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  // Leer parámetros de URL al cargar para búsqueda directa por link o código QR (RF-09.3)
+  useEffect(() => {
+    const qCorr = searchParams.get('correlativo') || searchParams.get('nro_tramite');
+    const qGest = searchParams.get('gestion');
+    if (qCorr) {
+      setCorrelativoSearch(qCorr);
+      const targetGest = qGest || gestionSearch;
+      if (qGest) setGestionSearch(qGest);
+      executeSearch(qCorr, targetGest);
+    }
+  }, [searchParams]);
+
+  const executeSearch = async (correlativo, gestion) => {
+    if (!correlativo || !correlativo.trim()) return;
 
     setSearchLoading(true);
     setSearchError(null);
     setSearchResult(null);
 
     try {
-      const res = await tramitesService.consultaPublica(correlativoSearch.trim(), gestionSearch);
-      if (res.success && res.data) {
+      const res = await tramitesService.consultaPublica(correlativo.trim(), gestion);
+      if (res && res.success && res.data) {
         setSearchResult(res.data);
       } else {
-        setSearchError(res.message || 'No se encontró el trámite especificado.');
+        setSearchError(res?.message || 'No se encontró el trámite especificado.');
       }
     } catch (err) {
       const msg = err.response?.data?.message || 'No se encontró ningún trámite con los datos proporcionados.';
@@ -52,9 +80,54 @@ export default function Home() {
     }
   };
 
+  const handleSearchTramite = async (e) => {
+    e.preventDefault();
+    if (!correlativoSearch.trim()) return;
+
+    // Actualizar parámetros de URL para que la búsqueda sea compartible
+    setSearchParams({
+      correlativo: correlativoSearch.trim(),
+      gestion: gestionSearch
+    });
+
+    executeSearch(correlativoSearch.trim(), gestionSearch);
+  };
+
   const handleQuickSearch = (corr) => {
     setCorrelativoSearch(corr);
     setGestionSearch('2026');
+    setSearchParams({ correlativo: corr, gestion: '2026' });
+    executeSearch(corr, '2026');
+  };
+
+  const handleCopyShareLink = () => {
+    if (!searchResult) return;
+    const url = `${window.location.origin}/consulta?correlativo=${encodeURIComponent(searchResult.numero_correlativo)}&gestion=${searchResult.gestion}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 3000);
+    });
+  };
+
+  const formatDuracion = (min) => {
+    if (!min || min <= 0) return 'Inmediato';
+    if (min < 60) return `${min} min`;
+    const horas = Math.floor(min / 60);
+    const dias = Math.floor(horas / 24);
+    if (dias > 0) {
+      const restHoras = horas % 24;
+      return `${dias}d ${restHoras}h`;
+    }
+    const restMin = min % 60;
+    return `${horas}h ${restMin > 0 ? `${restMin}m` : ''}`;
+  };
+
+  const formatBytes = (bytes) => {
+    if (!bytes || bytes <= 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
   return (
@@ -151,33 +224,6 @@ export default function Home() {
                 </button>
               </div>
             </form>
-
-            <div style={{ marginTop: '10px', fontSize: '0.8rem', color: '#6C757D', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span>Ejemplos para probar:</span>
-              <button
-                type="button"
-                onClick={() => handleQuickSearch('SV-1/2026')}
-                style={{ background: 'none', border: 'none', color: '#1B365D', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: '0.8rem' }}
-              >
-                SV-1/2026
-              </button>
-              <span>•</span>
-              <button
-                type="button"
-                onClick={() => handleQuickSearch('CM-1/2026')}
-                style={{ background: 'none', border: 'none', color: '#1B365D', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: '0.8rem' }}
-              >
-                CM-1/2026
-              </button>
-              <span>•</span>
-              <button
-                type="button"
-                onClick={() => handleQuickSearch('CORR-EXT-1/2026')}
-                style={{ background: 'none', border: 'none', color: '#1B365D', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: '0.8rem' }}
-              >
-                CORR-EXT-1/2026
-              </button>
-            </div>
           </div>
         </div>
 
@@ -197,120 +243,373 @@ export default function Home() {
         )}
 
         {searchResult && (
-          <div style={{ maxWidth: '720px', margin: '1.5rem auto 0', textAlign: 'left' }}>
-            <div className="card" style={{ borderLeft: '6px solid #28A745', padding: '1.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px', marginBottom: '1rem' }}>
+          <div style={{ maxWidth: '920px', margin: '2rem auto 0', textAlign: 'left' }}>
+            <div className="card" style={{ borderLeft: '6px solid #1B365D', padding: '1.75rem', boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }}>
+
+              {/* Encabezado Principal y Barra de Acciones Oficiales */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                flexWrap: 'wrap',
+                gap: '12px',
+                borderBottom: '1px solid #E2E8F0',
+                paddingBottom: '1.25rem',
+                marginBottom: '1.25rem'
+              }}>
                 <div>
-                  <div style={{ fontSize: '0.8rem', color: '#6C757D', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Hoja de Ruta Localizada
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span className="badge badge-sucre" style={{ fontSize: '0.75rem' }}>
+                      EXPEDIENTE OFICIAL CMS
+                    </span>
+                    <span style={{ fontSize: '0.8rem', color: '#6C757D', fontWeight: 600 }}>
+                      Gestión {searchResult.gestion}
+                    </span>
                   </div>
-                  <h2 style={{ fontSize: '1.5rem', color: '#1B365D', margin: '2px 0' }}>
+                  <h2 style={{ fontSize: '1.85rem', color: '#1B365D', margin: 0, fontWeight: 800 }}>
                     {searchResult.numero_correlativo}
                   </h2>
-                  <div style={{ color: '#800000', fontSize: '0.9rem', fontWeight: 600 }}>
-                    {searchResult.tipo_proceso}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                    <span style={{ color: '#800000', fontSize: '0.95rem', fontWeight: 700 }}>
+                      {searchResult.tipo_proceso}
+                    </span>
+                    {searchResult.tipo_proceso_codigo && (
+                      <span style={{ background: '#F1F5F9', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>
+                        {searchResult.tipo_proceso_codigo}
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                <div style={{ textAlign: 'right' }}>
-                  <span className={`badge ${searchResult.estado === 'CONCLUIDO' ? 'badge-vigente' :
-                      searchResult.estado === 'ANULADO' ? 'badge-alerta' :
-                        searchResult.estado === 'EN_TRANSITO' ? 'badge-azul' : 'badge-modificada'
-                    }`} style={{ fontSize: '12px' }}>
-                    {searchResult.estado}
-                  </span>
-                  <div style={{ fontSize: '0.78rem', color: '#6C757D', marginTop: '4px' }}>
-                    Gestión {searchResult.gestion}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span className={`badge ${searchResult.estado === 'CONCLUIDO' ? 'badge-vigente' :
+                        searchResult.estado === 'ANULADO' ? 'badge-alerta' :
+                          searchResult.estado === 'BLOQUEADO' ? 'badge-modificada' :
+                            searchResult.estado === 'EN_TRANSITO' ? 'badge-azul' : 'badge-modificada'
+                      }`} style={{ fontSize: '0.85rem', padding: '5px 12px', fontWeight: 700 }}>
+                      {searchResult.estado}
+                    </span>
+                    <span className={`badge ${searchResult.prioridad === 'URGENTE' ? 'badge-alerta' :
+                        searchResult.prioridad === 'ALTA' ? 'badge-azul' : 'badge-sucre'
+                      }`} style={{ fontSize: '0.8rem' }}>
+                      Prioridad: {searchResult.prioridad}
+                    </span>
+                  </div>
+
+                  {/* Botones de Acción de Hoja de Ruta */}
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => setHojaModalOpen(true)}
+                      className="btn btn-primary btn-sm"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '6px 12px' }}
+                      title="Abrir Hoja de Ruta imprimible oficial"
+                    >
+                      <Printer size={14} />
+                      <span>Imprimir Hoja de Ruta</span>
+                    </button>
+
+                    <a
+                      href={tramitesService.getHojaDeRutaHtmlUrl(searchResult.id)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary btn-sm"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem', padding: '6px 10px' }}
+                      title="Abrir vista HTML imprimible en nueva ventana"
+                    >
+                      <ExternalLink size={14} />
+                      <span>Ver HTML</span>
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={handleCopyShareLink}
+                      className="btn btn-secondary btn-sm"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem', padding: '6px 10px' }}
+                      title="Copiar enlace directo de este trámite"
+                    >
+                      {copiedLink ? <Check size={14} color="#10B981" /> : <Share2 size={14} />}
+                      <span>{copiedLink ? '¡Copiado!' : 'Compartir'}</span>
+                    </button>
                   </div>
                 </div>
               </div>
 
-              <div style={{ background: '#F8F9FA', padding: '12px 16px', borderRadius: '4px', border: '1px solid #E2E8F0', marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '0.82rem', color: '#6C757D', marginBottom: '2px' }}>Referencia / Asunto:</div>
-                <div style={{ color: '#212529', fontWeight: 500, fontSize: '0.92rem' }}>
+              {/* Tarjeta de Referencia y Remitente */}
+              <div style={{
+                background: '#F8F9FA',
+                padding: '14px 18px',
+                borderRadius: '6px',
+                border: '1px solid #E2E8F0',
+                marginBottom: '1.25rem'
+              }}>
+                <div style={{ fontSize: '0.8rem', color: '#6C757D', textTransform: 'uppercase', fontWeight: 700, marginBottom: '4px' }}>
+                  Referencia / Asunto Oficial Registrado:
+                </div>
+                <div style={{ color: '#1B365D', fontWeight: 600, fontSize: '1rem', lineHeight: 1.5 }}>
                   "{searchResult.referencia}"
                 </div>
-                <div style={{ marginTop: '8px', fontSize: '0.82rem', color: '#6C757D' }}>
-                  Remitente: <strong>{searchResult.remitente}</strong> | Fojas: {searchResult.nro_hojas}
+                <div style={{
+                  display: 'flex',
+                  gap: '16px',
+                  marginTop: '10px',
+                  paddingTop: '8px',
+                  borderTop: '1px solid #E2E8F0',
+                  fontSize: '0.85rem',
+                  color: '#495057',
+                  flexWrap: 'wrap'
+                }}>
+                  <div>
+                    Remitente: <strong style={{ color: '#1B365D' }}>{searchResult.remitente}</strong>
+                  </div>
+                  <span>•</span>
+                  <div>
+                    Fojas: <strong>{searchResult.nro_hojas}</strong>
+                  </div>
+                  <span>•</span>
+                  <div>
+                    Unidad de Origen: <strong>{searchResult.unidad_origen}</strong>
+                  </div>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+              {/* Grid de Metadatos de Seguimiento y Ubicación Actual */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: '1rem',
+                marginBottom: '1.5rem',
+                background: '#FFFFFF',
+                padding: '14px',
+                borderRadius: '6px',
+                border: '1px solid #E2E8F0'
+              }}>
                 <div>
-                  <div style={{ fontSize: '0.78rem', color: '#6C757D' }}>Ubicación Actual del Documento:</div>
-                  <div style={{ fontWeight: 600, color: '#1B365D', fontSize: '0.9rem' }}>
-                    📍 {searchResult.ubicacion_actual}
+                  <div style={{ fontSize: '0.78rem', color: '#6C757D', fontWeight: 600 }}>📍 Ubicación Física / Digital Actual:</div>
+                  <div style={{ fontWeight: 700, color: '#1B365D', fontSize: '0.95rem', marginTop: '2px' }}>
+                    {searchResult.ubicacion_actual}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: '#4A5568', marginTop: '2px' }}>
+                    Asignado a: <strong>{searchResult.usuario_actual_nombre || 'Mesa de Entrada'}</strong>
+                    {searchResult.usuario_actual_cargo && ` (${searchResult.usuario_actual_cargo})`}
                   </div>
                 </div>
+
                 <div>
-                  <div style={{ fontSize: '0.78rem', color: '#6C757D' }}>Fecha de Radicación:</div>
-                  <div style={{ fontWeight: 600, color: '#1B365D', fontSize: '0.9rem' }}>
-                    {new Date(searchResult.fecha_creacion).toLocaleDateString('es-BO', { day: '2-digit', month: 'long', year: 'numeric' })}
+                  <div style={{ fontSize: '0.78rem', color: '#6C757D', fontWeight: 600 }}>📅 Fecha de Radicación:</div>
+                  <div style={{ fontWeight: 700, color: '#1B365D', fontSize: '0.95rem', marginTop: '2px' }}>
+                    {new Date(searchResult.fecha_creacion).toLocaleDateString('es-BO', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: '#6C757D', marginTop: '2px' }}>
+                    Hora: {new Date(searchResult.fecha_creacion).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
+
+                {searchResult.fecha_limite_respuesta && (
+                  <div>
+                    <div style={{ fontSize: '0.78rem', color: '#6C757D', fontWeight: 600 }}>⏳ Plazo Límite de Atención (SLA):</div>
+                    <div style={{ fontWeight: 700, color: '#800000', fontSize: '0.95rem', marginTop: '2px' }}>
+                      {new Date(searchResult.fecha_limite_respuesta).toLocaleDateString('es-BO', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#6C757D', marginTop: '2px' }}>
+                      SLA Estimado: {searchResult.tiempo_estimado_horas || 48} horas reglamentarias
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Trazabilidad Histórica Ciudadana */}
+              {/* ======================================================= */}
+              {/* GRÁFICA DEL FLUJO INSTITUCIONAL (RF-08.6, RF-09.2) */}
+              {/* ======================================================= */}
+              <FlujoGraficoTramite tramite={searchResult} />
+
+              {/* ======================================================= */}
+              {/* LÍNEA DE TIEMPO HISTÓRICA INMUTABLE (RF-08.5, RF-08.7, RF-08.8, RF-08.9) */}
+              {/* ======================================================= */}
               {searchResult.historial && searchResult.historial.length > 0 && (
-                <div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1B365D', textTransform: 'uppercase', marginBottom: '8px' }}>
-                    Trazabilidad del Trámite ({searchResult.historial.length} actuaciones registradas):
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '1rem',
+                    borderBottom: '1px solid #E2E8F0',
+                    paddingBottom: '0.5rem'
+                  }}>
+                    <h3 style={{
+                      fontSize: '0.95rem',
+                      fontWeight: 700,
+                      color: '#1B365D',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      margin: 0
+                    }}>
+                      Trazabilidad Histórica Inmutable ({searchResult.historial.length} actuaciones registradas):
+                    </h3>
+                    <span style={{ fontSize: '0.75rem', color: '#6C757D' }}>
+                      Cadena de custodia verificada
+                    </span>
                   </div>
-                  <div style={{ display: 'grid', gap: '8px' }}>
+
+                  <div style={{ display: 'grid', gap: '10px' }}>
                     {searchResult.historial.map((mov, idx) => (
                       <div
-                        key={idx}
+                        key={mov.id || idx}
                         style={{
-                          padding: '10px 14px',
+                          padding: '12px 16px',
                           background: '#FFFFFF',
                           border: '1px solid #E2E8F0',
-                          borderRadius: '4px',
+                          borderLeft: `4px solid ${mov.tipo_movimiento === 'RETROCESO' || mov.justificacion_retroceso ? '#D97706' :
+                              mov.instrumento_generado ? '#10B981' : '#1B365D'
+                            }`,
+                          borderRadius: '6px',
                           display: 'flex',
                           alignItems: 'flex-start',
-                          gap: '12px',
-                          fontSize: '0.85rem'
+                          gap: '14px',
+                          fontSize: '0.85rem',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
                         }}
                       >
+                        {/* Círculo con Orden */}
                         <div style={{
-                          width: '24px',
-                          height: '24px',
+                          width: '28px',
+                          height: '28px',
                           borderRadius: '50%',
-                          background: '#1B365D',
+                          background: mov.tipo_movimiento === 'RETROCESO' ? '#D97706' : '#1B365D',
                           color: 'white',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '11px',
+                          fontSize: '12px',
                           fontWeight: 700,
                           flexShrink: 0
                         }}>
                           {mov.orden}
                         </div>
+
                         <div style={{ flex: 1 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '4px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <strong style={{ color: '#1B365D' }}>{mov.actividad}</strong>
+                          {/* Fila Superior: Actividad, Badges y Fechas */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                              <strong style={{ color: '#1B365D', fontSize: '0.92rem' }}>
+                                {mov.actividad}
+                              </strong>
+
+                              {/* Badge de Devolución / Retroceso */}
                               {(mov.tipo_movimiento === 'RETROCESO' || Boolean(mov.justificacion_retroceso)) && (
-                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#92400E', backgroundColor: '#FEF3C7', padding: '1px 6px', borderRadius: '10px', border: '1px solid #FCD34D' }}>
-                                  DEVOLUCIÓN
+                                <span style={{
+                                  fontSize: '0.7rem',
+                                  fontWeight: 700,
+                                  color: '#92400E',
+                                  backgroundColor: '#FEF3C7',
+                                  padding: '2px 8px',
+                                  borderRadius: '10px',
+                                  border: '1px solid #FCD34D'
+                                }}>
+                                  DEVOLUCIÓN OFICIAL
+                                </span>
+                              )}
+
+                              {/* Badge de Instrumento Legislativo Resultante */}
+                              {(mov.instrumento_generado || mov.instrumentos_generados) && (
+                                <span style={{
+                                  fontSize: '0.7rem',
+                                  fontWeight: 700,
+                                  color: '#065F46',
+                                  backgroundColor: '#D1FAE5',
+                                  padding: '2px 8px',
+                                  borderRadius: '10px',
+                                  border: '1px solid #6EE7B7',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}>
+                                  <FileCheck size={11} />
+                                  INSTRUMENTO: {mov.instrumentos_generados || mov.instrumento_generado}
+                                </span>
+                              )}
+
+                              {/* Badge "Hasta Hoy" (RF-08.9) */}
+                              {mov.es_hasta_hoy && (
+                                <span style={{
+                                  fontSize: '0.7rem',
+                                  fontWeight: 700,
+                                  color: '#1E40AF',
+                                  backgroundColor: '#DBEAFE',
+                                  padding: '2px 8px',
+                                  borderRadius: '10px',
+                                  border: '1px solid #93C5FD'
+                                }}>
+                                  EN ATENCIÓN HASTA HOY
                                 </span>
                               )}
                             </div>
-                            <span style={{ fontSize: '0.75rem', color: '#6C757D' }}>
-                              {new Date(mov.fecha).toLocaleString('es-BO')}
-                            </span>
+
+                            {/* Fecha y Tiempo Transcurrido (RF-08.8) */}
+                            <div style={{ textAlign: 'right' }}>
+                              <span style={{ fontSize: '0.75rem', color: '#6C757D', display: 'block' }}>
+                                {new Date(mov.fecha || mov.fecha_envio).toLocaleString('es-BO')}
+                              </span>
+                              {mov.tiempo_transcurrido_minutos > 0 && (
+                                <span style={{ fontSize: '0.7rem', color: '#059669', fontWeight: 600 }}>
+                                  Tiempo de paso: {formatDuracion(mov.tiempo_transcurrido_minutos)}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <div style={{ fontSize: '0.8rem', color: '#4A5568', marginTop: '2px' }}>
-                            De: <em>{mov.unidad_origen}</em> {mov.usuario_origen_nombre ? `(${mov.usuario_origen_nombre})` : ''} {mov.unidad_destino ? `➔ Hacia: ${mov.unidad_destino}` : ''}
+
+                          {/* Ruta de Envío: De unidad origen hacia unidad destino */}
+                          <div style={{ fontSize: '0.82rem', color: '#4A5568', marginTop: '4px' }}>
+                            De: <strong>{mov.unidad_origen}</strong>
+                            {mov.usuario_origen_nombre && ` (${mov.usuario_origen_nombre}${mov.usuario_origen_cargo ? ` - ${mov.usuario_origen_cargo}` : ''})`}
+                            {mov.unidad_destino && (
+                              <span> ➔ Hacia: <strong>{mov.unidad_destino}</strong></span>
+                            )}
+                            {mov.usuario_destino_nombre && ` (${mov.usuario_destino_nombre}${mov.usuario_destino_cargo ? ` - ${mov.usuario_destino_cargo}` : ''})`}
                           </div>
+
+                          {/* Motivo de Devolución si existió */}
                           {mov.justificacion_retroceso && (
-                            <div style={{ fontSize: '0.8rem', color: '#92400E', marginTop: '4px', background: '#FFFBEB', padding: '4px 8px', borderRadius: '4px', borderLeft: '3px solid #D97706' }}>
-                              <strong>Motivo Devolución:</strong> {mov.justificacion_retroceso}
+                            <div style={{
+                              fontSize: '0.8rem',
+                              color: '#92400E',
+                              marginTop: '6px',
+                              background: '#FFFBEB',
+                              padding: '6px 10px',
+                              borderRadius: '4px',
+                              borderLeft: '3px solid #D97706'
+                            }}>
+                              <strong>Motivo o Justificativo de Devolución:</strong> {mov.justificacion_retroceso}
                             </div>
                           )}
+
+                          {/* Proveído oficial */}
                           {mov.proveido && (
-                            <div style={{ fontSize: '0.8rem', color: '#800000', marginTop: '4px', background: 'var(--color-primary-sucre-light)', padding: '4px 8px', borderRadius: '4px' }}>
-                              Proveído: {mov.proveido}
+                            <div style={{
+                              fontSize: '0.82rem',
+                              color: '#800000',
+                              marginTop: '6px',
+                              background: 'var(--color-primary-sucre-light)',
+                              padding: '6px 10px',
+                              borderRadius: '4px',
+                              borderLeft: '3px solid #800000',
+                              lineHeight: 1.4
+                            }}>
+                              <strong>Proveído:</strong> {mov.proveido}
+                              {mov.instruccion && (
+                                <div style={{ fontSize: '0.78rem', color: '#4A5568', marginTop: '2px' }}>
+                                  Instrucción: <em>{mov.instruccion}</em>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -319,6 +618,53 @@ export default function Home() {
                   </div>
                 </div>
               )}
+
+              {/* ======================================================= */}
+              {/* RESPALDOS Y DOCUMENTOS ADJUNTOS (RF-07, RF-08.5) */}
+              {/* ======================================================= */}
+              {searchResult.adjuntos && searchResult.adjuntos.length > 0 && (
+                <div style={{
+                  background: '#F8FAFC',
+                  borderRadius: '6px',
+                  border: '1px solid #E2E8F0',
+                  padding: '14px 16px',
+                  marginBottom: '1rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <Paperclip size={16} color="#1B365D" />
+                    <strong style={{ fontSize: '0.9rem', color: '#1B365D' }}>
+                      Documentos y Respaldos Adjuntos al Expediente ({searchResult.adjuntos.length})
+                    </strong>
+                  </div>
+                  <div style={{ display: 'grid', gap: '6px' }}>
+                    {searchResult.adjuntos.map((adj) => (
+                      <div
+                        key={adj.id}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '8px 12px',
+                          background: '#FFFFFF',
+                          border: '1px solid #E2E8F0',
+                          borderRadius: '4px',
+                          fontSize: '0.82rem'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <FileText size={16} color="#800000" />
+                          <span style={{ fontWeight: 600, color: '#334155' }}>{adj.nombre_original}</span>
+                          <span style={{ fontSize: '0.75rem', color: '#64748B' }}>({formatBytes(adj.tamano_bytes)})</span>
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                          Subido: {new Date(adj.fecha_subida).toLocaleDateString('es-BO')}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         )}
@@ -645,6 +991,14 @@ export default function Home() {
           </Link>
         </div>
       </div>
+
+      {/* Modal Hoja de Ruta Imprimible (RF-08.1, RF-08.4) */}
+      <HojaDeRutaModal
+        isOpen={hojaModalOpen}
+        onClose={() => setHojaModalOpen(false)}
+        tramiteId={searchResult?.id}
+        initialData={searchResult}
+      />
     </div>
   );
 }

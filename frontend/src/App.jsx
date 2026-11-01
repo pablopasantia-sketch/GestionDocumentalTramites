@@ -62,6 +62,8 @@ export default function App() {
         <MainLayout>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/consulta" element={<Home />} />
+            <Route path="/buscar" element={<Home />} />
             <Route path="/status" element={<SystemStatus />} />
             <Route path="/login" element={<Login />} />
             

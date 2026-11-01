@@ -19,8 +19,14 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("tipo_proceso")]
         public string TipoProceso { get; set; } = string.Empty;
 
+        [JsonPropertyName("tipo_proceso_codigo")]
+        public string TipoProcesoCodigo { get; set; } = string.Empty;
+
         [JsonPropertyName("tipo_categoria")]
         public string TipoCategoria { get; set; } = string.Empty;
+
+        [JsonPropertyName("tiempo_estimado_horas")]
+        public int TiempoEstimadoHoras { get; set; } = 48;
 
         [JsonPropertyName("referencia")]
         public string Referencia { get; set; } = string.Empty;
@@ -43,14 +49,26 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("fecha_conclusion")]
         public DateTime? FechaConclusion { get; set; }
 
+        [JsonPropertyName("fecha_limite_respuesta")]
+        public DateTime? FechaLimiteRespuesta { get; set; }
+
         [JsonPropertyName("ubicacion_actual")]
         public string UbicacionActual { get; set; } = string.Empty;
 
         [JsonPropertyName("unidad_origen")]
         public string UnidadOrigen { get; set; } = string.Empty;
 
+        [JsonPropertyName("usuario_actual_nombre")]
+        public string UsuarioActualNombre { get; set; } = string.Empty;
+
+        [JsonPropertyName("usuario_actual_cargo")]
+        public string UsuarioActualCargo { get; set; } = string.Empty;
+
         [JsonPropertyName("historial")]
         public List<MovimientoTimelineDto> Historial { get; set; } = new();
+
+        [JsonPropertyName("adjuntos")]
+        public List<GestionDocumental.Api.DTOs.Adjuntos.AdjuntoItemDto> Adjuntos { get; set; } = new();
     }
 
     public class MovimientoTimelineDto

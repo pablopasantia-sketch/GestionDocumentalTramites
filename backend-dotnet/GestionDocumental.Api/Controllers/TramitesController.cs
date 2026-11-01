@@ -49,7 +49,9 @@ namespace GestionDocumental.Api.Controllers
                     NumeroCorrelativo = reader.GetSafeString("numero_correlativo"),
                     Gestion = reader.GetSafeInt32("gestion"),
                     TipoProceso = reader.GetSafeString("tipo_proceso"),
+                    TipoProcesoCodigo = reader.GetSafeString("tipo_proceso_codigo"),
                     TipoCategoria = reader.GetSafeString("tipo_categoria"),
+                    TiempoEstimadoHoras = reader.GetSafeInt32("tiempo_estimado_horas", 48),
                     Referencia = reader.GetSafeString("referencia"),
                     Remitente = reader.GetSafeString("remitente"),
                     Estado = reader.GetSafeString("estado"),
@@ -57,9 +59,13 @@ namespace GestionDocumental.Api.Controllers
                     NroHojas = reader.GetSafeInt32("nro_hojas", 1),
                     FechaCreacion = reader.GetSafeDateTime("fecha_creacion"),
                     FechaConclusion = reader.GetNullableDateTime("fecha_conclusion"),
+                    FechaLimiteRespuesta = reader.GetNullableDateTime("fecha_limite_respuesta"),
                     UbicacionActual = reader.GetSafeString("ubicacion_actual"),
                     UnidadOrigen = reader.GetSafeString("unidad_origen"),
-                    Historial = new List<MovimientoTimelineDto>()
+                    UsuarioActualNombre = reader.GetSafeString("usuario_actual_nombre"),
+                    UsuarioActualCargo = reader.GetSafeString("usuario_actual_cargo"),
+                    Historial = new List<MovimientoTimelineDto>(),
+                    Adjuntos = new List<GestionDocumental.Api.DTOs.Adjuntos.AdjuntoItemDto>()
                 },
                 new SqlParameter("@Correlativo", SqlDbType.NVarChar, 50) { Value = cleanCorrelativo },
                 new SqlParameter("@Gestion", SqlDbType.Int) { Value = year }
@@ -70,8 +76,10 @@ namespace GestionDocumental.Api.Controllers
                 return NotFound(ApiResponse.ErrorResult($"No se encontró ningún trámite registrado con el correlativo '{cleanCorrelativo}' en la gestión {year}."));
             }
 
-            // Cargar timeline de movimientos para la consulta pública si existe
+            // Cargar timeline de movimientos y adjuntos para la consulta pública si existe
             var historial = new List<MovimientoTimelineDto>();
+            var adjuntos = new List<GestionDocumental.Api.DTOs.Adjuntos.AdjuntoItemDto>();
+
             await _sp.ExecuteMultiReaderAsync(
                 "dbo.usp_Tramites_ObtenerPorId",
                 async reader =>
@@ -112,11 +120,31 @@ namespace GestionDocumental.Api.Controllers
                             });
                         }
                     }
+
+                    // Resultset 3: Adjuntos
+                    if (await reader.NextResultAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            adjuntos.Add(new GestionDocumental.Api.DTOs.Adjuntos.AdjuntoItemDto
+                            {
+                                Id = reader.GetSafeInt32("id"),
+                                TramiteId = reader.GetSafeInt32("tramite_id"),
+                                MovimientoId = reader.GetNullableInt32("movimiento_id"),
+                                NombreOriginal = reader.GetSafeString("nombre_original"),
+                                TamanoBytes = reader.GetSafeInt64("tamano_bytes"),
+                                TipoMime = reader.GetSafeString("tipo_mime"),
+                                SubidoPorNombre = reader.GetSafeString("subido_por_nombre"),
+                                FechaSubida = reader.GetSafeDateTime("fecha_subida")
+                            });
+                        }
+                    }
                 },
                 new SqlParameter("@Id", SqlDbType.Int) { Value = resultado.Id }
             );
 
             resultado.Historial = historial;
+            resultado.Adjuntos = adjuntos;
 
             return Ok(ApiResponse<TramiteConsultaPublicaDto>.Ok(resultado, "Trámite localizado exitosamente."));
         }
@@ -751,7 +779,7 @@ namespace GestionDocumental.Api.Controllers
         /// <summary>
         /// Obtener detalle completo de un trámite por ID (para Hoja de Ruta y consulta)
         /// </summary>
-        [Authorize]
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
