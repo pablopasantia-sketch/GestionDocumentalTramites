@@ -20,6 +20,7 @@ import {
   Calendar,
   Building2,
   User,
+  Users,
   ShieldAlert,
   ArrowRight,
   Printer,
@@ -27,11 +28,12 @@ import {
   Unlock,
   PlayCircle
 } from 'lucide-react';
-import { tramitesService, tiposProcesoService, ubicacionesService, reportesService } from '../services/api';
+import { tramitesService, tiposProcesoService, ubicacionesService, reportesService, usuariosService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import HojaDeRutaModal from '../components/tramites/HojaDeRutaModal';
 import SupervisionSlaPanel from '../components/tramites/SupervisionSlaPanel';
 import ReporteGlobalPanel from '../components/reportes/ReporteGlobalPanel';
+import PendientesFuncionarioPanel from '../components/reportes/PendientesFuncionarioPanel';
 
 const toInputDate = (fecha) => {
   const anio = fecha.getFullYear();
@@ -50,9 +52,15 @@ const crearFiltrosReporteIniciales = () => {
   };
 };
 
+const crearFiltrosPendientesIniciales = () => ({
+  funcionarioId: '',
+  gestion: String(new Date().getFullYear()),
+  fechaCorte: toInputDate(new Date())
+});
+
 export default function AdminTramitesHub() {
   const { user, activeRole } = useAuth();
-  const [activeTab, setActiveTab] = useState('supervision'); // 'supervision' | 'tipos' | 'sla' | 'metricas' | 'reportes'
+  const [activeTab, setActiveTab] = useState('supervision'); // 'supervision' | 'tipos' | 'sla' | 'metricas' | 'reportes' | 'pendientes'
 
   // Estados de Datos
   const [tramites, setTramites] = useState([]);
@@ -69,6 +77,13 @@ export default function AdminTramitesHub() {
   const [reportesData, setReportesData] = useState(null);
   const [reportesLoading, setReportesLoading] = useState(false);
   const [reporteFiltros, setReporteFiltros] = useState(crearFiltrosReporteIniciales);
+
+  // Estados de Pendientes por Funcionario (RF-12.7 / Sprint 5)
+  const [pendientesData, setPendientesData] = useState(null);
+  const [pendientesLoading, setPendientesLoading] = useState(false);
+  const [pendientesFiltros, setPendientesFiltros] = useState(crearFiltrosPendientesIniciales);
+  const [funcionarios, setFuncionarios] = useState([]);
+  const [funcionariosLoading, setFuncionariosLoading] = useState(false);
 
   // Estados de Carga y Feedback
   const [loading, setLoading] = useState(true);
@@ -208,6 +223,70 @@ export default function AdminTramitesHub() {
     const iniciales = crearFiltrosReporteIniciales();
     setReporteFiltros(iniciales);
     loadReporteGlobal(iniciales);
+  };
+
+  // ----------------------------------------------------
+  // MANEJADORES: PENDIENTES POR FUNCIONARIO (RF-12.7)
+  // ----------------------------------------------------
+  const loadFuncionarios = async () => {
+    if (funcionarios.length > 0 || funcionariosLoading) return;
+    setFuncionariosLoading(true);
+    try {
+      const res = await usuariosService.getAll({ activo: 'activos' });
+      if (res && res.success) {
+        setFuncionarios(res.data || []);
+      }
+    } catch (err) {
+      console.error('Error al cargar el padrón de funcionarios:', err);
+      showFeedbackMsg('error', 'No se pudo cargar el listado de funcionarios.');
+    } finally {
+      setFuncionariosLoading(false);
+    }
+  };
+
+  const loadPendientesFuncionario = async (filtrosOverride) => {
+    const f = filtrosOverride || pendientesFiltros;
+    if (!f.funcionarioId) {
+      showFeedbackMsg('error', 'Seleccione un funcionario para generar el reporte.');
+      return;
+    }
+
+    setPendientesLoading(true);
+    try {
+      const res = await reportesService.getPendientesFuncionario({
+        funcionarioId: Number(f.funcionarioId),
+        gestion: f.gestion ? Number(f.gestion) : null,
+        fechaCorte: f.fechaCorte || null
+      });
+
+      if (res && res.success) {
+        setPendientesData(res.data);
+      } else {
+        showFeedbackMsg('error', res?.message || 'No se pudo generar el reporte de pendientes.');
+      }
+    } catch (err) {
+      console.error('Error al generar los pendientes por funcionario:', err);
+      const mensaje = err?.response?.data?.message || 'No se pudo generar el reporte de pendientes.';
+      showFeedbackMsg('error', mensaje);
+    } finally {
+      setPendientesLoading(false);
+    }
+  };
+
+  const handleGenerarPendientes = () => {
+    loadPendientesFuncionario(pendientesFiltros);
+  };
+
+  const handleLimpiarPendientes = () => {
+    setPendientesFiltros(crearFiltrosPendientesIniciales());
+    setPendientesData(null);
+  };
+
+  const handlePendientesFiltroChange = (nuevosFiltros) => {
+    if (String(nuevosFiltros.funcionarioId) !== String(pendientesFiltros.funcionarioId)) {
+      setPendientesData(null);
+    }
+    setPendientesFiltros(nuevosFiltros);
   };
 
   // ----------------------------------------------------
@@ -734,10 +813,35 @@ export default function AdminTramitesHub() {
           <FileBarChart size={18} color={activeTab === 'reportes' ? '#800000' : '#6C757D'} />
           <span>Reporte Global (RF-12.1)</span>
         </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('pendientes');
+            setSearchTerm('');
+            loadFuncionarios();
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            color: activeTab === 'pendientes' ? '#800000' : '#6C757D',
+            borderBottom: activeTab === 'pendientes' ? '3px solid #800000' : '3px solid transparent',
+            marginBottom: '-2px'
+          }}
+        >
+          <Users size={18} color={activeTab === 'pendientes' ? '#800000' : '#6C757D'} />
+          <span>Pendientes por Funcionario (RF-12.7)</span>
+        </button>
       </div>
 
       {/* Barra de Filtros y Búsqueda */}
-      {activeTab !== 'metricas' && activeTab !== 'sla' && activeTab !== 'reportes' && (
+      {activeTab !== 'metricas' && activeTab !== 'sla' && activeTab !== 'reportes' && activeTab !== 'pendientes' && (
         <div
           style={{
             display: 'flex',
@@ -1196,6 +1300,21 @@ export default function AdminTramitesHub() {
           onFiltroChange={setReporteFiltros}
           onConsultar={handleGenerarReporte}
           onLimpiar={handleLimpiarReporte}
+        />
+      )}
+
+      {/* ========================================================== */}
+      {/* PESTAÑA 6: PENDIENTES POR FUNCIONARIO (RF-12.7 / Sprint 5) */}
+      {/* ========================================================== */}
+      {activeTab === 'pendientes' && (
+        <PendientesFuncionarioPanel
+          data={pendientesData}
+          loading={pendientesLoading || funcionariosLoading}
+          filtros={pendientesFiltros}
+          funcionarios={funcionarios}
+          onFiltroChange={handlePendientesFiltroChange}
+          onConsultar={handleGenerarPendientes}
+          onLimpiar={handleLimpiarPendientes}
         />
       )}
 

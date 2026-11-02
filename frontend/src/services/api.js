@@ -334,6 +334,15 @@ export const reportesService = {
 
     const response = await api.get('/reportes/global', { params });
     return response.data;
+  },
+  getPendientesFuncionario: async ({ funcionarioId, gestion, fechaCorte } = {}) => {
+    const params = {};
+    if (funcionarioId) params.funcionario_id = funcionarioId;
+    if (gestion) params.gestion = gestion;
+    if (fechaCorte) params.fecha_corte = fechaCorte;
+
+    const response = await api.get('/reportes/pendientes-funcionario', { params });
+    return response.data;
   }
 };
 
