@@ -323,6 +323,20 @@ export const tramitesService = {
   }
 };
 
+// Servicios de Reportes y Transparencia (RF-12 / Sprint 5)
+export const reportesService = {
+  getGlobal: async ({ fechaDesde, fechaHasta, gestion, ubicacionOrgId } = {}) => {
+    const params = {};
+    if (fechaDesde) params.fecha_desde = fechaDesde;
+    if (fechaHasta) params.fecha_hasta = fechaHasta;
+    if (gestion) params.gestion = gestion;
+    if (ubicacionOrgId) params.ubicacion_org_id = ubicacionOrgId;
+
+    const response = await api.get('/reportes/global', { params });
+    return response.data;
+  }
+};
+
 // Servicios de Tipos de Proceso (Admin Trámites)
 export const tiposProcesoService = {
   getAll: async (params = {}) => {

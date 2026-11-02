@@ -637,7 +637,7 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 ### Sprint 5 (27 Oct - 09 Nov): Reportes y Transparencia
 
 - [X] Búsqueda pública de trámites (sin login) mediante Hoja de Ruta
-- [ ] Reporte global (iniciados, movidos, concluidos)
+- [X] Reporte global (iniciados, movidos, concluidos)
 - [ ] Pendientes por funcionario
 - [ ] Búsqueda por proceso y por estado/fechas
 

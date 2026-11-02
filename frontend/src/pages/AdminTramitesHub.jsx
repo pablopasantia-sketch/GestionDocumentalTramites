@@ -16,6 +16,7 @@ import {
   X,
   Layers,
   BarChart3,
+  FileBarChart,
   Calendar,
   Building2,
   User,
@@ -26,14 +27,32 @@ import {
   Unlock,
   PlayCircle
 } from 'lucide-react';
-import { tramitesService, tiposProcesoService, ubicacionesService } from '../services/api';
+import { tramitesService, tiposProcesoService, ubicacionesService, reportesService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import HojaDeRutaModal from '../components/tramites/HojaDeRutaModal';
 import SupervisionSlaPanel from '../components/tramites/SupervisionSlaPanel';
+import ReporteGlobalPanel from '../components/reportes/ReporteGlobalPanel';
+
+const toInputDate = (fecha) => {
+  const anio = fecha.getFullYear();
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  return `${anio}-${mes}-${dia}`;
+};
+
+const crearFiltrosReporteIniciales = () => {
+  const hoy = new Date();
+  return {
+    fechaDesde: `${hoy.getFullYear()}-01-01`,
+    fechaHasta: toInputDate(hoy),
+    gestion: String(hoy.getFullYear()),
+    ubicacionOrgId: ''
+  };
+};
 
 export default function AdminTramitesHub() {
   const { user, activeRole } = useAuth();
-  const [activeTab, setActiveTab] = useState('supervision'); // 'supervision' | 'tipos' | 'sla' | 'metricas'
+  const [activeTab, setActiveTab] = useState('supervision'); // 'supervision' | 'tipos' | 'sla' | 'metricas' | 'reportes'
 
   // Estados de Datos
   const [tramites, setTramites] = useState([]);
@@ -45,6 +64,11 @@ export default function AdminTramitesHub() {
   const [slaData, setSlaData] = useState(null);
   const [slaLoading, setSlaLoading] = useState(false);
   const [slaGestion, setSlaGestion] = useState(new Date().getFullYear());
+
+  // Estados del Reporte Global (RF-12.1 / Sprint 5)
+  const [reportesData, setReportesData] = useState(null);
+  const [reportesLoading, setReportesLoading] = useState(false);
+  const [reporteFiltros, setReporteFiltros] = useState(crearFiltrosReporteIniciales);
 
   // Estados de Carga y Feedback
   const [loading, setLoading] = useState(true);
@@ -146,6 +170,44 @@ export default function AdminTramitesHub() {
   const showFeedbackMsg = (type, message) => {
     setFeedback({ type, message });
     setTimeout(() => setFeedback(null), 5000);
+  };
+
+  // ----------------------------------------------------
+  // MANEJADORES: REPORTE GLOBAL (RF-12.1)
+  // ----------------------------------------------------
+  const loadReporteGlobal = async (filtrosOverride) => {
+    const f = filtrosOverride || reporteFiltros;
+    setReportesLoading(true);
+    try {
+      const res = await reportesService.getGlobal({
+        fechaDesde: f.fechaDesde,
+        fechaHasta: f.fechaHasta,
+        gestion: f.gestion ? Number(f.gestion) : null,
+        ubicacionOrgId: f.ubicacionOrgId ? Number(f.ubicacionOrgId) : null
+      });
+
+      if (res && res.success) {
+        setReportesData(res.data);
+      } else {
+        showFeedbackMsg('error', res?.message || 'No se pudo generar el reporte global.');
+      }
+    } catch (err) {
+      console.error('Error al generar el reporte global:', err);
+      const mensaje = err?.response?.data?.message || 'No se pudo generar el reporte global.';
+      showFeedbackMsg('error', mensaje);
+    } finally {
+      setReportesLoading(false);
+    }
+  };
+
+  const handleGenerarReporte = () => {
+    loadReporteGlobal(reporteFiltros);
+  };
+
+  const handleLimpiarReporte = () => {
+    const iniciales = crearFiltrosReporteIniciales();
+    setReporteFiltros(iniciales);
+    loadReporteGlobal(iniciales);
   };
 
   // ----------------------------------------------------
@@ -647,10 +709,35 @@ export default function AdminTramitesHub() {
           <BarChart3 size={18} />
           <span>Métricas y Trazabilidad Municipal</span>
         </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('reportes');
+            setSearchTerm('');
+            if (!reportesData) loadReporteGlobal(reporteFiltros);
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            color: activeTab === 'reportes' ? '#800000' : '#6C757D',
+            borderBottom: activeTab === 'reportes' ? '3px solid #800000' : '3px solid transparent',
+            marginBottom: '-2px'
+          }}
+        >
+          <FileBarChart size={18} color={activeTab === 'reportes' ? '#800000' : '#6C757D'} />
+          <span>Reporte Global (RF-12.1)</span>
+        </button>
       </div>
 
       {/* Barra de Filtros y Búsqueda */}
-      {activeTab !== 'metricas' && activeTab !== 'sla' && (
+      {activeTab !== 'metricas' && activeTab !== 'sla' && activeTab !== 'reportes' && (
         <div
           style={{
             display: 'flex',
@@ -1095,6 +1182,21 @@ export default function AdminTramitesHub() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ========================================================== */}
+      {/* PESTAÑA 5: REPORTE GLOBAL (RF-12.1 / Sprint 5)           */}
+      {/* ========================================================== */}
+      {activeTab === 'reportes' && (
+        <ReporteGlobalPanel
+          data={reportesData}
+          loading={reportesLoading}
+          filtros={reporteFiltros}
+          ubicaciones={ubicaciones}
+          onFiltroChange={setReporteFiltros}
+          onConsultar={handleGenerarReporte}
+          onLimpiar={handleLimpiarReporte}
+        />
       )}
 
       {/* ========================================================== */}
