@@ -28,7 +28,7 @@ async function ingresarComoAdminTramites(page) {
 }
 
   async function abrirBusqueda(page) {
-  const tab = page.locator('button:has-text("Búsqueda por Proceso y Fechas (RF-12.2 / RF-12.4)")');
+  const tab = page.locator('button:has-text("Búsqueda por Proceso y Fechas")');
   await expect(tab).toBeVisible();
   await tab.click();
   await expect(page.locator('h2:has-text("Búsqueda por Proceso y Estado/Fechas")')).toBeVisible({ timeout: 10000 });
@@ -49,7 +49,7 @@ test.describe('Sprint 5 E2E - Búsqueda por Proceso y Estado/Fechas (RF-12.2 / R
     await ingresarComoAdminTramites(page);
   });
 
-  test('1. Busca por proceso, tipo, estado, gestión y rango de fechas', async ({ page }) => {
+  test('1. Busca por proceso, tipo, estado y gestión', async ({ page }) => {
     test.setTimeout(90000);
 
     // 1.1 Abrir la pestaña y verificar el estado inicial (sin búsqueda automática)
@@ -107,12 +107,9 @@ test.describe('Sprint 5 E2E - Búsqueda por Proceso y Estado/Fechas (RF-12.2 / R
     await buscar(page);
     await expect(fila).toBeVisible({ timeout: 15000 });
 
-    // 1.9 Filtro por rango de fechas
-    const fechas = page.locator('input[type="date"]');
-    await fechas.nth(0).fill('2026-10-01');
-    await fechas.nth(1).fill('2026-10-31');
-    await buscar(page);
-    await expect(fila).toBeVisible({ timeout: 15000 });
+    // 1.9 Los filtros de fecha y búsqueda general ya no forman parte del panel
+    await expect(page.locator('input[type="date"]')).toHaveCount(0);
+    await expect(page.locator('input[placeholder="Búsqueda general..."]')).toHaveCount(0);
 
     // 1.10 Limpiar restablece los filtros y el estado inicial
     await page.locator('button:has-text("Limpiar")').click();
@@ -156,7 +153,7 @@ test.describe('Sprint 5 E2E - Búsqueda por Proceso y Estado/Fechas (RF-12.2 / R
 
     await expect(page.locator('h1:has-text("Gestión de Personas, Cuentas y Roles")')).toBeVisible({ timeout: 10000 });
     await expect(
-      page.locator('button:has-text("Búsqueda por Proceso y Fechas (RF-12.2 / RF-12.4)")')
+      page.locator('button:has-text("Búsqueda por Proceso y Fechas")')
     ).toHaveCount(0);
   });
 });

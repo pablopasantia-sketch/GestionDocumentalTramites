@@ -15,15 +15,11 @@ import {
   Ban,
   X,
   Layers,
-  BarChart3,
-  FileBarChart,
   Calendar,
   Building2,
   User,
   Users,
-  ShieldAlert,
   ArrowRight,
-  Printer,
   Lock,
   Unlock,
   PlayCircle
@@ -31,8 +27,6 @@ import {
 import { tramitesService, tiposProcesoService, ubicacionesService, reportesService, usuariosService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import HojaDeRutaModal from '../components/tramites/HojaDeRutaModal';
-import SupervisionSlaPanel from '../components/tramites/SupervisionSlaPanel';
-import ReporteGlobalPanel from '../components/reportes/ReporteGlobalPanel';
 import PendientesFuncionarioPanel from '../components/reportes/PendientesFuncionarioPanel';
 import BusquedaTramitesPanel from '../components/tramites/BusquedaTramitesPanel';
 
@@ -41,16 +35,6 @@ const toInputDate = (fecha) => {
   const mes = String(fecha.getMonth() + 1).padStart(2, '0');
   const dia = String(fecha.getDate()).padStart(2, '0');
   return `${anio}-${mes}-${dia}`;
-};
-
-const crearFiltrosReporteIniciales = () => {
-  const hoy = new Date();
-  return {
-    fechaDesde: `${hoy.getFullYear()}-01-01`,
-    fechaHasta: toInputDate(hoy),
-    gestion: String(hoy.getFullYear()),
-    ubicacionOrgId: ''
-  };
 };
 
 const crearFiltrosPendientesIniciales = () => ({
@@ -63,31 +47,18 @@ const crearFiltrosBusquedaIniciales = () => ({
   correlativo: '',
   tipoProcesoId: '',
   estado: 'TODOS',
-  gestion: '',
-  fechaDesde: '',
-  fechaHasta: '',
-  search: ''
+  gestion: ''
 });
 
 export default function AdminTramitesHub() {
   const { user, activeRole } = useAuth();
-  const [activeTab, setActiveTab] = useState('supervision'); // 'supervision' | 'tipos' | 'sla' | 'metricas' | 'reportes' | 'pendientes' | 'busqueda'
+  const [activeTab, setActiveTab] = useState('supervision'); // 'supervision' | 'tipos' | 'pendientes' | 'busqueda'
 
   // Estados de Datos
   const [tramites, setTramites] = useState([]);
   const [tiposProceso, setTiposProceso] = useState([]);
   const [ubicaciones, setUbicaciones] = useState([]);
   const [stats, setStats] = useState(null);
-
-  // Estados de Supervisión Integral SLA
-  const [slaData, setSlaData] = useState(null);
-  const [slaLoading, setSlaLoading] = useState(false);
-  const [slaGestion, setSlaGestion] = useState(new Date().getFullYear());
-
-  // Estados del Reporte Global (RF-12.1 / Sprint 5)
-  const [reportesData, setReportesData] = useState(null);
-  const [reportesLoading, setReportesLoading] = useState(false);
-  const [reporteFiltros, setReporteFiltros] = useState(crearFiltrosReporteIniciales);
 
   // Estados de Pendientes por Funcionario (RF-12.7 / Sprint 5)
   const [pendientesData, setPendientesData] = useState(null);
@@ -172,9 +143,6 @@ export default function AdminTramitesHub() {
       if (resTipos.success) setTiposProceso(resTipos.data || []);
       if (resStats.success) setStats(resStats.data || null);
       if (resUbic.success) setUbicaciones(resUbic.data || []);
-
-      // Cargar métricas de supervisión SLA en paralelo
-      loadSlaData(slaGestion);
     } catch (err) {
       console.error('Error al cargar datos de supervisión de trámites:', err);
       showFeedbackMsg('error', 'No se pudieron cargar los datos de supervisión institucional.');
@@ -183,62 +151,9 @@ export default function AdminTramitesHub() {
     }
   };
 
-  const loadSlaData = async (targetGestion) => {
-    setSlaLoading(true);
-    try {
-      const year = targetGestion || slaGestion;
-      const res = await tramitesService.getSupervisionSla(year);
-      if (res && res.success) {
-        setSlaData(res.data);
-      }
-    } catch (err) {
-      console.error('Error al cargar métricas de supervisión SLA:', err);
-    } finally {
-      setSlaLoading(false);
-    }
-  };
-
   const showFeedbackMsg = (type, message) => {
     setFeedback({ type, message });
     setTimeout(() => setFeedback(null), 5000);
-  };
-
-  // ----------------------------------------------------
-  // MANEJADORES: REPORTE GLOBAL (RF-12.1)
-  // ----------------------------------------------------
-  const loadReporteGlobal = async (filtrosOverride) => {
-    const f = filtrosOverride || reporteFiltros;
-    setReportesLoading(true);
-    try {
-      const res = await reportesService.getGlobal({
-        fechaDesde: f.fechaDesde,
-        fechaHasta: f.fechaHasta,
-        gestion: f.gestion ? Number(f.gestion) : null,
-        ubicacionOrgId: f.ubicacionOrgId ? Number(f.ubicacionOrgId) : null
-      });
-
-      if (res && res.success) {
-        setReportesData(res.data);
-      } else {
-        showFeedbackMsg('error', res?.message || 'No se pudo generar el reporte global.');
-      }
-    } catch (err) {
-      console.error('Error al generar el reporte global:', err);
-      const mensaje = err?.response?.data?.message || 'No se pudo generar el reporte global.';
-      showFeedbackMsg('error', mensaje);
-    } finally {
-      setReportesLoading(false);
-    }
-  };
-
-  const handleGenerarReporte = () => {
-    loadReporteGlobal(reporteFiltros);
-  };
-
-  const handleLimpiarReporte = () => {
-    const iniciales = crearFiltrosReporteIniciales();
-    setReporteFiltros(iniciales);
-    loadReporteGlobal(iniciales);
   };
 
   // ----------------------------------------------------
@@ -317,9 +232,6 @@ export default function AdminTramitesHub() {
         tipo_proceso_id: f.tipoProcesoId ? Number(f.tipoProcesoId) : undefined,
         estado: f.estado && f.estado !== 'TODOS' ? f.estado : undefined,
         gestion: f.gestion ? Number(f.gestion) : undefined,
-        fecha_desde: f.fechaDesde || undefined,
-        fecha_hasta: f.fechaHasta || undefined,
-        search: f.search || undefined,
         limit: 100,
         offset: 0
       });
@@ -640,13 +552,13 @@ export default function AdminTramitesHub() {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span style={{ 
-              background: '#1B365D', 
-              color: 'white', 
-              fontSize: '0.72rem', 
-              fontWeight: 700, 
-              padding: '2px 8px', 
-              borderRadius: '4px' 
+            <span style={{
+              background: '#1B365D',
+              color: 'white',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              padding: '2px 8px',
+              borderRadius: '4px'
             }}>
               SUPERVISIÓN DE TRÁMITES
             </span>
@@ -696,11 +608,11 @@ export default function AdminTramitesHub() {
 
       {/* Tarjetas KPI de Resumen Operativo */}
       {stats && (
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', 
-          gap: '12px', 
-          marginBottom: '1.5rem' 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '12px',
+          marginBottom: '1.5rem'
         }}>
           <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #1B365D' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#6C757D', textTransform: 'uppercase' }}>
@@ -808,81 +720,6 @@ export default function AdminTramitesHub() {
 
         <button
           onClick={() => {
-            setActiveTab('sla');
-            setSearchTerm('');
-            if (!slaData) loadSlaData(slaGestion);
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 18px',
-            border: 'none',
-            background: 'none',
-            cursor: 'pointer',
-            fontSize: '0.95rem',
-            fontWeight: 600,
-            color: activeTab === 'sla' ? '#800000' : '#6C757D',
-            borderBottom: activeTab === 'sla' ? '3px solid #800000' : '3px solid transparent',
-            marginBottom: '-2px'
-          }}
-        >
-          <ShieldAlert size={18} color={activeTab === 'sla' ? '#800000' : '#6C757D'} />
-          <span>Supervisión SLA y Tiempos {slaData?.total_vencidos > 0 && `(${slaData.total_vencidos} alertas)`}</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab('metricas');
-            setSearchTerm('');
-            if (!slaData) loadSlaData(slaGestion);
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 18px',
-            border: 'none',
-            background: 'none',
-            cursor: 'pointer',
-            fontSize: '0.95rem',
-            fontWeight: 600,
-            color: activeTab === 'metricas' ? '#1B365D' : '#6C757D',
-            borderBottom: activeTab === 'metricas' ? '3px solid #1B365D' : '3px solid transparent',
-            marginBottom: '-2px'
-          }}
-        >
-          <BarChart3 size={18} />
-          <span>Métricas y Trazabilidad Municipal</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab('reportes');
-            setSearchTerm('');
-            if (!reportesData) loadReporteGlobal(reporteFiltros);
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 18px',
-            border: 'none',
-            background: 'none',
-            cursor: 'pointer',
-            fontSize: '0.95rem',
-            fontWeight: 600,
-            color: activeTab === 'reportes' ? '#800000' : '#6C757D',
-            borderBottom: activeTab === 'reportes' ? '3px solid #800000' : '3px solid transparent',
-            marginBottom: '-2px'
-          }}
-        >
-          <FileBarChart size={18} color={activeTab === 'reportes' ? '#800000' : '#6C757D'} />
-          <span>Reporte Global (RF-12.1)</span>
-        </button>
-
-        <button
-          onClick={() => {
             setActiveTab('pendientes');
             setSearchTerm('');
             loadFuncionarios();
@@ -903,7 +740,7 @@ export default function AdminTramitesHub() {
           }}
         >
           <Users size={18} color={activeTab === 'pendientes' ? '#800000' : '#6C757D'} />
-          <span>Pendientes por Funcionario (RF-12.7)</span>
+          <span>Pendientes por Funcionario</span>
         </button>
 
         <button
@@ -927,12 +764,12 @@ export default function AdminTramitesHub() {
           }}
         >
           <Search size={18} color={activeTab === 'busqueda' ? '#800000' : '#6C757D'} />
-          <span>Búsqueda por Proceso y Fechas (RF-12.2 / RF-12.4)</span>
+          <span>Búsqueda por Proceso y Fechas</span>
         </button>
       </div>
 
       {/* Barra de Filtros y Búsqueda */}
-      {activeTab !== 'metricas' && activeTab !== 'sla' && activeTab !== 'reportes' && activeTab !== 'pendientes' && activeTab !== 'busqueda' && (
+      {activeTab !== 'pendientes' && activeTab !== 'busqueda' && (
         <div
           style={{
             display: 'flex',
@@ -1137,14 +974,14 @@ export default function AdminTramitesHub() {
                               t.estado === 'BLOQUEADO'
                                 ? 'No se puede anular un trámite Bloqueado. Debe ser desbloqueado previamente.'
                                 : (t.estado === 'POR_RECIBIR' || t.estado === 'EN_TRANSITO')
-                                ? 'No se puede anular un trámite que está en tránsito digital pendiente de recepción.'
-                                : 'Operación Especial: Anular trámite (RF-10.1)'
+                                  ? 'No se puede anular un trámite que está en tránsito digital pendiente de recepción.'
+                                  : 'Operación Especial: Anular trámite (RF-10.1)'
                             }
-                            style={{ 
-                              padding: '4px 8px', 
-                              backgroundColor: (t.estado === 'BLOQUEADO' || t.estado === 'POR_RECIBIR' || t.estado === 'EN_TRANSITO') ? '#E2E8F0' : '#DC3545', 
-                              color: (t.estado === 'BLOQUEADO' || t.estado === 'POR_RECIBIR' || t.estado === 'EN_TRANSITO') ? '#94A3B8' : 'white', 
-                              border: 'none', 
+                            style={{
+                              padding: '4px 8px',
+                              backgroundColor: (t.estado === 'BLOQUEADO' || t.estado === 'POR_RECIBIR' || t.estado === 'EN_TRANSITO') ? '#E2E8F0' : '#DC3545',
+                              color: (t.estado === 'BLOQUEADO' || t.estado === 'POR_RECIBIR' || t.estado === 'EN_TRANSITO') ? '#94A3B8' : 'white',
+                              border: 'none',
                               borderRadius: '4px',
                               cursor: (t.estado === 'BLOQUEADO' || t.estado === 'POR_RECIBIR' || t.estado === 'EN_TRANSITO') ? 'not-allowed' : 'pointer',
                               display: 'inline-flex',
@@ -1232,13 +1069,13 @@ export default function AdminTramitesHub() {
                       </span>
                     </td>
                     <td style={{ padding: '12px 14px' }}>
-                      <span style={{ 
-                        display: 'inline-flex', 
-                        alignItems: 'center', 
-                        gap: '4px', 
-                        background: '#EEF2F7', 
-                        color: '#1B365D', 
-                        padding: '3px 8px', 
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: '#EEF2F7',
+                        color: '#1B365D',
+                        padding: '3px 8px',
                         borderRadius: '4px',
                         fontWeight: 600,
                         fontSize: '0.8rem'
@@ -1291,111 +1128,7 @@ export default function AdminTramitesHub() {
       )}
 
       {/* ========================================================== */}
-      {/* PESTAÑA 3: SUPERVISIÓN INTEGRAL SLA Y TIEMPOS */}
-      {/* ========================================================== */}
-      {activeTab === 'sla' && (
-        <SupervisionSlaPanel
-          data={slaData}
-          loading={slaLoading}
-          gestion={slaGestion}
-          onGestionChange={(newYear) => {
-            setSlaGestion(newYear);
-            loadSlaData(newYear);
-          }}
-          onRefresh={() => loadSlaData(slaGestion)}
-          onVerTramite={handleVerTrazabilidad}
-          onPrintHojaDeRuta={(id) => {
-            setHojaDeRutaAdminTramiteId(id);
-            setHojaDeRutaAdminOpen(true);
-          }}
-        />
-      )}
-
-      {/* ========================================================== */}
-      {/* PESTAÑA 4: MÉTRICAS Y TRAZABILIDAD */}
-      {/* ========================================================== */}
-      {activeTab === 'metricas' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-          <div className="card" style={{ padding: '1.5rem', borderTop: '4px solid #1B365D' }}>
-            <h2 style={{ fontSize: '1.1rem', color: '#1B365D', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <BarChart3 size={18} color="#1B365D" />
-              <span>Eficiencia del Flujo Institucional (SLA)</span>
-            </h2>
-            <p style={{ fontSize: '0.85rem', color: '#6C757D', marginBottom: '1.25rem' }}>
-              Control de cumplimiento de plazos legales de atención ciudadana conforme al estándar cero burocracia.
-            </p>
-
-            <div style={{ display: 'grid', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: '#F8F9FA', borderRadius: '4px' }}>
-                <span style={{ fontSize: '0.85rem', color: '#212529', fontWeight: 500 }}>Tiempo Promedio de Atención:</span>
-                <strong style={{ color: '#10B981', fontSize: '0.95rem' }}>
-                  {slaData ? `${slaData.promedio_horas_atencion} horas` : 'Calculando...'}
-                </strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: '#F8F9FA', borderRadius: '4px' }}>
-                <span style={{ fontSize: '0.85rem', color: '#212529', fontWeight: 500 }}>Cumplimiento de SLA Global:</span>
-                <strong style={{ color: '#1B365D', fontSize: '0.95rem' }}>
-                  {slaData ? `${slaData.porcentaje_cumplimiento_sla}% en término` : 'Calculando...'}
-                </strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: '#F8F9FA', borderRadius: '4px' }}>
-                <span style={{ fontSize: '0.85rem', color: '#212529', fontWeight: 500 }}>Alertas de Atraso / Vencidos:</span>
-                <strong style={{ color: (slaData?.total_vencidos || 0) > 0 ? '#DC2626' : '#10B981', fontSize: '0.95rem' }}>
-                  {slaData ? `${slaData.total_vencidos} vencido(s) / ${slaData.total_activos} en flujo` : 'Calculando...'}
-                </strong>
-              </div>
-            </div>
-
-            <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-              <button 
-                onClick={() => window.print()} 
-                className="btn btn-secondary btn-sm"
-                style={{ width: '100%', justifyContent: 'center' }}
-              >
-                <Printer size={14} />
-                <span>Imprimir Reporte Ejecutivo</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="card" style={{ padding: '1.5rem', borderTop: '4px solid #800000' }}>
-            <h2 style={{ fontSize: '1.1rem', color: '#800000', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <ShieldAlert size={18} color="#800000" />
-              <span>Auditoría de Operaciones Especiales</span>
-            </h2>
-            <p style={{ fontSize: '0.85rem', color: '#6C757D', marginBottom: '1.25rem' }}>
-              El Administrador de Trámites es el único perfil facultado para la anulación de procesos con registro inmutable en auditoría.
-            </p>
-
-            <div style={{ background: '#FFF5F5', border: '1px solid #F5C6CB', borderRadius: '4px', padding: '12px' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#800000', marginBottom: '4px' }}>
-                POLÍTICA DE ANULACIÓN RF-08.1:
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#721C24', lineHeight: 1.5 }}>
-                Ningún registro físico ni correlativo es eliminado de la base de datos municipal. Las anulaciones quedan registradas con firma digital/hash, usuario responsable, fecha exacta y justificación legal obligatoria.
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================== */}
-      {/* PESTAÑA 5: REPORTE GLOBAL (RF-12.1 / Sprint 5)           */}
-      {/* ========================================================== */}
-      {activeTab === 'reportes' && (
-        <ReporteGlobalPanel
-          data={reportesData}
-          loading={reportesLoading}
-          filtros={reporteFiltros}
-          ubicaciones={ubicaciones}
-          onFiltroChange={setReporteFiltros}
-          onConsultar={handleGenerarReporte}
-          onLimpiar={handleLimpiarReporte}
-        />
-      )}
-
-      {/* ========================================================== */}
-      {/* PESTAÑA 6: PENDIENTES POR FUNCIONARIO (RF-12.7 / Sprint 5) */}
+      {/* PESTAÑA 3: PENDIENTES POR FUNCIONARIO (RF-12.7 / Sprint 5) */}
       {/* ========================================================== */}
       {activeTab === 'pendientes' && (
         <PendientesFuncionarioPanel
@@ -1410,7 +1143,7 @@ export default function AdminTramitesHub() {
       )}
 
       {/* ========================================================== */}
-      {/* PESTAÑA 7: BÚSQUEDA POR PROCESO Y ESTADO/FECHAS (Sprint 5) */}
+      {/* PESTAÑA 4: BÚSQUEDA POR PROCESO Y ESTADO/FECHAS (Sprint 5) */}
       {/* ========================================================== */}
       {activeTab === 'busqueda' && (
         <BusquedaTramitesPanel
@@ -1451,8 +1184,8 @@ export default function AdminTramitesHub() {
                   Expediente: {selectedTramite.numero_correlativo}
                 </h2>
               </div>
-              <button 
-                onClick={() => setSelectedTramite(null)} 
+              <button
+                onClick={() => setSelectedTramite(null)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6C757D' }}
               >
                 <X size={20} />
@@ -1488,14 +1221,14 @@ export default function AdminTramitesHub() {
 
                 <div style={{ display: 'grid', gap: '10px' }}>
                   {trazabilidadData.historial?.map((m, idx) => (
-                    <div 
-                      key={idx} 
-                      style={{ 
-                        display: 'flex', 
-                        gap: '12px', 
-                        padding: '10px', 
-                        background: '#FFFFFF', 
-                        borderRadius: '4px', 
+                    <div
+                      key={idx}
+                      style={{
+                        display: 'flex',
+                        gap: '12px',
+                        padding: '10px',
+                        background: '#FFFFFF',
+                        borderRadius: '4px',
                         border: '1px solid #E2E8F0',
                         borderLeft: m.tipo_movimiento === 'INICIO' ? '4px solid #800000' : '4px solid #1B365D'
                       }}
@@ -1581,7 +1314,7 @@ export default function AdminTramitesHub() {
                 Operación Especial: Anular Trámite
               </h2>
             </div>
-            
+
             <p style={{ fontSize: '0.85rem', color: '#6C757D', marginBottom: '1rem' }}>
               Esta acción marcará el trámite como <strong>ANULADO</strong> en todo el sistema municipal. No se borrará de la base de datos por principios de auditoría e inmutabilidad.
             </p>
@@ -1627,10 +1360,10 @@ export default function AdminTramitesHub() {
                   type="submit"
                   className="btn btn-sm"
                   disabled={actionLoading}
-                  style={{ 
-                    backgroundColor: '#DC3545', 
-                    color: 'white', 
-                    border: 'none', 
+                  style={{
+                    backgroundColor: '#DC3545',
+                    color: 'white',
+                    border: 'none',
                     borderRadius: '4px',
                     padding: '6px 14px',
                     fontWeight: 600,
@@ -1669,7 +1402,7 @@ export default function AdminTramitesHub() {
                 Reactivación: Habilitar Trámite Concluido
               </h2>
             </div>
-            
+
             <p style={{ fontSize: '0.85rem', color: '#6C757D', marginBottom: '1rem' }}>
               Esta acción reactivará el trámite devolviéndolo a estado <strong>EN ATENCIÓN</strong> y restablecerá la fecha de conclusión. Esta operación genera un registro inmutable en la bitácora de auditoría.
             </p>
@@ -1718,10 +1451,10 @@ export default function AdminTramitesHub() {
                   type="submit"
                   className="btn btn-sm"
                   disabled={actionLoading}
-                  style={{ 
-                    backgroundColor: '#0284C7', 
-                    color: 'white', 
-                    border: 'none', 
+                  style={{
+                    backgroundColor: '#0284C7',
+                    color: 'white',
+                    border: 'none',
                     borderRadius: '4px',
                     padding: '6px 14px',
                     fontWeight: 600,
@@ -1758,8 +1491,8 @@ export default function AdminTramitesHub() {
               <h2 style={{ fontSize: '1.15rem', color: '#1B365D', margin: 0 }}>
                 {tipoEditing ? 'Editar Tipo de Proceso' : 'Nuevo Tipo de Proceso Municipal'}
               </h2>
-              <button 
-                onClick={() => setTipoModalOpen(false)} 
+              <button
+                onClick={() => setTipoModalOpen(false)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6C757D' }}
               >
                 <X size={18} />

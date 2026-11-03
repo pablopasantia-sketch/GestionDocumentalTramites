@@ -66,13 +66,6 @@ const formatearFecha = (valor) => {
   });
 };
 
-const toInputDate = (fecha) => {
-  const anio = fecha.getFullYear();
-  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-  const dia = String(fecha.getDate()).padStart(2, '0');
-  return `${anio}-${mes}-${dia}`;
-};
-
 function CampoFiltro({ label, children }) {
   return (
     <div>
@@ -164,10 +157,7 @@ export default function BusquedaTramitesPanel({
   const hayFiltros =
     Boolean(filtros.correlativo) ||
     Boolean(filtros.tipoProcesoId) ||
-    (filtros.estado && filtros.estado !== 'TODOS') ||
-    Boolean(filtros.fechaDesde) ||
-    Boolean(filtros.fechaHasta) ||
-    Boolean(filtros.search);
+    (filtros.estado && filtros.estado !== 'TODOS');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -229,7 +219,7 @@ export default function BusquedaTramitesPanel({
                 </span>
               </div>
               <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#6C757D' }}>
-                Localice trámites por número de proceso, tipo, estado o rango de fechas. Consulte actividad
+                Localice trámites por número de proceso, tipo, estado o gestión. Consulte actividad
                 actual, responsable y fecha de ingreso a bandeja.
               </p>
             </div>
@@ -314,37 +304,6 @@ export default function BusquedaTramitesPanel({
                 );
               })}
             </select>
-          </CampoFiltro>
-
-          <CampoFiltro label="Fecha desde">
-            <input
-              type="date"
-              className="form-control"
-              value={filtros.fechaDesde || ''}
-              max={filtros.fechaHasta || toInputDate(new Date())}
-              onChange={(e) => actualizar('fechaDesde', e.target.value)}
-            />
-          </CampoFiltro>
-
-          <CampoFiltro label="Fecha hasta">
-            <input
-              type="date"
-              className="form-control"
-              value={filtros.fechaHasta || ''}
-              min={filtros.fechaDesde || ''}
-              max={toInputDate(new Date())}
-              onChange={(e) => actualizar('fechaHasta', e.target.value)}
-            />
-          </CampoFiltro>
-
-          <CampoFiltro label="Remitente / Referencia / CITE">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Búsqueda general..."
-              value={filtros.search || ''}
-              onChange={(e) => actualizar('search', e.target.value)}
-            />
           </CampoFiltro>
 
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -469,7 +428,7 @@ export default function BusquedaTramitesPanel({
               Defina los criterios y presione Buscar
             </div>
             <p style={{ fontSize: '0.82rem', color: '#6C757D', margin: '4px 0 0 0' }}>
-              Puede buscar por número de proceso, tipo, estado, gestión o rango de fechas.
+              Puede buscar por número de proceso, tipo, estado o gestión.
             </p>
           </div>
         ) : items.length === 0 ? (

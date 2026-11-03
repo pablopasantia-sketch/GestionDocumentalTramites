@@ -632,12 +632,12 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 - [X] Anular proceso (Admin Tramites)
 - [X] Habilitar proceso concluido
 - [X] Generación de Hoja de Ruta imprimible (HTML/PDF)
-- [X] Supervisión integral de Wayka y tiempos SLA
+- [X] ~~Supervisión integral de Wayka y tiempos SLA~~ — Retirado del Hub de Trámites por decisión funcional (migración 040).
 
 ### Sprint 5 (27 Oct - 09 Nov): Reportes y Transparencia
 
 - [X] Búsqueda pública de trámites (sin login) mediante Hoja de Ruta
-- [X] Reporte global (iniciados, movidos, concluidos)
+- [X] ~~Reporte global (iniciados, movidos, concluidos)~~ — Retirado del Hub de Trámites por decisión funcional (migración 040).
 - [X] Pendientes por funcionario
 - [X] Búsqueda por proceso y por estado/fechas
 

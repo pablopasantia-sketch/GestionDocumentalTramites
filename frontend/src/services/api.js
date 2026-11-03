@@ -258,11 +258,6 @@ export const tramitesService = {
   getHojaDeRutaHtmlUrl: (id, autoprint = false) => {
     return `${API_BASE_URL}/tramites/${id}/hoja-de-ruta/html${autoprint ? '?autoprint=true' : ''}`;
   },
-  getSupervisionSla: async (gestion = null) => {
-    const params = gestion ? { gestion } : {};
-    const response = await api.get('/tramites/supervision/sla', { params });
-    return response.data;
-  },
   getBusquedaAvanzada: async (params = {}) => {
     const response = await api.get('/tramites/busqueda-avanzada', { params });
     return response.data;
@@ -329,16 +324,6 @@ export const tramitesService = {
 
 // Servicios de Reportes y Transparencia (RF-12 / Sprint 5)
 export const reportesService = {
-  getGlobal: async ({ fechaDesde, fechaHasta, gestion, ubicacionOrgId } = {}) => {
-    const params = {};
-    if (fechaDesde) params.fecha_desde = fechaDesde;
-    if (fechaHasta) params.fecha_hasta = fechaHasta;
-    if (gestion) params.gestion = gestion;
-    if (ubicacionOrgId) params.ubicacion_org_id = ubicacionOrgId;
-
-    const response = await api.get('/reportes/global', { params });
-    return response.data;
-  },
   getPendientesFuncionario: async ({ funcionarioId, gestion, fechaCorte } = {}) => {
     const params = {};
     if (funcionarioId) params.funcionario_id = funcionarioId;
