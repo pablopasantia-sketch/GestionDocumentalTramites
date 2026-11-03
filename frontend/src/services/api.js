@@ -263,6 +263,10 @@ export const tramitesService = {
     const response = await api.get('/tramites/supervision/sla', { params });
     return response.data;
   },
+  getBusquedaAvanzada: async (params = {}) => {
+    const response = await api.get('/tramites/busqueda-avanzada', { params });
+    return response.data;
+  },
   // Métodos del Escritorio Virtual (Sprint 3 - RF-04)
   getBandeja: async (params = {}) => {
     const response = await api.get('/tramites/bandeja', { params });

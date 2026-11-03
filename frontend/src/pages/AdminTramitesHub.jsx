@@ -34,6 +34,7 @@ import HojaDeRutaModal from '../components/tramites/HojaDeRutaModal';
 import SupervisionSlaPanel from '../components/tramites/SupervisionSlaPanel';
 import ReporteGlobalPanel from '../components/reportes/ReporteGlobalPanel';
 import PendientesFuncionarioPanel from '../components/reportes/PendientesFuncionarioPanel';
+import BusquedaTramitesPanel from '../components/tramites/BusquedaTramitesPanel';
 
 const toInputDate = (fecha) => {
   const anio = fecha.getFullYear();
@@ -58,9 +59,19 @@ const crearFiltrosPendientesIniciales = () => ({
   fechaCorte: toInputDate(new Date())
 });
 
+const crearFiltrosBusquedaIniciales = () => ({
+  correlativo: '',
+  tipoProcesoId: '',
+  estado: 'TODOS',
+  gestion: '',
+  fechaDesde: '',
+  fechaHasta: '',
+  search: ''
+});
+
 export default function AdminTramitesHub() {
   const { user, activeRole } = useAuth();
-  const [activeTab, setActiveTab] = useState('supervision'); // 'supervision' | 'tipos' | 'sla' | 'metricas' | 'reportes' | 'pendientes'
+  const [activeTab, setActiveTab] = useState('supervision'); // 'supervision' | 'tipos' | 'sla' | 'metricas' | 'reportes' | 'pendientes' | 'busqueda'
 
   // Estados de Datos
   const [tramites, setTramites] = useState([]);
@@ -84,6 +95,11 @@ export default function AdminTramitesHub() {
   const [pendientesFiltros, setPendientesFiltros] = useState(crearFiltrosPendientesIniciales);
   const [funcionarios, setFuncionarios] = useState([]);
   const [funcionariosLoading, setFuncionariosLoading] = useState(false);
+
+  // Estados de Búsqueda por Proceso y Estado/Fechas (RF-12.2 / RF-12.4 / Sprint 5)
+  const [busquedaData, setBusquedaData] = useState(null);
+  const [busquedaLoading, setBusquedaLoading] = useState(false);
+  const [busquedaFiltros, setBusquedaFiltros] = useState(crearFiltrosBusquedaIniciales);
 
   // Estados de Carga y Feedback
   const [loading, setLoading] = useState(true);
@@ -287,6 +303,57 @@ export default function AdminTramitesHub() {
       setPendientesData(null);
     }
     setPendientesFiltros(nuevosFiltros);
+  };
+
+  // ----------------------------------------------------
+  // MANEJADORES: BÚSQUEDA POR PROCESO Y ESTADO/FECHAS (RF-12.2 / RF-12.4)
+  // ----------------------------------------------------
+  const loadBusquedaAvanzada = async (filtrosOverride) => {
+    const f = filtrosOverride || busquedaFiltros;
+    setBusquedaLoading(true);
+    try {
+      const res = await tramitesService.getBusquedaAvanzada({
+        correlativo: f.correlativo || undefined,
+        tipo_proceso_id: f.tipoProcesoId ? Number(f.tipoProcesoId) : undefined,
+        estado: f.estado && f.estado !== 'TODOS' ? f.estado : undefined,
+        gestion: f.gestion ? Number(f.gestion) : undefined,
+        fecha_desde: f.fechaDesde || undefined,
+        fecha_hasta: f.fechaHasta || undefined,
+        search: f.search || undefined,
+        limit: 100,
+        offset: 0
+      });
+
+      if (res && res.success) {
+        setBusquedaData(res.data);
+      } else {
+        showFeedbackMsg('error', res?.message || 'No se pudo completar la búsqueda de trámites.');
+      }
+    } catch (err) {
+      console.error('Error al ejecutar la búsqueda avanzada de trámites:', err);
+      const mensaje = err?.response?.data?.message || 'No se pudo completar la búsqueda de trámites.';
+      showFeedbackMsg('error', mensaje);
+    } finally {
+      setBusquedaLoading(false);
+    }
+  };
+
+  const handleGenerarBusqueda = () => {
+    loadBusquedaAvanzada(busquedaFiltros);
+  };
+
+  const handleLimpiarBusqueda = () => {
+    setBusquedaFiltros(crearFiltrosBusquedaIniciales());
+    setBusquedaData(null);
+  };
+
+  const handleBusquedaFiltroChange = (nuevosFiltros) => {
+    setBusquedaFiltros(nuevosFiltros);
+  };
+
+  const handlePrintHojaDeRuta = (tramiteId) => {
+    setHojaDeRutaAdminTramiteId(tramiteId);
+    setHojaDeRutaAdminOpen(true);
   };
 
   // ----------------------------------------------------
@@ -838,10 +905,34 @@ export default function AdminTramitesHub() {
           <Users size={18} color={activeTab === 'pendientes' ? '#800000' : '#6C757D'} />
           <span>Pendientes por Funcionario (RF-12.7)</span>
         </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('busqueda');
+            setSearchTerm('');
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            color: activeTab === 'busqueda' ? '#800000' : '#6C757D',
+            borderBottom: activeTab === 'busqueda' ? '3px solid #800000' : '3px solid transparent',
+            marginBottom: '-2px'
+          }}
+        >
+          <Search size={18} color={activeTab === 'busqueda' ? '#800000' : '#6C757D'} />
+          <span>Búsqueda por Proceso y Fechas (RF-12.2 / RF-12.4)</span>
+        </button>
       </div>
 
       {/* Barra de Filtros y Búsqueda */}
-      {activeTab !== 'metricas' && activeTab !== 'sla' && activeTab !== 'reportes' && activeTab !== 'pendientes' && (
+      {activeTab !== 'metricas' && activeTab !== 'sla' && activeTab !== 'reportes' && activeTab !== 'pendientes' && activeTab !== 'busqueda' && (
         <div
           style={{
             display: 'flex',
@@ -1315,6 +1406,23 @@ export default function AdminTramitesHub() {
           onFiltroChange={handlePendientesFiltroChange}
           onConsultar={handleGenerarPendientes}
           onLimpiar={handleLimpiarPendientes}
+        />
+      )}
+
+      {/* ========================================================== */}
+      {/* PESTAÑA 7: BÚSQUEDA POR PROCESO Y ESTADO/FECHAS (Sprint 5) */}
+      {/* ========================================================== */}
+      {activeTab === 'busqueda' && (
+        <BusquedaTramitesPanel
+          data={busquedaData}
+          loading={busquedaLoading}
+          filtros={busquedaFiltros}
+          tiposProceso={tiposProceso}
+          onFiltroChange={handleBusquedaFiltroChange}
+          onConsultar={handleGenerarBusqueda}
+          onLimpiar={handleLimpiarBusqueda}
+          onVerTrazabilidad={handleVerTrazabilidad}
+          onPrintHojaDeRuta={handlePrintHojaDeRuta}
         />
       )}
 

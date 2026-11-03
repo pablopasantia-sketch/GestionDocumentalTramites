@@ -639,7 +639,7 @@ El sistema legado utiliza **variables de sustitución** con formato `##variable#
 - [X] Búsqueda pública de trámites (sin login) mediante Hoja de Ruta
 - [X] Reporte global (iniciados, movidos, concluidos)
 - [X] Pendientes por funcionario
-- [ ] Búsqueda por proceso y por estado/fechas
+- [X] Búsqueda por proceso y por estado/fechas
 
 ### Sprint 6 (10 Nov - 19 Nov): Pruebas y Despliegue
 

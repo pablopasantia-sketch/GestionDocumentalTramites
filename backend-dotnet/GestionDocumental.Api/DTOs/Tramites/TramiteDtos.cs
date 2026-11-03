@@ -949,4 +949,106 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("porcentaje_cumplimiento")]
         public decimal PorcentajeCumplimiento { get; set; }
     }
+
+    /// <summary>
+    /// Resultado de la búsqueda avanzada de trámites (RF-12.2 / RF-12.4).
+    /// </summary>
+    public class TramiteBusquedaAvanzadaDto
+    {
+        [JsonPropertyName("total")]
+        public int Total { get; set; }
+
+        [JsonPropertyName("items")]
+        public List<TramiteBusquedaItemDto> Items { get; set; } = new();
+    }
+
+    public class TramiteBusquedaItemDto
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("numero_correlativo")]
+        public string NumeroCorrelativo { get; set; } = string.Empty;
+
+        [JsonPropertyName("gestion")]
+        public int Gestion { get; set; }
+
+        [JsonPropertyName("tipo_proceso_id")]
+        public int TipoProcesoId { get; set; }
+
+        [JsonPropertyName("tipo_proceso_codigo")]
+        public string TipoProcesoCodigo { get; set; } = string.Empty;
+
+        [JsonPropertyName("tipo_proceso_nombre")]
+        public string TipoProcesoNombre { get; set; } = string.Empty;
+
+        [JsonPropertyName("tipo_categoria")]
+        public string? TipoCategoria { get; set; }
+
+        [JsonPropertyName("remitente")]
+        public string Remitente { get; set; } = string.Empty;
+
+        [JsonPropertyName("institucion_remitente")]
+        public string? InstitucionRemitente { get; set; }
+
+        [JsonPropertyName("cite_externo")]
+        public string? CiteExterno { get; set; }
+
+        [JsonPropertyName("referencia")]
+        public string Referencia { get; set; } = string.Empty;
+
+        [JsonPropertyName("estado")]
+        public string Estado { get; set; } = string.Empty;
+
+        [JsonPropertyName("prioridad")]
+        public string Prioridad { get; set; } = string.Empty;
+
+        [JsonPropertyName("nro_hojas")]
+        public int NroHojas { get; set; }
+
+        [JsonPropertyName("nro_anexos")]
+        public int NroAnexos { get; set; }
+
+        [JsonPropertyName("actividad_actual")]
+        public string ActividadActual { get; set; } = string.Empty;
+
+        [JsonPropertyName("usuario_actual_id")]
+        public int? UsuarioActualId { get; set; }
+
+        [JsonPropertyName("usuario_actual_nombre")]
+        public string? UsuarioActualNombre { get; set; }
+
+        [JsonPropertyName("usuario_actual_login")]
+        public string? UsuarioActualLogin { get; set; }
+
+        [JsonPropertyName("usuario_actual_cargo")]
+        public string? UsuarioActualCargo { get; set; }
+
+        [JsonPropertyName("ubicacion_actual_id")]
+        public int? UbicacionActualId { get; set; }
+
+        [JsonPropertyName("ubicacion_actual_nombre")]
+        public string? UbicacionActualNombre { get; set; }
+
+        [JsonPropertyName("ubicacion_actual_sigla")]
+        public string? UbicacionActualSigla { get; set; }
+
+        [JsonPropertyName("fecha_creacion")]
+        public DateTime FechaCreacion { get; set; }
+
+        [JsonPropertyName("fecha_ingreso_bandeja")]
+        public DateTime FechaIngresoBandeja { get; set; }
+
+        [JsonPropertyName("fecha_limite_respuesta")]
+        public DateTime? FechaLimiteRespuesta { get; set; }
+
+        [JsonPropertyName("dias_en_bandeja")]
+        public int DiasEnBandeja { get; set; }
+
+        [JsonPropertyName("es_vencido")]
+        public bool EsVencido { get; set; }
+
+        [JsonPropertyName("nro_adjuntos")]
+        public int NroAdjuntos { get; set; }
+    }
 }

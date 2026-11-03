@@ -1717,5 +1717,152 @@ namespace GestionDocumental.Api.Controllers
                 return StatusCode(500, ApiResponse.ErrorResult("Error interno al obtener métricas de supervisión SLA: " + ex.Message));
             }
         }
+
+        /// <summary>
+        /// Búsqueda avanzada de trámites por proceso y por estado/fechas (RF-12.2 / RF-12.4).
+        /// Devuelve datos referenciales, actividad actual, responsable y fecha de ingreso
+        /// a la bandeja actual, con paginación.
+        /// </summary>
+        /// <remarks>
+        /// ADMIN_SISTEMA y ADMIN_TRAMITES pueden consultar todos los trámites.
+        /// Los demás roles solo pueden consultar trámites de su ubicación orgánica (§5.3).
+        /// </remarks>
+        [Authorize]
+        [HttpGet("busqueda-avanzada")]
+        public async Task<IActionResult> BuscarAvanzado(
+            [FromQuery] string? correlativo = null,
+            [FromQuery(Name = "tipo_proceso_id")] int? tipoProcesoId = null,
+            [FromQuery] string? estado = null,
+            [FromQuery(Name = "fecha_desde")] DateTime? fechaDesde = null,
+            [FromQuery(Name = "fecha_hasta")] DateTime? fechaHasta = null,
+            [FromQuery] int? gestion = null,
+            [FromQuery] string? search = null,
+            [FromQuery(Name = "ubicacion_org_id")] int? ubicacionOrgId = null,
+            [FromQuery] int limit = 100,
+            [FromQuery] int offset = 0)
+        {
+            // ---------------------------------------------------------
+            // 1. Validaciones de rango y paginación
+            // ---------------------------------------------------------
+            if (fechaDesde.HasValue && fechaHasta.HasValue)
+            {
+                if (fechaHasta.Value.Date < fechaDesde.Value.Date)
+                {
+                    return BadRequest(ApiResponse.ErrorResult(
+                        "La fecha 'hasta' no puede ser anterior a la fecha 'desde'."));
+                }
+            }
+
+            limit = Math.Clamp(limit, 1, 200);
+            offset = Math.Max(offset, 0);
+
+            // ---------------------------------------------------------
+            // 2. Resolver alcance por rol / oficina (§5.3)
+            // ---------------------------------------------------------
+            var rolCodigo = User.FindFirst("rolCodigo")?.Value ?? User.FindFirst(ClaimTypes.Role)?.Value;
+            bool esAdmin = rolCodigo == "ADMIN_SISTEMA" || rolCodigo == "ADMIN_TRAMITES";
+
+            int? ubicacionClaim = null;
+            if (int.TryParse(User.FindFirst("ubicacionOrgId")?.Value, out int ubi) && ubi > 0)
+            {
+                ubicacionClaim = ubi;
+            }
+
+            if (!esAdmin && !ubicacionClaim.HasValue)
+            {
+                return StatusCode(403, ApiResponse.ErrorResult(
+                    "El usuario no tiene una ubicación orgánica asignada para realizar búsquedas."));
+            }
+
+            int? ubicacionFiltro = esAdmin
+                ? (ubicacionOrgId.HasValue && ubicacionOrgId.Value > 0 ? ubicacionOrgId : (int?)null)
+                : ubicacionClaim;
+
+            string? Normalizar(string? valor) =>
+                string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
+
+            var estadoFiltro = Normalizar(estado);
+            if (string.Equals(estadoFiltro, "TODOS", StringComparison.OrdinalIgnoreCase))
+            {
+                estadoFiltro = null;
+            }
+            else if (estadoFiltro != null)
+            {
+                estadoFiltro = estadoFiltro.ToUpperInvariant();
+            }
+
+            int total = 0;
+            var resultado = new TramiteBusquedaAvanzadaDto();
+
+            try
+            {
+                var items = await _sp.QueryAsync(
+                    "dbo.usp_Tramites_BusquedaAvanzada",
+                    reader =>
+                    {
+                        total = reader.GetSafeInt32("total_registros");
+
+                        return new TramiteBusquedaItemDto
+                        {
+                            Id = reader.GetSafeInt32("id"),
+                            NumeroCorrelativo = reader.GetSafeString("numero_correlativo"),
+                            Gestion = reader.GetSafeInt32("gestion"),
+                            TipoProcesoId = reader.GetSafeInt32("tipo_proceso_id"),
+                            TipoProcesoCodigo = reader.GetSafeString("tipo_proceso_codigo"),
+                            TipoProcesoNombre = reader.GetSafeString("tipo_proceso_nombre"),
+                            TipoCategoria = reader.GetNullableString("tipo_categoria"),
+                            Remitente = reader.GetSafeString("remitente"),
+                            InstitucionRemitente = reader.GetNullableString("institucion_remitente"),
+                            CiteExterno = reader.GetNullableString("cite_externo"),
+                            Referencia = reader.GetSafeString("referencia"),
+                            Estado = reader.GetSafeString("estado"),
+                            Prioridad = reader.GetSafeString("prioridad"),
+                            NroHojas = reader.GetSafeInt32("nro_hojas"),
+                            NroAnexos = reader.GetSafeInt32("nro_anexos"),
+                            ActividadActual = reader.GetSafeString("actividad_actual"),
+                            UsuarioActualId = reader.GetNullableInt32("usuario_actual_id"),
+                            UsuarioActualNombre = reader.GetNullableString("usuario_actual_nombre"),
+                            UsuarioActualLogin = reader.GetNullableString("usuario_actual_login"),
+                            UsuarioActualCargo = reader.GetNullableString("usuario_actual_cargo"),
+                            UbicacionActualId = reader.GetNullableInt32("ubicacion_actual_id"),
+                            UbicacionActualNombre = reader.GetNullableString("ubicacion_actual_nombre"),
+                            UbicacionActualSigla = reader.GetNullableString("ubicacion_actual_sigla"),
+                            FechaCreacion = reader.GetSafeDateTime("fecha_creacion"),
+                            FechaIngresoBandeja = reader.GetSafeDateTime("fecha_ingreso_bandeja"),
+                            FechaLimiteRespuesta = reader.GetNullableDateTime("fecha_limite_respuesta"),
+                            DiasEnBandeja = reader.GetSafeInt32("dias_en_bandeja"),
+                            EsVencido = reader.GetSafeBoolean("es_vencido"),
+                            NroAdjuntos = reader.GetSafeInt32("nro_adjuntos")
+                        };
+                    },
+                    new SqlParameter("@Correlativo", SqlDbType.NVarChar, 50) { Value = (object?)Normalizar(correlativo) ?? DBNull.Value },
+                    new SqlParameter("@TipoProcesoId", SqlDbType.Int) { Value = (object?)tipoProcesoId ?? DBNull.Value },
+                    new SqlParameter("@Estado", SqlDbType.VarChar, 30) { Value = (object?)estadoFiltro ?? DBNull.Value },
+                    new SqlParameter("@FechaDesde", SqlDbType.Date) { Value = (object?)fechaDesde?.Date ?? DBNull.Value },
+                    new SqlParameter("@FechaHasta", SqlDbType.Date) { Value = (object?)fechaHasta?.Date ?? DBNull.Value },
+                    new SqlParameter("@Gestion", SqlDbType.Int) { Value = (object?)gestion ?? DBNull.Value },
+                    new SqlParameter("@Search", SqlDbType.NVarChar, 200) { Value = (object?)Normalizar(search) ?? DBNull.Value },
+                    new SqlParameter("@UbicacionOrgId", SqlDbType.Int) { Value = (object?)ubicacionFiltro ?? DBNull.Value },
+                    new SqlParameter("@Limit", SqlDbType.Int) { Value = limit },
+                    new SqlParameter("@Offset", SqlDbType.Int) { Value = offset }
+                );
+
+                resultado.Total = total;
+                resultado.Items = items;
+
+                return Ok(ApiResponse<TramiteBusquedaAvanzadaDto>.Ok(
+                    resultado,
+                    $"Búsqueda completada: {total} trámite(s) encontrado(s)."));
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(ApiResponse.ErrorResult(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse.ErrorResult(
+                    "Error interno al realizar la búsqueda de trámites: " + ex.Message));
+            }
+        }
     }
 }
