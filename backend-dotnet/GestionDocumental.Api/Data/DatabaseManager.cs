@@ -878,6 +878,11 @@ namespace GestionDocumental.Api.Data
                     (SELECT COUNT(*) FROM dbo.TUnidad) AS TotalUnidades,
                     (SELECT COUNT(*) FROM dbo.TCargo) AS TotalCargos,
                     (SELECT COUNT(*) FROM dbo.ubicaciones_org) AS TotalUbicaciones,
+                    (SELECT COUNT(*) FROM dbo.TEmpleados WHERE login LIKE 'cargo[0-9][0-9][0-9]') AS UsuariosAuto,
+                    (SELECT COUNT(*) FROM dbo.TCargo c WHERE NOT EXISTS (
+                        SELECT 1 FROM dbo.TEmpleados e
+                        WHERE e.cod_cargo = c.CodCargo AND e.Activo = 1 AND e.login IS NOT NULL
+                    )) AS CargosSinLogin,
                     (SELECT TOP 1 login FROM dbo.TEmpleados WHERE login = 'admin') AS AdminUsuario;", conn))
             using (var reader = await verifyCmd.ExecuteReaderAsync())
             {
@@ -887,6 +892,8 @@ namespace GestionDocumental.Api.Data
                     Console.WriteLine($"   • Total Unidades en TUnidad:    {reader["TotalUnidades"]}");
                     Console.WriteLine($"   • Total Ubicaciones Org:        {reader["TotalUbicaciones"]}");
                     Console.WriteLine($"   • Total Cargos en TCargo:       {reader["TotalCargos"]}");
+                    Console.WriteLine($"   • Usuarios automáticos:         {reader["UsuariosAuto"]} (login cargoNNN / admin123)");
+                    Console.WriteLine($"   • Cargos sin usuario logueable: {reader["CargosSinLogin"]}");
                     Console.WriteLine($"   • Usuario Administrador:        {reader["AdminUsuario"]} (Clave: admin123)");
                     Console.WriteLine("============================================================\n");
                 }

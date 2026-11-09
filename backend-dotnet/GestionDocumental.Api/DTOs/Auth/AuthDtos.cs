@@ -94,6 +94,12 @@ namespace GestionDocumental.Api.DTOs.Auth
         [JsonPropertyName("cargo")]
         public string? Cargo { get; set; }
 
+        [JsonPropertyName("cod_cargo")]
+        public int? CodCargo { get; set; }
+
+        [JsonPropertyName("cod_u")]
+        public int? CodU { get; set; }
+
         [JsonPropertyName("roles")]
         public List<RoleAssignmentDto> Roles { get; set; } = new();
 

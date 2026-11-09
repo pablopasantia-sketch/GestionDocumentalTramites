@@ -66,7 +66,7 @@ test.describe('Sprint 5 E2E - Pendientes por Funcionario (RF-12.7)', () => {
     expect(tramite.numero_correlativo).toBeTruthy();
 
     // 1.1 Abrir la pestaña del reporte
-    const tabPendientes = page.locator('button:has-text("Pendientes por Funcionario (RF-12.7)")');
+    const tabPendientes = page.locator('button:has-text("Pendientes por Funcionario")');
     await expect(tabPendientes).toBeVisible();
     await tabPendientes.click();
 
@@ -126,6 +126,6 @@ test.describe('Sprint 5 E2E - Pendientes por Funcionario (RF-12.7)', () => {
     await page.goto('/admin');
 
     await expect(page.locator('h1:has-text("Gestión de Personas, Cuentas y Roles")')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('button:has-text("Pendientes por Funcionario (RF-12.7)")')).toHaveCount(0);
+    await expect(page.locator('button:has-text("Pendientes por Funcionario")')).toHaveCount(0);
   });
 });

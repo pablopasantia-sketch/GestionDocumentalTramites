@@ -50,6 +50,7 @@ import { useAuth } from '../context/AuthContext';
 import InstitucionalSelectors from '../components/institucional/InstitucionalSelectors';
 import EmpleadoSearchAutocomplete from '../components/institucional/EmpleadoSearchAutocomplete';
 import HojaDeRutaModal from '../components/tramites/HojaDeRutaModal';
+import AccionesTramite from '../components/tramites/AccionesTramite';
 
 const INSTRUCCIONES_SUGERIDAS_DERIVACION = [
   'Para su atención y trámite correspondiente según normativa',
@@ -351,6 +352,19 @@ export default function EscritorioVirtual() {
       setError('No se pudieron obtener los trámites de la bandeja de trabajo. Verifique la conexión con el servidor.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Recarga la bandeja y el resumen tras una acción del circuito distribuido
+  const handleRefreshAcciones = async (mensaje) => {
+    if (mensaje) {
+      setAlertSuccess(mensaje);
+      setTimeout(() => setAlertSuccess(null), 7000);
+    }
+    await cargarDatos();
+    await cargarResumen();
+    if (detalleModalOpen && selectedTramiteId) {
+      handleVerDetalle(selectedTramiteId);
     }
   };
 
@@ -1648,32 +1662,6 @@ export default function EscritorioVirtual() {
             {resumen?.total_despachados ?? 0}
           </span>
         </button>
-
-        {esAdmin && (
-          <button
-            onClick={() => {
-              setBandejaActiva('SUPERVISION');
-              setFiltroEstado('TODOS');
-            }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '12px 22px',
-              border: 'none',
-              borderBottom: bandejaActiva === 'SUPERVISION' ? '3px solid #1B365D' : '3px solid transparent',
-              background: 'none',
-              color: bandejaActiva === 'SUPERVISION' ? '#1B365D' : '#495057',
-              fontWeight: bandejaActiva === 'SUPERVISION' ? 700 : 500,
-              fontSize: '0.95rem',
-              cursor: 'pointer',
-              marginLeft: 'auto'
-            }}
-          >
-            <Shield size={18} />
-            <span>Supervisión Institucional Global</span>
-          </button>
-        )}
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
@@ -2115,103 +2103,15 @@ export default function EscritorioVirtual() {
                       )}
                     </td>
 
-                    {/* Columna 8: Acciones */}
+                    {/* Columna 8: Acciones contextuales del circuito distribuido */}
                     <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
-                        {/* En BANDEJA DE ENVIADOS (DESPACHADOS): NUNCA hay acciones mutativas, solo VER seguimiento */}
-                        {bandejaActiva !== 'DESPACHADOS' && (
-                          <>
-                            {/* 1. Etapa: Recepcionar (solo si está por recibir en mis pendientes) */}
-                            {bandejaActiva === 'RECIBIDOS' && esPorRecibir && (
-                              <button
-                                onClick={() => handleAbrirRecepcionar(item)}
-                                className="btn btn-sm"
-                                style={{
-                                  backgroundColor: '#28A745',
-                                  color: '#FFFFFF',
-                                  padding: '5px 9px',
-                                  fontSize: '0.78rem',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  borderRadius: '4px',
-                                  border: 'none',
-                                  cursor: 'pointer'
-                                }}
-                                title="Confirmar recepción digital del documento y tomar custodia"
-                              >
-                                <UserCheck size={13} />
-                                <span>Recepcionar</span>
-                              </button>
-                            )}
-
-                            {/* 2. Etapa: Avanzar / Derivar Libre (habilitado una vez atendido con despacho o en Supervisión) */}
-                            {!esConcluido && ((bandejaActiva === 'RECIBIDOS' && (esAtendido || Boolean(item.despacho_final_cite))) || (bandejaActiva === 'SUPERVISION')) && (
-                              <button
-                                onClick={() => handleAbrirDerivar(item)}
-                                className="btn btn-sm"
-                                style={{
-                                  backgroundColor: '#800000',
-                                  color: '#FFFFFF',
-                                  padding: '5px 9px',
-                                  fontSize: '0.78rem',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  borderRadius: '4px',
-                                  border: 'none',
-                                  cursor: 'pointer'
-                                }}
-                                title="Derivación libre institucional (Avanzar trámite a otro destinatario)"
-                              >
-                                <Send size={13} />
-                                <span>{bandejaActiva === 'SUPERVISION' ? 'Derivar' : 'Avanzar'}</span>
-                              </button>
-                            )}
-
-                            {/* 3. Etapa: Retroceder Proceso (disponible en mesa de trabajo o supervisión antes de concluir) */}
-                            {!esConcluido && ((bandejaActiva === 'RECIBIDOS' && (esEnAtencion || esAtendido)) || (bandejaActiva === 'SUPERVISION')) && (
-                              <button
-                                onClick={() => handleAbrirRetroceder(item)}
-                                className="btn btn-sm"
-                                style={{
-                                  backgroundColor: '#D97706',
-                                  color: '#FFFFFF',
-                                  padding: '5px 9px',
-                                  fontSize: '0.78rem',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  borderRadius: '4px',
-                                  border: 'none',
-                                  cursor: 'pointer'
-                                }}
-                                title="Retroceder proceso con justificación a la unidad anterior"
-                              >
-                                <RotateCcw size={13} />
-                                <span>Retroceder</span>
-                              </button>
-                            )}
-                          </>
-                        )}
-
-                        {/* Botón Ver Detalle / Formulario */}
-                        <button
-                          onClick={() => handleVerDetalle(item.id)}
-                          className="btn btn-secondary btn-sm"
-                          style={{
-                            padding: '5px 9px',
-                            fontSize: '0.78rem',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}
-                          title="Ver formulario completo y trazabilidad"
-                        >
-                          <Eye size={13} />
-                          <span>Ver</span>
-                        </button>
-                      </div>
+                      <AccionesTramite
+                        tramite={item}
+                        user={user}
+                        bandejaActiva={bandejaActiva}
+                        onVerDetalle={handleVerDetalle}
+                        onRefresh={handleRefreshAcciones}
+                      />
                     </td>
                   </tr>
                 );

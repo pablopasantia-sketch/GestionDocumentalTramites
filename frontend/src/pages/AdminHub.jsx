@@ -1874,7 +1874,7 @@ export default function AdminHub() {
                       .filter(u => u.activo && (!ubicacionEditing || u.id !== ubicacionEditing.id))
                       .map(u => (
                         <option key={u.id} value={u.id}>
-                          {'\u00a0'.repeat((u.nivel - 1) * 2)}{u.nivel > 1 ? '└ ' : ''}{u.nombre} ({u.codigo})
+                          {'\u00a0'.repeat(Math.max(0, (Number(u.nivel) || 1) - 1) * 2)}{u.nivel > 1 ? '└ ' : ''}{u.nombre} ({u.codigo})
                         </option>
                       ))
                     }

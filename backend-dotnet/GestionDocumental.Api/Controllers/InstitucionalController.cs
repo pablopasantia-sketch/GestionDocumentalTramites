@@ -260,12 +260,16 @@ namespace GestionDocumental.Api.Controllers
         /// Obtiene los empleados institucionales (TEmpleados)
         /// </summary>
         [HttpGet("empleados")]
-        public async Task<IActionResult> GetEmpleados([FromQuery] bool? activo = null, [FromQuery] string? search = null)
+        public async Task<IActionResult> GetEmpleados(
+            [FromQuery] bool? activo = null,
+            [FromQuery] string? search = null,
+            [FromQuery] short? codU = null)
         {
             var empleados = await _sp.QueryAsync(
                 "dbo.usp_TEmpleados_Listar",
                 reader => new
                 {
+                    Id = reader.GetSafeInt32("id"),
                     CI = reader.GetSafeInt32("CI"),
                     Apellidos = reader.GetSafeString("Apellidos"),
                     Nombres = reader.GetSafeString("Nombres"),
@@ -273,12 +277,19 @@ namespace GestionDocumental.Api.Controllers
                     Direccion = reader.GetNullableString("Direccion"),
                     Cel = reader.GetNullableString("Cel"),
                     Email = reader.GetNullableString("Email"),
+                    Login = reader.GetNullableString("login"),
+                    CodU = reader.GetNullableInt16("cod_u"),
+                    UnidadNombre = reader.GetNullableString("unidad_nombre"),
+                    CodCargo = reader.GetNullableInt16("cod_cargo"),
+                    CargoOficial = reader.GetNullableString("cargo_oficial"),
+                    CargoNombre = reader.GetNullableString("cargo_nombre"),
                     Activo = reader.GetSafeBoolean("Activo", true)
                 },
                 new SqlParameter("@Search", SqlDbType.VarChar, 100) { Value = (object?)search?.Trim() ?? DBNull.Value },
                 new SqlParameter("@Activo", SqlDbType.Bit) { Value = (object?)activo ?? DBNull.Value },
                 new SqlParameter("@Limit", SqlDbType.Int) { Value = 500 },
-                new SqlParameter("@Offset", SqlDbType.Int) { Value = 0 }
+                new SqlParameter("@Offset", SqlDbType.Int) { Value = 0 },
+                new SqlParameter("@CodU", SqlDbType.SmallInt) { Value = (object?)codU ?? DBNull.Value }
             );
 
             return Ok(ApiResponse<object>.Ok(empleados, "Empleados institucionales obtenidos exitosamente"));

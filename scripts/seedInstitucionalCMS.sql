@@ -466,14 +466,134 @@ WHERE e.CI IN (1000002, 1000003, 1000004)
 GO
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- 4.2 USUARIOS AUTOMÁTICOS POR CARGO FALTANTE
+--     Genera una cuenta logueable por cada cargo que aún no tenga un
+--     empleado activo con credenciales. Los datos son deliberadamente
+--     genéricos para que puedan editarse luego desde la interfaz.
+-- ─────────────────────────────────────────────────────────────────────────────
+PRINT '🔹 Generando usuarios automáticos por cargo faltante...';
+
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+
+;WITH CargosFaltantes AS (
+    SELECT
+        c.CodCargo,
+        c.NombreC,
+        c.CodU,
+        'cargo' + RIGHT('000' + CAST(c.CodCargo AS VARCHAR(3)), 3) AS LoginAuto,
+        CAST(1500000 + c.CodCargo AS INT) AS CIAuto,
+        CAST(15000000 + c.CodCargo AS INT) AS CelAuto,
+        'USUARIO CARGO ' + RIGHT('000' + CAST(c.CodCargo AS VARCHAR(3)), 3) AS NombresAuto,
+        'cargo' + RIGHT('000' + CAST(c.CodCargo AS VARCHAR(3)), 3) + '@auto.cms.gob.bo' AS EmailAuto
+    FROM dbo.TCargo c
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM dbo.TEmpleados e
+        WHERE e.cod_cargo = c.CodCargo
+          AND e.Activo = 1
+          AND e.login IS NOT NULL
+    )
+)
+INSERT INTO dbo.TEmpleados (
+    CI, Apellidos, Nombres, Direccion, Cel, Email, Activo,
+    login, password_hash, cargo_nombre, cod_u, cod_cargo, created_at, updated_at
+)
+SELECT
+    cf.CIAuto,
+    'GENERADO AUTOMATICO',
+    cf.NombresAuto,
+    'REGISTRO AUTOMATICO - EDITAR',
+    cf.CelAuto,
+    cf.EmailAuto,
+    1,
+    cf.LoginAuto,
+    'admin123',
+    cf.NombreC,
+    cf.CodU,
+    cf.CodCargo,
+    SYSDATETIME(),
+    SYSDATETIME()
+FROM CargosFaltantes cf
+WHERE NOT EXISTS (SELECT 1 FROM dbo.TEmpleados e WHERE e.CI = cf.CIAuto)
+  AND NOT EXISTS (SELECT 1 FROM dbo.TEmpleados e WHERE e.login = cf.LoginAuto);
+GO
+
+PRINT '🔹 Asignando rol FUNCIONARIO a los usuarios automáticos...';
+
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+
+INSERT INTO dbo.usuario_roles (usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo, created_at, updated_at)
+SELECT
+    e.id AS usuario_id,
+    4 AS rol_id, -- FUNCIONARIO
+    ISNULL(uo.id, 1) AS ubicacion_org_id,
+    'CONTROL_TOTAL' AS nivel_acceso,
+    CAST('2030-12-31' AS DATE) AS fecha_expiracion,
+    1 AS es_principal,
+    1 AS activo,
+    SYSDATETIME() AS created_at,
+    SYSDATETIME() AS updated_at
+FROM dbo.TEmpleados e
+LEFT JOIN dbo.ubicaciones_org uo ON uo.codU = e.cod_u
+WHERE e.login LIKE 'cargo[0-9][0-9][0-9]'
+  AND NOT EXISTS (
+      SELECT 1 FROM dbo.usuario_roles ur
+      WHERE ur.usuario_id = e.id
+        AND ur.rol_id = 4
+        AND ur.ubicacion_org_id = ISNULL(uo.id, 1)
+  );
+GO
+
+PRINT '🔹 Habilitando rol VENTANILLA_UNICA al cargo de Ventanilla Única...';
+
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+
+INSERT INTO dbo.usuario_roles (usuario_id, rol_id, ubicacion_org_id, nivel_acceso, fecha_expiracion, es_principal, activo, created_at, updated_at)
+SELECT
+    e.id AS usuario_id,
+    3 AS rol_id, -- VENTANILLA_UNICA
+    ISNULL(uo.id, 1) AS ubicacion_org_id,
+    'CONTROL_TOTAL' AS nivel_acceso,
+    CAST('2030-12-31' AS DATE) AS fecha_expiracion,
+    0 AS es_principal,
+    1 AS activo,
+    SYSDATETIME() AS created_at,
+    SYSDATETIME() AS updated_at
+FROM dbo.TEmpleados e
+LEFT JOIN dbo.ubicaciones_org uo ON uo.codU = e.cod_u
+WHERE e.cod_cargo = 54
+  AND e.Activo = 1
+  AND e.login IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1 FROM dbo.usuario_roles ur
+      WHERE ur.usuario_id = e.id
+        AND ur.rol_id = 3
+        AND ur.ubicacion_org_id = ISNULL(uo.id, 1)
+  );
+GO
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- 5. VERIFICACIÓN FINAL Y REPORTE
 -- ─────────────────────────────────────────────────────────────────────────────
 DECLARE @TotalUnidades INT, @TotalCargos INT, @TotalUbicaciones INT, @TotalEmpleados INT, @AdminUsuario VARCHAR(50);
+DECLARE @TotalUsuariosAuto INT, @CargosSinLogin INT;
 SELECT @TotalUnidades = COUNT(*) FROM dbo.TUnidad;
 SELECT @TotalCargos = COUNT(*) FROM dbo.TCargo;
 SELECT @TotalUbicaciones = COUNT(*) FROM dbo.ubicaciones_org;
 SELECT @TotalEmpleados = COUNT(*) FROM dbo.TEmpleados;
 SELECT @AdminUsuario = login FROM dbo.TEmpleados WHERE login = 'admin';
+SELECT @TotalUsuariosAuto = COUNT(*) FROM dbo.TEmpleados WHERE login LIKE 'cargo[0-9][0-9][0-9]';
+SELECT @CargosSinLogin = COUNT(*)
+FROM dbo.TCargo c
+WHERE NOT EXISTS (
+    SELECT 1 FROM dbo.TEmpleados e
+    WHERE e.cod_cargo = c.CodCargo
+      AND e.Activo = 1
+      AND e.login IS NOT NULL
+);
 
 PRINT ' ';
 PRINT '✅ POBLAMIENTO INSTITUCIONAL CMS COMPLETADO CON ÉXITO:';
@@ -481,6 +601,8 @@ PRINT '   - Total Unidades en TUnidad:       ' + CAST(@TotalUnidades AS VARCHAR(
 PRINT '   - Total Ubicaciones Org:           ' + CAST(@TotalUbicaciones AS VARCHAR(10));
 PRINT '   - Total Cargos en TCargo:          ' + CAST(@TotalCargos AS VARCHAR(10));
 PRINT '   - Total Empleados / Autoridades:   ' + CAST(@TotalEmpleados AS VARCHAR(10));
+PRINT '   - Usuarios automáticos generados:  ' + CAST(@TotalUsuariosAuto AS VARCHAR(10)) + ' (login cargoNNN / admin123)';
+PRINT '   - Cargos sin usuario logueable:    ' + CAST(@CargosSinLogin AS VARCHAR(10));
 PRINT '   - Usuario Administrador Habilitado: ' + ISNULL(@AdminUsuario, 'NO ENCONTRADO') + ' (Clave: admin123)';
 PRINT '   - Autoridades Habilitadas:';
 PRINT '       * Presidente:     Juan Pablo Cervantes Zambrana (login: jcervantes / admin123)';

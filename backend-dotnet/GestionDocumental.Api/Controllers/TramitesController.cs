@@ -235,6 +235,8 @@ namespace GestionDocumental.Api.Controllers
                     NroHojas = reader.GetSafeInt32("nro_hojas", 1),
                     NroAnexos = reader.GetSafeInt32("nro_anexos", 0),
                     Estado = reader.GetSafeString("estado"),
+                    PasoActual = reader.GetSafeInt32("paso_actual"),
+                    PuedeOperar = reader.GetSafeInt32("puede_operar") == 1,
                     ActividadActual = reader.GetSafeString("actividad_actual"),
                     DestinatarioNombre = reader.GetNullableString("destinatario_nombre"),
                     DestinatarioCargo = reader.GetNullableString("destinatario_cargo"),
@@ -242,11 +244,13 @@ namespace GestionDocumental.Api.Controllers
                     UsuarioActualId = reader.GetNullableInt32("usuario_actual_id"),
                     UsuarioActualNombre = reader.GetNullableString("usuario_actual_nombre"),
                     UbicacionActualId = reader.GetNullableInt32("ubicacion_actual_id"),
+                    CodUActual = reader.GetNullableInt32("cod_u_actual"),
                     UbicacionActualNombre = reader.GetNullableString("ubicacion_actual_nombre"),
                     FechaCreacion = reader.GetSafeDateTime("fecha_creacion"),
                     FechaEnvio = reader.GetNullableDateTime("fecha_envio"),
                     FechaRecepcion = reader.GetNullableDateTime("fecha_recepcion"),
                     FechaLimiteRespuesta = reader.GetNullableDateTime("fecha_limite_respuesta"),
+                    FechaFinInforme = reader.GetNullableDateTime("fecha_fin_informe"),
                     EsVencido = reader.GetSafeInt32("es_vencido") == 1,
                     DiasRestantes = reader.GetNullableInt32("dias_restantes"),
                     NroAdjuntos = reader.GetSafeInt32("nro_adjuntos"),
@@ -612,6 +616,9 @@ namespace GestionDocumental.Api.Controllers
             int.TryParse(userIdClaim, out int userId);
             if (userId <= 0) userId = 1;
 
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+
             var outNuevoMovimientoId = new SqlParameter("@NuevoMovimientoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
 
             try
@@ -625,6 +632,7 @@ namespace GestionDocumental.Api.Controllers
                     new SqlParameter("@SesionPlenoResultado", SqlDbType.VarChar, 100) { Value = dto.SesionPlenoResultado.Trim() },
                     new SqlParameter("@Proveido", SqlDbType.NVarChar, -1) { Value = (object?)dto.Proveido?.Trim() ?? DBNull.Value },
                     new SqlParameter("@InstrumentoGenerado", SqlDbType.VarChar, 50) { Value = (object?)dto.InstrumentoGenerado?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@UbicacionOrgId", SqlDbType.Int) { Value = ubicacionId > 0 ? ubicacionId : (object)DBNull.Value },
                     outNuevoMovimientoId
                 );
 
@@ -652,6 +660,9 @@ namespace GestionDocumental.Api.Controllers
             int.TryParse(userIdClaim, out int userId);
             if (userId <= 0) userId = 1;
 
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+
             var outNuevoMovimientoId = new SqlParameter("@NuevoMovimientoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
 
             try
@@ -662,6 +673,7 @@ namespace GestionDocumental.Api.Controllers
                     new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = userId },
                     new SqlParameter("@TipoFirma", SqlDbType.VarChar, 30) { Value = dto.TipoFirma.Trim().ToUpperInvariant() },
                     new SqlParameter("@Observaciones", SqlDbType.NVarChar, -1) { Value = (object?)dto.Observaciones?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@UbicacionOrgId", SqlDbType.Int) { Value = ubicacionId > 0 ? ubicacionId : (object)DBNull.Value },
                     outNuevoMovimientoId
                 );
 
@@ -690,6 +702,9 @@ namespace GestionDocumental.Api.Controllers
             int.TryParse(userIdClaim, out int userId);
             if (userId <= 0) userId = 1;
 
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+
             var outNuevoMovimientoId = new SqlParameter("@NuevoMovimientoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
 
             try
@@ -701,6 +716,7 @@ namespace GestionDocumental.Api.Controllers
                     new SqlParameter("@CiteDespacho", SqlDbType.VarChar, 100) { Value = dto.CiteDespacho.Trim() },
                     new SqlParameter("@DestinatarioFinal", SqlDbType.NVarChar, 250) { Value = dto.DestinatarioFinal.Trim() },
                     new SqlParameter("@Proveido", SqlDbType.NVarChar, -1) { Value = (object?)dto.Proveido?.Trim() ?? DBNull.Value },
+                    new SqlParameter("@UbicacionOrgId", SqlDbType.Int) { Value = ubicacionId > 0 ? ubicacionId : (object)DBNull.Value },
                     outNuevoMovimientoId
                 );
 
@@ -783,7 +799,13 @@ namespace GestionDocumental.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var detalle = await ObtenerDetalleCompletoAsync(id);
+            var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int userId);
+
+            var ubiClaim = User.FindFirst("ubicacionOrgId")?.Value;
+            int.TryParse(ubiClaim, out int ubicacionId);
+
+            var detalle = await ObtenerDetalleCompletoAsync(id, userId, ubicacionId);
             if (detalle == null)
             {
                 return NotFound(ApiResponse.ErrorResult("Trámite no encontrado."));
@@ -792,7 +814,7 @@ namespace GestionDocumental.Api.Controllers
             return Ok(ApiResponse<TramiteDetalleCompletoDto>.Ok(detalle));
         }
 
-        private async Task<TramiteDetalleCompletoDto?> ObtenerDetalleCompletoAsync(int id)
+        private async Task<TramiteDetalleCompletoDto?> ObtenerDetalleCompletoAsync(int id, int usuarioId = 0, int ubicacionOrgId = 0)
         {
             TramiteDetalleCompletoDto? detalle = null;
             var historial = new List<MovimientoTimelineDto>();
@@ -816,6 +838,11 @@ namespace GestionDocumental.Api.Controllers
                             TipoCategoria = reader.GetSafeString("tipo_categoria"),
                             TipoCorres = reader.GetSafeString("tipo_corres", "EXTERNA"),
                             Estado = reader.GetSafeString("estado"),
+                            PasoActual = reader.GetSafeInt32("paso_actual"),
+                            PuedeOperar = reader.GetSafeInt32("puede_operar") == 1,
+                            UsuarioActualId = reader.GetNullableInt32("usuario_actual_id"),
+                            UbicacionActualId = reader.GetNullableInt32("ubicacion_actual_id"),
+                            CodUActual = reader.GetNullableInt32("cod_u_actual"),
                             Remitente = reader.GetSafeString("remitente"),
                             InstitucionRemitente = reader.GetNullableString("institucion_remitente"),
                             CiteExterno = reader.GetNullableString("cite_externo"),
@@ -911,7 +938,9 @@ namespace GestionDocumental.Api.Controllers
                         }
                     }
                 },
-                new SqlParameter("@Id", SqlDbType.Int) { Value = id }
+                new SqlParameter("@Id", SqlDbType.Int) { Value = id },
+                new SqlParameter("@UsuarioId", SqlDbType.Int) { Value = usuarioId > 0 ? usuarioId : (object)DBNull.Value },
+                new SqlParameter("@UbicacionOrgId", SqlDbType.Int) { Value = ubicacionOrgId > 0 ? ubicacionOrgId : (object)DBNull.Value }
             );
 
             return detalle;

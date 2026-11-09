@@ -373,6 +373,21 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("estado")]
         public string Estado { get; set; } = string.Empty;
 
+        [JsonPropertyName("paso_actual")]
+        public int PasoActual { get; set; }
+
+        [JsonPropertyName("puede_operar")]
+        public bool PuedeOperar { get; set; }
+
+        [JsonPropertyName("usuario_actual_id")]
+        public int? UsuarioActualId { get; set; }
+
+        [JsonPropertyName("ubicacion_actual_id")]
+        public int? UbicacionActualId { get; set; }
+
+        [JsonPropertyName("cod_u_actual")]
+        public int? CodUActual { get; set; }
+
         [JsonPropertyName("remitente")]
         public string Remitente { get; set; } = string.Empty;
 
@@ -532,6 +547,12 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("estado")]
         public string Estado { get; set; } = string.Empty;
 
+        [JsonPropertyName("paso_actual")]
+        public int PasoActual { get; set; }
+
+        [JsonPropertyName("puede_operar")]
+        public bool PuedeOperar { get; set; }
+
         [JsonPropertyName("actividad_actual")]
         public string ActividadActual { get; set; } = string.Empty;
 
@@ -553,6 +574,9 @@ namespace GestionDocumental.Api.DTOs.Tramites
         [JsonPropertyName("ubicacion_actual_id")]
         public int? UbicacionActualId { get; set; }
 
+        [JsonPropertyName("cod_u_actual")]
+        public int? CodUActual { get; set; }
+
         [JsonPropertyName("ubicacion_actual_nombre")]
         public string? UbicacionActualNombre { get; set; }
 
@@ -567,6 +591,9 @@ namespace GestionDocumental.Api.DTOs.Tramites
 
         [JsonPropertyName("fecha_limite_respuesta")]
         public DateTime? FechaLimiteRespuesta { get; set; }
+
+        [JsonPropertyName("fecha_fin_informe")]
+        public DateTime? FechaFinInforme { get; set; }
 
         [JsonPropertyName("es_vencido")]
         public bool EsVencido { get; set; }

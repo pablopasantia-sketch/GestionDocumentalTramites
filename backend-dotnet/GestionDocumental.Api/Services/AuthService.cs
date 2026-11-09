@@ -35,6 +35,8 @@ namespace GestionDocumental.Api.Services
             public string PasswordHash { get; set; } = string.Empty;
             public string? Email { get; set; }
             public string? Cargo { get; set; }
+            public int? CodCargo { get; set; }
+            public int? CodU { get; set; }
             public string Ci { get; set; } = string.Empty;
             public string Nombres { get; set; } = string.Empty;
             public string ApellidoPaterno { get; set; } = string.Empty;
@@ -54,6 +56,8 @@ namespace GestionDocumental.Api.Services
                     PasswordHash = reader.GetSafeString("password_hash"),
                     Email = reader.GetNullableString("email"),
                     Cargo = reader.GetNullableString("cargo"),
+                    CodCargo = reader.GetNullableInt16("cod_cargo"),
+                    CodU = reader.GetNullableInt16("cod_u"),
                     Ci = reader.GetSafeString("ci"),
                     Nombres = reader.GetSafeString("nombres"),
                     ApellidoPaterno = reader.GetSafeString("apellido_paterno"),
@@ -157,6 +161,8 @@ namespace GestionDocumental.Api.Services
                 Username = user.Login,
                 Email = user.Email,
                 Cargo = user.Cargo,
+                CodCargo = user.CodCargo,
+                CodU = user.CodU,
                 Roles = rolesAsignados,
                 ActiveRole = activeRole
             };
@@ -180,6 +186,8 @@ namespace GestionDocumental.Api.Services
                     PersonaId = reader.GetSafeInt32("persona_id"),
                     Login = reader.GetSafeString("login"),
                     Cargo = reader.GetNullableString("cargo"),
+                    CodCargo = reader.GetNullableInt16("cod_cargo"),
+                    CodU = reader.GetNullableInt16("cod_u"),
                     Ci = reader.GetSafeString("ci"),
                     Nombres = reader.GetSafeString("nombres"),
                     ApellidoPaterno = reader.GetSafeString("apellido_paterno"),
@@ -245,6 +253,8 @@ namespace GestionDocumental.Api.Services
                 Username = user.Login,
                 Email = user.Email,
                 Cargo = user.Cargo,
+                CodCargo = user.CodCargo,
+                CodU = user.CodU,
                 Roles = rolesAsignados,
                 ActiveRole = activeRole
             };
@@ -340,6 +350,8 @@ namespace GestionDocumental.Api.Services
                     PersonaId = reader.GetSafeInt32("persona_id"),
                     Login = reader.GetSafeString("login"),
                     Cargo = reader.GetNullableString("cargo"),
+                    CodCargo = reader.GetNullableInt16("cod_cargo"),
+                    CodU = reader.GetNullableInt16("cod_u"),
                     Ci = reader.GetSafeString("ci"),
                     Nombres = reader.GetSafeString("nombres"),
                     ApellidoPaterno = reader.GetSafeString("apellido_paterno"),
@@ -377,6 +389,8 @@ namespace GestionDocumental.Api.Services
                 Username = user.Login,
                 Email = user.Email,
                 Cargo = user.Cargo,
+                CodCargo = user.CodCargo,
+                CodU = user.CodU,
                 ActiveRole = activeRole
             };
 
@@ -411,6 +425,8 @@ namespace GestionDocumental.Api.Services
                 new Claim(ClaimTypes.Role, activeRole.RolCodigo),
                 new Claim("ubicacionOrgId", activeRole.UbicacionOrgId.ToString()),
                 new Claim("ubicacionNombre", activeRole.UbicacionNombre),
+                new Claim("codCargo", (user.CodCargo ?? 0).ToString()),
+                new Claim("codU", (user.CodU ?? activeRole.UbicacionOrgId).ToString()),
                 new Claim("nivelAcceso", activeRole.NivelAcceso)
             };
 

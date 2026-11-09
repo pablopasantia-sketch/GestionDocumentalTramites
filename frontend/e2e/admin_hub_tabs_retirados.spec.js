@@ -49,7 +49,7 @@ test.describe('Hub de Trámites - Pestañas retiradas (Sprint 4 / Sprint 5)', ()
     // 1.2 Pestañas que deben conservarse
     await expect(page.locator('button:has-text("Supervisión de Trámites")')).toBeVisible();
     await expect(page.locator('button:has-text("Tipos de Proceso y SLA")')).toBeVisible();
-    await expect(page.locator('button:has-text("Pendientes por Funcionario (RF-12.7)")')).toBeVisible();
+    await expect(page.locator('button:has-text("Pendientes por Funcionario")')).toBeVisible();
     await expect(page.locator('button:has-text("Búsqueda por Proceso y Fechas")')).toBeVisible();
 
     // 1.3 Las tarjetas KPI superiores se mantienen

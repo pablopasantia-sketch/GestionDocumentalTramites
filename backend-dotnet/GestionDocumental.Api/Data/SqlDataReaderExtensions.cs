@@ -36,7 +36,7 @@ namespace GestionDocumental.Api.Data
         {
             int ordinal = GetOrdinalSafe(reader, columnName);
             if (ordinal < 0 || reader.IsDBNull(ordinal)) return null;
-            return reader.GetInt32(ordinal);
+            return Convert.ToInt32(reader.GetValue(ordinal));
         }
 
         public static int GetSafeInt32(this SqlDataReader reader, string columnName, int defaultValue = 0)
