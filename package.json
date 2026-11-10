@@ -21,5 +21,8 @@
     "comisiones-cms"
   ],
   "author": "Concejo Municipal de Sucre",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "docx": "^9.15.3"
+  }
 }
