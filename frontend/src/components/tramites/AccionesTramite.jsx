@@ -43,7 +43,7 @@ const estiloBoton = (color) => ({
   whiteSpace: 'nowrap',
 });
 
-export default function AccionesTramite({ tramite, user, bandejaActiva, onVerDetalle, onRefresh }) {
+export default function AccionesTramite({ tramite, user, bandejaActiva, onVerDetalle, onRefresh, ocultarVer = false }) {
   const [derivarAbierto, setDerivarAbierto] = useState(false);
   const [atenderAbierto, setAtenderAbierto] = useState(false);
   const [modoAtencion, setModoAtencion] = useState(null);
@@ -132,17 +132,19 @@ export default function AccionesTramite({ tramite, user, bandejaActiva, onVerDet
           </button>
         )}
 
-        <button
-          type="button"
-          data-testid="btn-ver"
-          onClick={() => onVerDetalle?.(tramite.id)}
-          className="btn btn-secondary btn-sm"
-          style={{ padding: '5px 9px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-          title="Ver el detalle y la trazabilidad del expediente"
-        >
-          <Eye size={13} />
-          <span>Ver</span>
-        </button>
+        {!ocultarVer && (
+          <button
+            type="button"
+            data-testid="btn-ver"
+            onClick={() => onVerDetalle?.(tramite.id)}
+            className="btn btn-secondary btn-sm"
+            style={{ padding: '5px 9px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+            title="Ver el detalle y la trazabilidad del expediente"
+          >
+            <Eye size={13} />
+            <span>Ver</span>
+          </button>
+        )}
       </div>
 
       <ModalDerivar

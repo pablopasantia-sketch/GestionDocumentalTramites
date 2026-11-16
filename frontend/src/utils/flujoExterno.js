@@ -136,7 +136,10 @@ export const puedeDerivar = (tramite, user) => {
   if (paso === 2) {
     return codU === UNIDADES_CIRCUITO.PRESIDENCIA && (cargo === 0 || cargo === CARGOS_CIRCUITO.PRESIDENTE_CONCEJO);
   }
-  if (paso === 3) return esComision(codU);
+  if (paso === 3) {
+    // La comisión solo puede derivar cuando concluyó la elaboración del informe.
+    return esComision(codU) && Boolean(tramite?.fecha_fin_informe);
+  }
   if (paso === 4) {
     return codU === UNIDADES_CIRCUITO.ASESORIA_GENERAL_PLENO && (cargo === 0 || cargo === CARGOS_CIRCUITO.ASESOR_GENERAL_PLENO);
   }
@@ -191,25 +194,15 @@ export const obtenerDestinosDerivacion = (tramite, user) => {
   }
 
   if (paso === 3) {
-    const destinos = [];
-    if (esComision(codU)) {
-      const actual = COMISIONES_CMS.find((c) => c.codU === codU);
-      destinos.push({
-        valor: `unidad-${codU}`,
-        codU,
-        label: `Subasignar dentro de ${actual?.sigla || 'la comisión'} (asesor específico)`,
-        permiteFuncionario: true,
-        requiereAsesor: true,
-      });
-    }
-    destinos.push({
+    // La comisión solo puede remitir el expediente a la Asesoría General del
+    // Pleno (unidad 12). El destino es fijo y no admite subasignaciones.
+    return [{
       valor: `unidad-${UNIDADES_CIRCUITO.ASESORIA_GENERAL_PLENO}`,
       codU: UNIDADES_CIRCUITO.ASESORIA_GENERAL_PLENO,
       label: 'Asesoría General del Pleno (AGP)',
       permiteFuncionario: false,
-      requiereInforme: true,
-    });
-    return destinos;
+      destinoFijo: true,
+    }];
   }
 
   if (paso === 4) {

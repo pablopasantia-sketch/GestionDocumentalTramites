@@ -52,6 +52,39 @@ test.describe('Sprint 5 E2E - Búsqueda por Proceso y Estado/Fechas (RF-12.2 / R
   test('1. Busca por proceso, tipo, estado y gestión', async ({ page }) => {
     test.setTimeout(90000);
 
+    // 1.0 Obtener el estado real del expediente desde la API para no acoplar
+    // el test a datos manuales de una base de desarrollo concreta.
+    const token = await page.evaluate(() => localStorage.getItem('gestion_doc_token'));
+    const consultaBase = await page.request.get(
+      `${API_URL}/tramites/busqueda-avanzada?gestion=2026&correlativo=CM-1`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    expect(consultaBase.ok()).toBeTruthy();
+    const base = (await consultaBase.json()).data.items.find(
+      (item) => item.numero_correlativo === CORRELATIVO_BASE
+    );
+    expect(base, `No existe ${CORRELATIVO_BASE} en la base de desarrollo`).toBeTruthy();
+
+    const ETIQUETAS_ESTADO = {
+      CREADO: 'Creado',
+      RECIBIDO: 'Recibido',
+      EN_ATENCION: 'En Atención',
+      POR_RECIBIR: 'Por Recibir',
+      EN_TRANSITO: 'En Tránsito',
+      ATENDIDO: 'Atendido',
+      BLOQUEADO: 'Bloqueado',
+      CONCLUIDO: 'Concluido',
+      ANULADO: 'Anulado',
+    };
+    const estadoLabel = ETIQUETAS_ESTADO[base.estado] || base.estado;
+    const responsable = base.usuario_actual_nombre || 'Sin responsable';
+    const ubicacion = base.ubicacion_actual_nombre || 'Sin ubicación';
+    const fechaIngreso = new Date(base.fecha_ingreso_bandeja).toLocaleDateString('es-BO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+
     // 1.1 Abrir la pestaña y verificar el estado inicial (sin búsqueda automática)
     await abrirBusqueda(page);
     await expect(page.locator('span:has-text("RF-12.2 · RF-12.4")')).toBeVisible();
@@ -71,10 +104,10 @@ test.describe('Sprint 5 E2E - Búsqueda por Proceso y Estado/Fechas (RF-12.2 / R
     await expect(page.locator('th:has-text("Ingreso bandeja")')).toBeVisible();
 
     await expect(fila.getByText('CM', { exact: true })).toBeVisible();
-    await expect(fila.locator('td:has-text("Concluido")')).toBeVisible();
-    await expect(fila.locator('td:has-text("JUAN PABLO CERVANTES ZAMBRANA")')).toBeVisible();
-    await expect(fila.locator('td:has-text("Presidencia del Concejo Municipal")')).toBeVisible();
-    await expect(fila.locator('td:has-text("30/10/2026")').first()).toBeVisible();
+    await expect(fila.getByText(estadoLabel, { exact: true }).first()).toBeVisible();
+    await expect(fila.getByText(responsable, { exact: true }).first()).toBeVisible();
+    await expect(fila.getByText(ubicacion, { exact: true }).first()).toBeVisible();
+    await expect(fila.getByText(fechaIngreso, { exact: true }).first()).toBeVisible();
 
     // 1.4 Filtro por número de proceso/correlativo
     const inputCorrelativo = page.locator('input[placeholder="Ej: CM-1/2026"]');
@@ -96,8 +129,8 @@ test.describe('Sprint 5 E2E - Búsqueda por Proceso y Estado/Fechas (RF-12.2 / R
     await buscar(page);
     await expect(page.getByText('Sin resultados')).toBeVisible({ timeout: 15000 });
 
-    // 1.7 Filtro por estado con coincidencias
-    await selectEstado.selectOption('CONCLUIDO');
+    // 1.7 Filtro por estado con coincidencias (el estado real del expediente)
+    await selectEstado.selectOption(base.estado);
     await buscar(page);
     await expect(fila).toBeVisible({ timeout: 15000 });
 

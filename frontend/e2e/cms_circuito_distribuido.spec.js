@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 // E2E — Circuito externo distribuido del Concejo Municipal de Sucre
 //
 // Recorre la cadena completa con usuarios reales:
-//   cargo054 -> jcervantes -> cargo032 -> cargo034 -> cargo023 -> ddavalos
+//   cargo054 -> jcervantes -> cargo032 -> cargo023 -> ddavalos
 //   -> jcervantes (1.ª firma) -> mavendano (2.ª firma y despacho final)
 //
 // Además valida la custodia estricta y que el backend rechace transiciones
@@ -88,13 +88,20 @@ test.describe('Circuito externo distribuido CMS', () => {
     await expect(modal).toBeHidden({ timeout: 15000 });
   };
 
-  const derivar = async (page, { destino, funcionario, proveido, instrumentos = [] }) => {
+  const derivar = async (page, { destino, funcionario, proveido, destinoFijo = false }) => {
     const row = await esperarFila(page);
     await expect(row.getByTestId('btn-derivar')).toBeVisible({ timeout: 15000 });
     await row.getByTestId('btn-derivar').click();
 
     const modal = page.getByTestId('modal-derivar');
     await expect(modal).toBeVisible();
+
+    if (destinoFijo) {
+      // La derivación desde comisión ya no vuelve a pedir plazo, instrumentos
+      // ni PDF: todo eso se registró en el modal Atender / Informe.
+      await expect(page.getByTestId('derivar-pdf')).toHaveCount(0);
+      await expect(page.locator('[data-testid^="instrumento-"]')).toHaveCount(0);
+    }
 
     if (destino) {
       const selector = page.getByTestId('derivar-destino');
@@ -114,10 +121,6 @@ test.describe('Circuito externo distribuido CMS', () => {
         selector.locator(`option[value="${funcionario}"]`)
       ).toHaveCount(1, { timeout: 15000 });
       await selector.selectOption(funcionario);
-    }
-
-    for (const instrumento of instrumentos) {
-      await page.getByTestId(`instrumento-${instrumento}`).locator('input').check();
     }
 
     await page.getByTestId('derivar-proveido').fill(proveido);
@@ -216,6 +219,23 @@ test.describe('Circuito externo distribuido CMS', () => {
     await irAEscritorio(page, 'jcervantes');
     await recepcionar(page, 'Recepcionado por Presidencia para análisis político.');
 
+    // El detalle debe mostrar solo la etapa vigente (Paso 2) y sus acciones.
+    const rowPresidencia = await esperarFila(page);
+    await rowPresidencia.getByTestId('btn-ver').click();
+    const modalDetalle = page
+      .locator('.modal-backdrop')
+      .filter({ has: page.getByTestId('panel-etapa-actual') });
+    await expect(modalDetalle).toBeVisible();
+    await expect(modalDetalle.getByTestId('etapa-actual-paso')).toHaveText('PASO 2 DE 8');
+    await expect(modalDetalle.getByTestId('btn-derivar')).toBeVisible();
+    await expect(modalDetalle.getByTestId('btn-atender-comision')).toHaveCount(0);
+    await expect(modalDetalle.getByTestId('btn-atender-pleno')).toHaveCount(0);
+    await expect(modalDetalle.getByTestId('btn-firmar-presidencia')).toHaveCount(0);
+    await expect(modalDetalle.getByTestId('btn-firmar-secretaria')).toHaveCount(0);
+    await expect(modalDetalle.getByTestId('btn-despacho-final')).toHaveCount(0);
+    await modalDetalle.getByRole('button', { name: 'Cerrar' }).click();
+    await expect(modalDetalle).toBeHidden();
+
     await derivar(page, {
       destino: '8',
       proveido: 'Se remite a la Comisión C.O.P.P.O.T. para su tratamiento técnico.',
@@ -225,36 +245,72 @@ test.describe('Circuito externo distribuido CMS', () => {
     await expect(fila(page)).toHaveCount(0, { timeout: 15000 });
   });
 
-  test('4. COPPOT recepciona, emite informe y subasigna al Asesor de Comisión', async ({ page }) => {
+  test('4. COPPOT recepciona con plazo activo, emite informe y remite directo a AGP', async ({ page }) => {
     test.setTimeout(120000);
-    await irAEscritorio(page, 'cargo032');
+    const token = await irAEscritorio(page, 'cargo032');
     await recepcionar(page, 'Recepcionado por la Presidencia de la Comisión C.O.P.P.O.T.');
+
+    // El plazo elegido en Presidencia (10 días hábiles) arranca al recepcionar
+    // en comisión, no al derivar ni al concluir el informe.
+    const detalleRecepcion = await page.request.get(`${API_BASE}/tramites/${tramiteId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(detalleRecepcion.ok()).toBeTruthy();
+    const cuerpoRecepcion = await detalleRecepcion.json();
+    expect(cuerpoRecepcion.data.paso_actual).toBe(3);
+    expect(cuerpoRecepcion.data.dias_plazo_informe).toBe(10);
+    expect(cuerpoRecepcion.data.fecha_inicio_informe).toBeTruthy();
+    expect(cuerpoRecepcion.data.fecha_limite_respuesta).toBeTruthy();
+
+    const rowComision = await esperarFila(page);
+    await expect(rowComision.getByTestId('btn-atender-comision')).toBeVisible({ timeout: 15000 });
+    // Sin informe concluido la acción de derivar no debe mostrarse.
+    await expect(rowComision.getByTestId('btn-derivar')).toHaveCount(0);
+
+    // Aunque se llame a la API directamente, el backend debe rechazar la remisión.
+    const intentoApi = await page.request.post(`${API_BASE}/tramites/${tramiteId}/derivar`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: {
+        cod_u_destino: 12,
+        proveido: 'Intento de remisión a AGP sin informe de comisión concluido.',
+        instrumentos_generados: 'MINUTA',
+        dias_plazo: 10,
+      },
+    });
+    expect(intentoApi.status()).toBe(400);
+    const errorApi = await intentoApi.json();
+    expect(errorApi.message).toMatch(/concluir la elaboración del informe/i);
 
     await atenderComision(
       page,
       'La comisión concluye el análisis técnico y remite el informe con instrumentos generados.'
     );
 
-    await derivar(page, {
-      destino: 'unidad-8',
-      funcionario: '1500034',
-      proveido: 'Se subasigna al Asesor Técnico Civil de la comisión para revisión y remisión.',
-    });
-  });
+    const rowInforme = await esperarFila(page);
+    await expect(rowInforme.getByTestId('btn-derivar')).toBeVisible({ timeout: 15000 });
+    await expect(rowInforme.getByTestId('btn-atender-comision')).toHaveCount(0);
 
-  test('5. Asesor de Comisión recepciona y remite a Asesoría General del Pleno', async ({ page }) => {
-    test.setTimeout(90000);
-    await irAEscritorio(page, 'cargo034');
-    await recepcionar(page, 'Recepcionado por el Asesor Técnico de la Comisión.');
-
+    // La comisión deriva de forma rígida a AGP: no vuelve a pedir plazo,
+    // instrumentos ni PDF, y no puede quedarse en la misma unidad.
     await derivar(page, {
       destino: 'unidad-12',
-      instrumentos: ['MINUTA'],
-      proveido: 'Se remite a Asesoría General del Pleno con informe e instrumentos de la comisión.',
+      destinoFijo: true,
+      proveido: 'Se remite directamente a Asesoría General del Pleno con el informe y los instrumentos de la comisión.',
     });
+
+    // El expediente ya no queda en la comisión: pasa a AGP (paso 4, unidad 12).
+    await expect(fila(page)).toHaveCount(0, { timeout: 15000 });
+    const detalleAgp = await page.request.get(`${API_BASE}/tramites/${tramiteId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(detalleAgp.ok()).toBeTruthy();
+    const cuerpoAgp = await detalleAgp.json();
+    expect(cuerpoAgp.data.paso_actual).toBe(4);
+    expect(cuerpoAgp.data.ubicacion_actual_id).toBe(12);
+    expect(cuerpoAgp.data.estado).toBe('POR_RECIBIR');
   });
 
-  test('6. Asesoría General del Pleno recepciona y remite al Pleno del Concejo', async ({ page }) => {
+  test('5. Asesoría General del Pleno recepciona y remite al Pleno del Concejo', async ({ page }) => {
     test.setTimeout(90000);
     await irAEscritorio(page, 'cargo023');
     await recepcionar(page, 'Recepcionado por Asesoría General del Pleno.');
@@ -265,7 +321,7 @@ test.describe('Circuito externo distribuido CMS', () => {
     });
   });
 
-  test('7. El Pleno recepciona y registra la aprobación en Sesión', async ({ page }) => {
+  test('6. El Pleno recepciona y registra la aprobación en Sesión', async ({ page }) => {
     test.setTimeout(90000);
     await irAEscritorio(page, 'ddavalos');
     await recepcionar(page, 'Recepcionado en el Pleno del Concejo Municipal.');
@@ -288,7 +344,7 @@ test.describe('Circuito externo distribuido CMS', () => {
     await expect(modal).toBeHidden({ timeout: 15000 });
   });
 
-  test('8. Presidencia recepciona, firma y remite a Secretaría General', async ({ page }) => {
+  test('7. Presidencia recepciona, firma y remite a Secretaría General', async ({ page }) => {
     test.setTimeout(90000);
     await irAEscritorio(page, 'jcervantes');
     await recepcionar(page, 'Recepcionado por Presidencia para la primera firma reglamentaria.');
@@ -312,7 +368,7 @@ test.describe('Circuito externo distribuido CMS', () => {
     });
   });
 
-  test('9. Secretaría General recepciona, firma y ejecuta el Despacho Final CONCLUIDO', async ({ page }) => {
+  test('8. Secretaría General recepciona, firma y ejecuta el Despacho Final CONCLUIDO', async ({ page }) => {
     test.setTimeout(120000);
     const token = await irAEscritorio(page, 'mavendano');
     await recepcionar(page, 'Recepcionado por Secretaría General del Concejo Municipal.');

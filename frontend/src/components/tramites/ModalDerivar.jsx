@@ -3,18 +3,13 @@ import {
   Send,
   X,
   Building2,
-  User,
   Calendar,
-  FileText,
-  Upload,
   AlertCircle,
-  CheckCircle2,
   Loader2,
 } from 'lucide-react';
-import { institucionalService, tramitesService, adjuntosService } from '../../services/api';
+import { tramitesService } from '../../services/api';
 import {
   PLAZOS_COMISION,
-  INSTRUMENTOS_CIRCUITO,
   obtenerDestinosDerivacion,
   obtenerPaso,
 } from '../../utils/flujoExterno';
@@ -45,6 +40,15 @@ const extraerMensajeError = (err) => (
   || 'No se pudo completar la derivación.'
 );
 
+const construirActividad = (paso, destino) => {
+  if (paso === 2) {
+    return `Derivación a comisión (${destino?.label?.split('—')[0]?.trim() || 'comisión'})`;
+  }
+  if (paso === 3) return 'Remisión del informe de comisión a Asesoría General del Pleno';
+  if (paso === 4) return 'Remisión del expediente al Pleno del Concejo';
+  return 'Remisión a Secretaría General para firma y despacho';
+};
+
 export default function ModalDerivar({ open, tramite, user, onClose, onSuccess }) {
   const destinos = useMemo(
     () => (open && tramite ? obtenerDestinosDerivacion(tramite, user) : []),
@@ -52,23 +56,18 @@ export default function ModalDerivar({ open, tramite, user, onClose, onSuccess }
   );
 
   const [destinoValor, setDestinoValor] = useState('');
-  const [empleados, setEmpleados] = useState([]);
-  const [ciEmpleado, setCiEmpleado] = useState('');
   const [proveido, setProveido] = useState('');
   const [instruccion, setInstruccion] = useState('Para su atención y trámite correspondiente según normativa.');
   const [prioridad, setPrioridad] = useState('NORMAL');
   const [diasPlazo, setDiasPlazo] = useState(10);
-  const [instrumentos, setInstrumentos] = useState([]);
-  const [archivoPdf, setArchivoPdf] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState(null);
-  const [cargandoEmpleados, setCargandoEmpleados] = useState(false);
 
   const paso = tramite ? obtenerPaso(tramite) : 1;
   const destino = destinos.find((d) => d.valor === destinoValor) || destinos[0] || null;
-  const requierePlazo = paso === 2 || paso === 3;
-  const requiereInstrumentos = Boolean(destino?.requiereInforme);
-  const requierePdf = Boolean(destino?.requiereInforme);
+  // El plazo solo lo elige Presidencia al derivar a la comisión.
+  const requierePlazo = paso === 2;
+  const destinoFijo = destinos.length === 1;
 
   useEffect(() => {
     if (!open || !tramite) return;
@@ -78,52 +77,10 @@ export default function ModalDerivar({ open, tramite, user, onClose, onSuccess }
     setInstruccion('Para su atención y trámite correspondiente según normativa.');
     setPrioridad(tramite.prioridad || 'NORMAL');
     setDiasPlazo(10);
-    setInstrumentos([]);
-    setArchivoPdf(null);
-    setCiEmpleado('');
     setError(null);
-    setEmpleados([]);
   }, [open, tramite?.id, tramite?.paso_actual]);
 
-  useEffect(() => {
-    if (!open || !destino?.permiteFuncionario) {
-      setEmpleados([]);
-      setCiEmpleado('');
-      return;
-    }
-
-    let activo = true;
-    const cargar = async () => {
-      setCargandoEmpleados(true);
-      try {
-        const res = await institucionalService.getEmpleados({ codU: destino.codU, activo: true });
-        const lista = Array.isArray(res) ? res : (res?.data || []);
-        if (activo) {
-          setEmpleados(lista);
-          setCiEmpleado(lista.length > 0 ? String(lista[0].ci) : '');
-        }
-      } catch (err) {
-        console.error('No se pudieron cargar los funcionarios de la unidad:', err);
-        if (activo) {
-          setEmpleados([]);
-          setCiEmpleado('');
-        }
-      } finally {
-        if (activo) setCargandoEmpleados(false);
-      }
-    };
-
-    cargar();
-    return () => { activo = false; };
-  }, [open, destino?.codU, destino?.permiteFuncionario]);
-
   if (!open || !tramite) return null;
-
-  const toggleInstrumento = (id) => {
-    setInstrumentos((prev) => (
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    ));
-  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -137,18 +94,6 @@ export default function ModalDerivar({ open, tramite, user, onClose, onSuccess }
       setError('Debe ingresar el proveído o instrucción de derivación (mínimo 3 caracteres).');
       return;
     }
-    if (destino.requiereAsesor && !ciEmpleado) {
-      setError('Seleccione el asesor específico de la comisión al que se subasigna el expediente.');
-      return;
-    }
-    if (requiereInstrumentos && instrumentos.length === 0) {
-      setError('Seleccione al menos un instrumento generado por la comisión antes de remitir a Asesoría General del Pleno.');
-      return;
-    }
-    if (requierePdf && !archivoPdf && !(Number(tramite.nro_adjuntos) > 0)) {
-      setError('Debe adjuntar el informe de comisión en formato PDF para remitir a Asesoría General del Pleno.');
-      return;
-    }
     if (requierePlazo && ![5, 10, 15].includes(Number(diasPlazo))) {
       setError('El plazo reglamentario debe ser de 5, 10 o 15 días hábiles.');
       return;
@@ -156,34 +101,23 @@ export default function ModalDerivar({ open, tramite, user, onClose, onSuccess }
 
     setEnviando(true);
     try {
-      if (archivoPdf) {
-        const formData = new FormData();
-        formData.append('files', archivoPdf);
-        await adjuntosService.upload(tramite.id, formData);
-      }
-
-      const empleado = empleados.find((e) => String(e.ci) === String(ciEmpleado));
-
       const payload = {
         cod_u_destino: destino.codU,
-        cod_cargo_destino: empleado?.codCargo ?? null,
-        ci_empleado_destino: empleado?.ci ?? null,
-        destinatario_nombre: empleado?.nombreCompleto ?? null,
-        destinatario_cargo: empleado?.cargoOficial ?? empleado?.cargoNombre ?? null,
+        cod_cargo_destino: null,
+        ci_empleado_destino: null,
+        destinatario_nombre: null,
+        destinatario_cargo: null,
         destinatario_unidad: null,
-        actividad_nombre: paso === 2
-          ? `Derivación a comisión (${destino.label.split('—')[0].trim()})`
-          : paso === 3
-            ? 'Remisión de informe de comisión / subasignación de asesor'
-            : paso === 4
-              ? 'Remisión del expediente al Pleno del Concejo'
-              : 'Remisión a Secretaría General para firma y despacho',
+        actividad_nombre: construirActividad(paso, destino),
         proveido: proveido.trim(),
         instruccion: instruccion.trim() || null,
         prioridad,
+        // En comisión el plazo ya fue fijado por Presidencia y la fecha límite
+        // se calcula al recepcionar. Los instrumentos y el PDF se registran en
+        // el modal Atender / Informe.
         dias_plazo: requierePlazo ? Number(diasPlazo) : null,
-        instrumentos_generados: instrumentos.length > 0 ? instrumentos.join(', ') : null,
-        instrumento_generado: instrumentos[0] || null,
+        instrumentos_generados: null,
+        instrumento_generado: null,
         es_conclusion: false,
       };
 
@@ -234,34 +168,19 @@ export default function ModalDerivar({ open, tramite, user, onClose, onSuccess }
               <select
                 data-testid="derivar-destino"
                 value={destinoValor}
-                onChange={(e) => { setDestinoValor(e.target.value); setCiEmpleado(''); }}
+                onChange={(e) => setDestinoValor(e.target.value)}
                 style={ESTILO_INPUT}
-                disabled={enviando || destinos.length <= 1}
+                disabled={enviando || destinoFijo}
               >
                 {destinos.map((d) => <option key={d.valor} value={d.valor}>{d.label}</option>)}
               </select>
               <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '4px' }}>Destino: {tituloDestino}</div>
             </div>
 
-            {destino?.permiteFuncionario && (
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={ESTILO_LABEL}><User size={13} style={{ verticalAlign: 'middle', marginRight: '4px' }} /> Asesor / funcionario específico</label>
-                <select
-                  data-testid="derivar-funcionario"
-                  value={ciEmpleado}
-                  onChange={(e) => setCiEmpleado(e.target.value)}
-                  style={ESTILO_INPUT}
-                  disabled={enviando || cargandoEmpleados}
-                  required
-                >
-                  {cargandoEmpleados && <option value="">Cargando funcionarios…</option>}
-                  {!cargandoEmpleados && empleados.length === 0 && <option value="">No hay funcionarios activos en la unidad</option>}
-                  {empleados.map((e) => (
-                    <option key={e.id || e.ci} value={e.ci}>
-                      {e.nombreCompleto} — {e.cargoOficial || e.cargoNombre || 'Funcionario'}
-                    </option>
-                  ))}
-                </select>
+            {paso === 3 && (
+              <div style={{ marginBottom: '1rem', padding: '10px 12px', borderRadius: '6px', backgroundColor: '#F0FDF4', border: '1px solid #86EFAC', color: '#166534', fontSize: '0.78rem', lineHeight: 1.45 }}>
+                El informe, los instrumentos generados y el PDF ya fueron registrados en <strong>Atender / Informe</strong>.
+                La comisión solo puede remitir el expediente a <strong>Asesoría General del Pleno</strong>.
               </div>
             )}
 
@@ -292,66 +211,9 @@ export default function ModalDerivar({ open, tramite, user, onClose, onSuccess }
                     );
                   })}
                 </div>
-              </div>
-            )}
-
-            {requiereInstrumentos && (
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={ESTILO_LABEL}><FileText size={13} style={{ verticalAlign: 'middle', marginRight: '4px' }} /> Instrumentos generados por la comisión</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '8px' }}>
-                  {INSTRUMENTOS_CIRCUITO.map((instrumento) => (
-                    <label
-                      key={instrumento.id}
-                      data-testid={`instrumento-${instrumento.id}`}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '8px 10px',
-                        border: instrumentos.includes(instrumento.id) ? '1px solid #800000' : '1px solid #E2E8F0',
-                        backgroundColor: instrumentos.includes(instrumento.id) ? '#FFF7F7' : '#F8FAFC',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '0.78rem',
-                        color: '#334155',
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={instrumentos.includes(instrumento.id)}
-                        onChange={() => toggleInstrumento(instrumento.id)}
-                        disabled={enviando}
-                      />
-                      <span>{instrumento.label}</span>
-                    </label>
-                  ))}
+                <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '4px' }}>
+                  El plazo se iniciará cuando la comisión confirme la recepción del expediente.
                 </div>
-                <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '4px' }}>Seleccione uno o más instrumentos para la remisión a Asesoría General del Pleno.</div>
-              </div>
-            )}
-
-            {paso === 3 && (
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={ESTILO_LABEL}><Upload size={13} style={{ verticalAlign: 'middle', marginRight: '4px' }} /> Informe de comisión (PDF) {requierePdf ? '— obligatorio' : '— opcional'}</label>
-                <input
-                  data-testid="derivar-pdf"
-                  type="file"
-                  accept="application/pdf,.pdf"
-                  onChange={(e) => setArchivoPdf(e.target.files?.[0] || null)}
-                  style={{ ...ESTILO_INPUT, padding: '7px 9px', backgroundColor: '#F8FAFC' }}
-                  disabled={enviando}
-                />
-                {archivoPdf && (
-                  <div style={{ fontSize: '0.72rem', color: '#047857', marginTop: '4px' }}>
-                    <CheckCircle2 size={12} style={{ verticalAlign: 'middle', marginRight: '3px' }} />
-                    {archivoPdf.name}
-                  </div>
-                )}
-                {!archivoPdf && Number(tramite.nro_adjuntos) > 0 && (
-                  <div style={{ fontSize: '0.72rem', color: '#047857', marginTop: '4px' }}>
-                    El expediente ya cuenta con {tramite.nro_adjuntos} adjunto(s) PDF registrados.
-                  </div>
-                )}
               </div>
             )}
 

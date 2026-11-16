@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   X,
-  Calendar,
   FileText,
   Upload,
   CheckCircle2,
@@ -16,7 +15,6 @@ import {
 import { tramitesService, adjuntosService } from '../../services/api';
 import {
   INSTRUMENTOS_CIRCUITO,
-  PLAZOS_COMISION,
   RESULTADOS_PLENO,
 } from '../../utils/flujoExterno';
 
@@ -89,6 +87,13 @@ const extraerMensajeError = (err) => (
   || 'No se pudo completar la operación.'
 );
 
+const formatearFecha = (valor) => {
+  if (!valor) return '—';
+  const fecha = new Date(valor);
+  if (Number.isNaN(fecha.getTime())) return String(valor);
+  return fecha.toLocaleDateString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
 export default function ModalAtender({ open, mode, tramite, user, onClose, onSuccess }) {
   const config = CONFIG_MODOS[mode] || CONFIG_MODOS.comision;
   const Icono = config.icono;
@@ -96,7 +101,6 @@ export default function ModalAtender({ open, mode, tramite, user, onClose, onSuc
   const [proveido, setProveido] = useState('');
   const [actividad, setActividad] = useState('Informe y dictamen técnico de comisión');
   const [instrumentos, setInstrumentos] = useState([]);
-  const [diasPlazo, setDiasPlazo] = useState(10);
   const [archivoPdf, setArchivoPdf] = useState(null);
   const [sesionNro, setSesionNro] = useState('');
   const [sesionFecha, setSesionFecha] = useState('');
@@ -110,6 +114,7 @@ export default function ModalAtender({ open, mode, tramite, user, onClose, onSuc
 
   const yaAtendido = String(tramite?.estado || '').toUpperCase() === 'ATENDIDO';
   const tieneAdjuntos = Number(tramite?.nro_adjuntos) > 0;
+  const diasPlazoInforme = Number(tramite?.dias_plazo_informe) > 0 ? Number(tramite.dias_plazo_informe) : null;
 
   const anioActual = useMemo(() => new Date().getFullYear(), []);
 
@@ -128,7 +133,6 @@ export default function ModalAtender({ open, mode, tramite, user, onClose, onSuc
     );
     setActividad(esComision ? 'Informe y dictamen técnico de comisión' : 'Atención institucional');
     setInstrumentos(esComision ? ['PIE'] : []);
-    setDiasPlazo(Number(tramite.dias_plazo_informe) > 0 ? Number(tramite.dias_plazo_informe) : 10);
     setArchivoPdf(null);
     setSesionNro(tramite.sesion_pleno_nro || `Sesión Ordinaria N° 045/${anioActual}`);
     setSesionFecha(new Date().toISOString().slice(0, 16));
@@ -160,10 +164,6 @@ export default function ModalAtender({ open, mode, tramite, user, onClose, onSuc
     if (mode === 'comision') {
       if (instrumentos.length === 0) {
         setError('Seleccione al menos un instrumento generado por la comisión (PIE, PIO, Minuta, Resolución o Nota Externa).');
-        return;
-      }
-      if (![5, 10, 15].includes(Number(diasPlazo))) {
-        setError('El plazo reglamentario debe ser de 5, 10 o 15 días hábiles.');
         return;
       }
       if (!archivoPdf && !tieneAdjuntos) {
@@ -215,7 +215,6 @@ export default function ModalAtender({ open, mode, tramite, user, onClose, onSuc
             actividad_nombre: actividad.trim() || 'Informe y dictamen técnico de comisión',
             instrumento_generado: instrumentos[0],
             instrumentos_generados: instrumentos.join(', '),
-            dias_plazo: Number(diasPlazo),
           });
         }
 
@@ -342,34 +341,19 @@ export default function ModalAtender({ open, mode, tramite, user, onClose, onSuc
                   </div>
                 </div>
 
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={ESTILO_LABEL}>
-                    <Calendar size={13} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                    Plazo reglamentario de la comisión
-                  </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px' }}>
-                    {PLAZOS_COMISION.map((plazo) => {
-                      const activo = Number(diasPlazo) === plazo.dias;
-                      return (
-                        <button
-                          key={plazo.dias}
-                          type="button"
-                          onClick={() => setDiasPlazo(plazo.dias)}
-                          style={{
-                            padding: '9px 8px',
-                            borderRadius: '6px',
-                            border: activo ? '2px solid #800000' : '1px solid #CBD5E1',
-                            backgroundColor: activo ? '#FFF1F2' : '#FFFFFF',
-                            color: activo ? '#800000' : '#334155',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                          }}
-                        >
-                          <div style={{ fontWeight: 800, fontSize: '0.82rem' }}>{plazo.label}</div>
-                          <div style={{ fontSize: '0.68rem', color: '#64748B' }}>{plazo.detalle}</div>
-                        </button>
-                      );
-                    })}
+                <div style={{ marginBottom: '1rem', padding: '10px 12px', borderRadius: '6px', backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1E3A8A', fontSize: '0.78rem', lineHeight: 1.5 }}>
+                  <div style={{ fontWeight: 700, marginBottom: '2px' }}>Plazo reglamentario de la comisión</div>
+                  <div>
+                    {diasPlazoInforme
+                      ? `${diasPlazoInforme} días hábiles`
+                      : 'Plazo fijado por Presidencia'}
+                    {tramite.fecha_limite_respuesta && ` · vence el ${formatearFecha(tramite.fecha_limite_respuesta)}`}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#475569', marginTop: '4px' }}>
+                    {tramite.fecha_inicio_informe
+                      ? `El plazo se inició al confirmar la recepción el ${formatearFecha(tramite.fecha_inicio_informe)}.`
+                      : 'El plazo se iniciará cuando la comisión confirme la recepción del expediente.'}
+                    {' '}No se modifica desde la comisión.
                   </div>
                 </div>
 
