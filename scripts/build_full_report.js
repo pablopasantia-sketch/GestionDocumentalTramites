@@ -396,7 +396,7 @@ function carátulaAnexo(numero, titulo, subtitulo, detalle) {
   ];
 }
 
-console.log("Configuración inicial lista. Procediendo a redactar contenido...");
+console.log("Configurando documento actualizado con datos oficiales de la Gaceta...");
 
 const docElements = [];
 
@@ -558,49 +558,14 @@ docElements.push(
     spacing: { before: 60, after: 240 },
     children: [
       new TextRun({ text: "Palabras clave: ", font: FONT_NAME, size: FONT_SIZE_BODY, bold: true, italics: true }),
-      new TextRun({ text: "Gestión documental, Workflow, Concejo Municipal de Sucre, ASP.NET Core, React, T-SQL, Trazabilidad.", font: FONT_NAME, size: FONT_SIZE_BODY, italics: true })
+      new TextRun({ text: "Gestión documental, Workflow, Concejo Municipal de Sucre, ASP.NET Core, React, T-SQL, Trazabilidad, Gaceta Municipal.", font: FONT_NAME, size: FONT_SIZE_BODY, italics: true })
     ]
   }),
   new Paragraph({ children: [new PageBreak()] })
 );
 
-// ==============================================================================
-// 2. EJEMPLO DE TEXTO DE RESUMEN
-// ==============================================================================
-docElements.push(
-  h1("2. EJEMPLO DE TEXTO DE RESUMEN"),
-  p(
-    "En correspondencia con las directrices metodológicas y la reglamentación formal de la modalidad de Práctica Laboral (SHC170), el resumen ejecutivo debe presentarse como un bloque textual unificado y condensado, restringido a un máximo de setenta palabras contiguas. Dicho apartado tiene como propósito permitir que evaluadores y comisiones académicas identifiquen de manera instantánea el objeto de intervención, la institución patrocinante, el marco temporal, la fundamentación metodológica y el impacto práctico derivado del proyecto.",
-    { indent: true }
-  ),
-  p(
-    "A continuación, se expone como referencia literal y modelo curricular el texto formal empleado para la acreditación técnica de la presente práctica laboral en la Facultad de Tecnología:",
-    { indent: true }
-  ),
-  new Paragraph({
-    alignment: AlignmentType.JUSTIFIED,
-    indent: { left: 720, right: 720, firstLine: 0 },
-    spacing: { line: LINE_SPACING_1_5, before: 180, after: 180 },
-    children: [
-      new TextRun({
-        text: "«Durante tres meses de práctica laboral en el Concejo Municipal de Sucre, se reconstruyó el sistema informático Wayka mediante ingeniería inversa de manuales legados, arquitectura en capas, ASP.NET Core, React y SQL Server. Se desarrollaron módulos de ventanilla única, derivación documental con SLA, circuito legislativo plenario y consulta ciudadana transparente, optimizando la trazabilidad institucional y eliminando el extravío de expedientes físicos.»",
-        font: FONT_NAME,
-        size: FONT_SIZE_BODY,
-        italics: true
-      })
-    ]
-  }),
-  p(
-    "El desglose analítico de los elementos obligatorios contenidos en el resumen modelo se articula bajo la siguiente correspondencia sintética:",
-    { indent: true }
-  ),
-  bullet("Qué se hizo", "Reconstrucción e implementación del sistema informático institucional Wayka para la gestión de trámites documentales y flujos de trabajo (workflow)."),
-  bullet("Dónde se hizo", "Concejo Municipal de Sucre (Gobierno Autónomo Municipal de Sucre, Sucre - Bolivia)."),
-  bullet("Por cuánto tiempo se hizo", "Periodo continuo de tres meses calendario (01 de Septiembre al 19 de Noviembre de 2026)."),
-  bullet("Cómo se hizo", "Ingeniería inversa sobre manuales y artefactos legados, desarrollo desacoplado en capas bajo ASP.NET Core (.NET 8 LTS), frontend reactivo en React 19 y base de datos relacional Microsoft SQL Server con procedimientos almacenados."),
-  bullet("Resultados alcanzados", "Despliegue de ventanilla única, derivación documental en tiempo real, semaforización de plazos SLA de 5 a 15 días, circuito de firmas duales y consulta pública transparente."),
-  new Paragraph({ children: [new PageBreak()] })
-);
+// NOTA: Se eliminó formalmente el apartado redundante "2. EJEMPLO DE TEXTO DE RESUMEN",
+// dando inicio directo al desarrollo del cuerpo principal del informe.
 
 // ==============================================================================
 // 1. CONTEXTO
@@ -610,60 +575,72 @@ docElements.push(
   h2("1.1. GENERALIDADES"),
   h3("1.1.1. Descripción de la empresa"),
   p(
-    "El Concejo Municipal de Sucre (CMS) constituye el órgano legislativo, deliberativo y fiscalizador del Gobierno Autónomo Municipal de Sucre, sede histórica y capital constitucional del Estado Plurinacional de Bolivia. Enmarcado jurídica e institucionalmente en la Constitución Política del Estado y la Ley N° 482 de Gobiernos Autónomos Municipales, el Concejo ostenta la máxima jerarquía representativa y normativa dentro de la jurisdicción municipal, caracterizándose por ser un cuerpo colegiado conformado por concejales electos democráticamente por sufragio popular.",
+    "El Gobierno Autónomo Municipal de Sucre (GAMS), en su condición de entidad matriz de la capital constitucional del Estado Plurinacional de Bolivia, está constituido conforme al Artículo 4 de la Ley N° 482 de Gobiernos Autónomos Municipales por dos órganos fundamentales e independientes: el Concejo Municipal, como Órgano Legislativo, Deliberativo y Fiscalizador; y el Órgano Ejecutivo Municipal, encabezado por el Alcalde Municipal (presidido actualmente en el periodo constitucional 2021-2026 por el Dr. Enrique Leaño Palenque). La organización de la entidad municipal se fundamenta de manera indelegable en la independencia, separación, coordinación y cooperación entre ambos órganos, conforme a los mandatos de la Constitución Política del Estado y la Ley N° 031 Marco de Autonomías y Descentralización «Andrés Ibáñez».",
     { indent: true }
   ),
   p(
-    "A diferencia del Órgano Ejecutivo Municipal (Alcaldía), cuya función primordial radica en la ejecución administrativa, financiera y la prestación directa de servicios y obras públicas, el Concejo Municipal ejerce la potestad legislativa mediante la formulación, debate y promulgación de Leyes Municipales, así como el control riguroso de los recursos públicos a través de mecanismos formales de fiscalización. En el ejercicio cotidiano de sus atribuciones, el Concejo recibe un volumen masivo y continuo de notas, memoriales, denuncias vecinales, proyectos normativos y contratos administrativos provenientes tanto de la ciudadanía chuquisaqueña como de organizaciones sociales, instituciones descentralizadas y del propio Alcalde Municipal.",
+    "El Concejo Municipal de Sucre (CMS) tiene como atribución primordial normar y fiscalizar las actividades desarrolladas por el Ejecutivo Municipal, en el marco de las competencias exclusivas y compartidas señaladas por ley, gestionando en coordinación interinstitucional políticas de desarrollo económico, social, de ordenamiento territorial y medio ambiente, brindando un servicio ágil, eficaz y transparente a la colectividad chuquisaqueña. Sus atribuciones normativas y procedimentales están determinadas en la Ley Municipal Autonómica N° 027/2014 («Ley del Reglamento General del Concejo Municipal de Sucre») y la Ley Autonómica Municipal N° 001/2011 («Inicio del Proceso Legislativo Autonómico Municipal»).",
     { indent: true }
   ),
   p(
-    "Históricamente, la tramitación y derivación de dicha correspondencia se gestionaba mediante cuadernos de registro manuscritos, hojas de control físico y carpetas encuadernadas trasladadas entre despachos por personal de mensajería. Este esquema tradicional ocasionaba demoras críticas, duplicidad de esfuerzos, carencia de métricas operativas sobre los tiempos de respuesta y una alta vulnerabilidad ante el extravío temporal o definitivo de expedientes de relevancia legislativa, lo cual justificó la necesidad de modernización técnica e institucional.",
+    "En el marco de la modernización, acceso a la información y transparencia pública, la institución cuenta con la Gaceta Municipal de Sucre, creada originariamente mediante la Ordenanza Municipal N° 053/94 del 9 de septiembre de 1994, emitida en la sala de sesiones por el Ing. Daniel Álvarez Gantier (Presidente del H. Concejo Municipal) y promulgada por el Dr. Germán Gutiérrez Gantier (Alcalde Municipal). Posteriormente, la Ley 027/2014 en su Artículo 40 inciso e) y la Ley 001/2011 en su Artículo 13 instituyeron a la Gaceta Municipal como una Dirección Operativa dependiente orgánica y jerárquicamente del Órgano Legislativo Municipal, bajo supervisión directa de la Vicepresidencia del Concejo Municipal.",
+    { indent: true }
+  ),
+  p(
+    "La Gaceta Municipal es el servicio digital oficial (con portal web en www.gacetamunicipalsucre.gob.bo) responsable de la publicación y difusión veraz, oportuna y permanente de Leyes Municipales, Ordenanzas, Resoluciones, Decretos Municipales, Decretos Ediles y Reglamentos. Entre abril y junio de 2013 se implementó su primera plataforma informática y jurídica, y a la fecha ha alcanzado la sistematización de más de 19.500 normas municipales desde 1990 hasta la gestión actual, permitiendo el saneamiento legislativo y el acceso abierto a la ciudadanía. Asimismo, la institución refleja una sólida continuidad democrática evidenciada en dieciséis gestiones municipales ininterrumpidas desde 1985 hasta la fecha.",
     { indent: true }
   ),
 
   h3("1.1.2. Datos generales (ubicación y rubros)"),
   p(
-    "A continuación, se consignan los datos institucionales generales correspondientes a la entidad receptora:",
+    "A continuación, se consignan los datos oficiales de identificación institucional del Concejo Municipal de Sucre obtenidos de sus registros formales y de su portal web oficial:",
     { indent: true }
   ),
-  bullet("Dirección institucional", "[Información no especificada / Completar por el estudiante]"),
-  bullet("Ciudad y País", "Sucre - Bolivia"),
-  bullet("Rubro principal", "Administración pública / Gestión legislativa y fiscalizadora municipal"),
-  bullet("Rubro secundario", "Desarrollo tecnológico, gobernanza electrónica e innovación gubernamental"),
-  bullet("Teléfono de contacto", "[Información no especificada / Completar por el estudiante]"),
-  bullet("Correo electrónico institucional", "[Información no especificada / Completar por el estudiante]"),
-  bullet("Portal web oficial", "[Información no especificada / Completar por el estudiante]"),
+  bullet("Dirección institucional oficial", "Plaza 25 de Mayo N° 1 (Palacio Consistorial de la Ciudad de Sucre)."),
+  bullet("Ciudad y País", "Sucre - Bolivia."),
+  bullet("Teléfono de contacto institucional", "(0591)(4)- 6458131."),
+  bullet("Correo electrónico institucional", "concejo_municipal_sucre@hotmail.com"),
+  bullet("Portal web oficial de difusión legislativa", "https://gacetamunicipalsucre.gob.bo (y www.gacetamunicipalsucre.gob.bo)."),
+  bullet("Página oficial en redes sociales", "Concejo Municipal de Sucre (facebook.com/concejomunicipaldeSucre2022)."),
+  bullet("Rubro principal", "Administración pública / Gestión legislativa, deliberativa y fiscalizadora municipal."),
+  bullet("Rubro secundario", "Publicación oficial legislativa, desarrollo tecnológico, gobernanza electrónica y transparencia ciudadana."),
+  bullet("Autoridad Ejecutiva Municipal en ejercicio", "Dr. Enrique Leaño Palenque (Alcalde Municipal del Gobierno Autónomo Municipal de Sucre, Gestión 2021 – 2026)."),
 
   h3("1.1.3. Misión y Visión (valores)"),
   p(
-    "La orientación estratégica y axiológica del Concejo Municipal de Sucre se fundamenta en los siguientes preceptos institucionales:",
+    "La orientación estratégica, visión y principios rectores del Concejo Municipal de Sucre se encuentran formalmente definidos en su normativa institucional y en su portal de información oficial:",
     { indent: true }
   ),
-  bullet("Misión institucional", "Ejercer con soberanía, probidad e independencia las facultades legislativas, deliberativas y fiscalizadoras en la jurisdicción municipal de Sucre, canalizando de forma oportuna las demandas y aspiraciones de la ciudadanía para consolidar un desarrollo social, urbano y económico inclusivo y sostenible."),
-  bullet("Visión institucional", "Consolidarse como un órgano legislativo municipal modelo a nivel departamental y nacional, vanguardista en el uso de tecnologías de la información y comunicación, que promueva una gobernanza transparente, una gestión documental sin burocracia basada en papel y una interacción abierta y transparente con la sociedad civil."),
-  bullet("Valores institucionales", "Transparencia activa, probidad pública, legalidad, ética en la función pública, responsabilidad social, equidad democrática, eficiencia operativa y vocación de servicio al ciudadano."),
+  bullet("Misión institucional (Oficial)", "«Promover el desarrollo integral y planificado del Municipio de Sucre, consolidando la democracia plural con equidad de género, identidad cultural, principios valores y transparencia, para el vivir bien de su población.»"),
+  bullet("Visión institucional (Oficial)", "«El Concejo Municipal de Sucre es un ente rector permanente de acción institucional y representación ciudadana, que ejerce plenamente su autonomía.»"),
+  bullet("Objetivo Institucional General", "Normar y fiscalizar las actividades desarrolladas por el Ejecutivo Municipal, en el marco de las competencias establecidas en la Ley 482 de Gobiernos Autónomos Municipales, así como el de gestionar y llevar adelante en coordinación con otras instituciones al interior del Gobierno Autónomo Municipal, políticas de desarrollo económico social de ordenamiento territorial y medio ambiente, con una prestación ágil, eficaz, eficiente y transparente de servicio a la colectividad."),
+  bullet("Objetivo Específico de la Gaceta Municipal", "Realizar las publicaciones en la Página Web de la Gaceta Municipal, de manera periódica, cronológica y oportuna, que incluya las Leyes Municipales, Resoluciones, Ordenanzas, Decretos Municipales, Decretos Ediles y Reglamentos, así como el de fortalecer las iniciativas de modernización de la Gaceta Municipal para poder brindar un servicio más eficiente a la población y ciudadanía usuaria de la Normativa Legal."),
+  bullet("Valores institucionales", "Democracia plural, equidad de género, identidad cultural, probidad pública, legalidad, transparencia activa, eficiencia en la gestión y vocación de servicio para el bienestar y el «Vivir Bien» de la población."),
 
   h3("1.1.4. Organigrama institucional"),
   p(
-    "La configuración jerárquica y operativa del Concejo Municipal de Sucre responde a una estructura colegiada deliberante articulada bajo directrices de coordinación transversal. En el vértice superior se sitúa el Pleno del Concejo Municipal, máxima autoridad resolutiva compuesta por la totalidad de concejales munícipes. Bajo su dependencia inmediata opera la Directiva del Concejo, integrada por la Presidencia, Vicepresidencia y la Secretaría General del Concejo.",
+    "La estructura orgánica y jerárquica del Concejo Municipal de Sucre se rige de manera taxativa por lo dispuesto en el Artículo 7 de la Ley Municipal Autonómica N° 027/2014 («Ley del Reglamento General del Concejo Municipal de Sucre»), la cual establece la siguiente constitución interna fundamental:",
     { indent: true }
   ),
+  bullet("1. El Pleno del Concejo Municipal", "Constituye la máxima autoridad de decisión, de esencia democrática, representativa, deliberante, legislativa y fiscalizadora. Conforme al Artículo 11 de la Ley 027/14, su actividad integral se desarrolla mediante sesiones ordinarias y extraordinarias, audiencias públicas, aprobación y emisión de Leyes Municipales, Ordenanzas, Resoluciones Municipales, Minutas de Comunicación, peticiones de informe e interpelaciones. Su sede oficial y lugar de sesiones es el Palacio Consistorial de la Ciudad de Sucre (Plaza 25 de Mayo N° 1), según el Artículo 5 de dicha norma."),
+  bullet("2. Directiva del Concejo Municipal", "Órgano colegiado de dirección y conducción legislativa, conformado por la Presidencia, Vicepresidencia y la Secretaría General del Concejo. De acuerdo al Artículo 40 inciso e) de la Ley 027/14, la Vicepresidencia tiene la atribución específica de supervisar el trabajo de la Dirección de la Gaceta y Archivo Municipal."),
+  bullet("3. Comisiones del Concejo Municipal", "Instancias especializadas de trabajo técnico, jurídico y normativo integradas por concejales munícipes, encargadas del análisis, fiscalización en terreno y emisión de informes de comisión (Obras Públicas, Social, Económica, Medio Ambiente, Autonómica y Legislativa)."),
+  bullet("4. Concejales Munícipes", "El Concejo Municipal de Sucre está compuesto por once (11) Concejales Municipales en ejercicio, elegidos democráticamente junto con sus suplentes mediante sufragio universal, directo y secreto para un período constitucional de cinco años, bajo el sistema de representación proporcional determinado por ley (Artículo 8 de la Ley 027/14)."),
   p(
-    "El trabajo especializado de análisis técnico-jurídico y dictamen de proyectos se distribuye entre las Comisiones Permanentes, entre las cuales destacan la Comisión de Obras Públicas, Urbanismo y Servicios Básicos; la Comisión Social, Género, Generacional y Seguridad Ciudadana; la Comisión Económica, Financiera y Administrativa; la Comisión de Medio Ambiente, Salubridad y Recursos Naturales; y la Comisión Autonómica, Legislativa y de Cooperación. Asimismo, opera la Asesoría General y Asesoría del Pleno como instancias de soporte normativo directo.",
+    "Bajo la dependencia jerárquica del Órgano Legislativo y articuladas a través de la Directiva y la Secretaría Administrativa, operan las dependencias técnicas y operativas encargadas de viabilizar el flujo documental y la gestión municipal:",
     { indent: true }
   ),
-  p(
-    "En la dimensión administrativa y de apoyo logístico se encuentra la Secretaría Administrativa y la Secretaría Auxiliar Administrativa, de las cuales dependen las unidades operativas de soporte: Unidad de Sistemas e Informática (Cómputo), Unidad de Comunicación y Prensa, Unidad de Contabilidad, Unidad de Recursos Humanos, Unidad de Activos Fijos, Unidad de Almacenes, Unidad de Archivos y Gaceta Municipal, el personal de Mensajería y Distribución Física, y la Ventanilla Única de Correspondencia y Trámites.",
-    { indent: true }
-  ),
+  bullet("Dirección de la Gaceta y Archivo Municipal", "Dirección Operativa dependiente orgánica y funcionalmente del Órgano Legislativo (supervisada por Vicepresidencia), cuyo Director es designado por dos tercios del Concejo Municipal a propuesta de terna de la Comisión Económica, Financiera y Legal (Ley 001/2011, Art. 13)."),
+  bullet("Asesoría General y Asesoría del Pleno", "Cuerpo de profesionales jurídicos y técnicos que asesoran las deliberaciones plenarias y proyectan los instrumentos normativos."),
+  bullet("Secretaría Administrativa y Auxiliar Administrativa", "Área encargada de la coordinación operativa, custodia y distribución de correspondencia y soporte administrativo a despachos."),
+  bullet("Unidades Operativas de Apoyo", "Unidad de Cómputo e Informática (Sistemas), Unidad de Comunicación y Prensa, Unidad de Contabilidad, Unidad de Recursos Humanos, Unidad de Activos Fijos, Unidad de Almacenes, Mensajería y Ventanilla Única de Trámites."),
   new Paragraph({
     alignment: AlignmentType.CENTER,
     indent: { firstLine: 0 },
     spacing: { before: 240, after: 240 },
     children: [
       new TextRun({
-        text: "[ESPACIO RESERVADO PARA LA REPRESENTACIÓN GRÁFICA / ORGANIGRAMA INSTITUCIONAL OFICIAL DEL CONCEJO MUNICIPAL DE SUCRE]",
+        text: "[ESPACIO RESERVADO PARA LA REPRESENTACIÓN GRÁFICA / ORGANIGRAMA OFICIAL DE LA ESTRUCTURA ORGÁNICA DEL CONCEJO MUNICIPAL DE SUCRE - LEY 027/14]",
         font: FONT_NAME,
         size: FONT_SIZE_SMALL,
         bold: true,
@@ -675,17 +652,35 @@ docElements.push(
 
   h3("1.1.5. Productos y servicios (Funciones)"),
   p(
-    "El Concejo Municipal genera diversos instrumentos de carácter jurídico, resolutivo y fiscalizador, además de prestar servicios directos a la colectividad chuquisaqueña:",
+    "En concordancia con el Artículo 13 de la Ley N° 482 de Gobiernos Autónomos Municipales, y los Artículos 6 y 7 de la Ley Autonómica Municipal N° 001/2011 de Inicio del Proceso Legislativo Autonómico Municipal, los productos normativos, servicios prestados y funciones esenciales del Concejo Municipal de Sucre se clasifican bajo las siguientes definiciones legales estrictas:",
     { indent: true }
   ),
-  bullet("Productos principales", "Leyes Municipales, Resoluciones del Concejo Municipal, Minutas de Comunicación emitidas hacia el Órgano Ejecutivo, Peticiones de Informe Escrito (PIE), Peticiones de Informe Oral (PIO), Hojas de Ruta Institucionales (CM, CDE1, CDE2, CDH1) e Informes Técnico-Legales de Comisión."),
-  bullet("Servicios ofrecidos", "Recepción y radicación centralizada de correspondencia externa en Ventanilla Única, tramitación de solicitudes de juntas vecinales y organizaciones civiles, celebración de audiencias públicas y sesiones de honor, publicación de normas en la Gaceta Municipal y atención de consultas ciudadanas sobre el estado de expedientes."),
-  bullet("Funciones relevantes", "Fiscalización y auditoría del uso de recursos públicos por el Ejecutivo Municipal, aprobación y ratificación de convenios y contratos interinstitucionales, tratamiento y sanción de presupuestos operativos anuales (POA), y otorgación de condecoraciones y méritos cívicos."),
+  pRuns([
+    { text: "Jerarquización y Delimitación de Instrumentos Normativos (Productos Principales):", bold: true }
+  ]),
+  bullet("Ley Municipal Autonómica", "Norma de desarrollo de la normativa constitucional y de regulación de las competencias constitucionales y exclusivas de nivel municipal (Art. 7 Ley 001/2011)."),
+  bullet("Ordenanza Autonómica Municipal", "Toda norma de carácter general que emana del Concejo Municipal y tiene por objeto instrumentar las Leyes Municipales, caracterizándose por estar subordinada a la Ley Municipal."),
+  bullet("Resolución Autonómica Municipal", "Norma de gestión administrativa interna, de cumplimiento obligatorio por las reparticiones municipales, que se encuentra subordinada a la Ley y Ordenanza Autonómica Municipal."),
+  bullet("Minutas de Comunicación", "Recomendaciones formales, fundamentadas y de cumplimiento administrativo o correctivo emitidas por el Concejo y dirigidas al Alcalde Municipal para optimizar la gestión."),
+  bullet("Peticiones de Informe Escrito (PIE) e Informes Orales (PIO)", "Mecanismos de fiscalización formal y vinculante mediante los cuales los concejales interpelan o solicitan informes circunstanciados al Alcalde Municipal y Secretarios Municipales."),
+  bullet("Remisión al Servicio Estatal de Autonomías (SEA)", "En cumplimiento estricto del Artículo 14 de la Ley N° 482, toda la normativa municipal emitida se remite obligatoriamente al SEA para su registro dentro del plazo máximo de quince (15) días hábiles posteriores a su publicación."),
+  pRuns([
+    { text: "Servicios Ofrecidos a la Ciudadanía:", bold: true }
+  ]),
+  bullet("Servicio Digital de Gaceta Municipal y Transparencia", "Acceso público, gratuito y permanente a través del portal www.gacetamunicipalsucre.gob.bo a más de 19.500 normas municipales digitalizadas, clasificadas temáticamente y con identificación de estados (vigente, abrogada, modificada) y resúmenes ejecutivos."),
+  bullet("Ventanilla Única de Correspondencia y Trámites", "Recepción y radicación centralizada de notas ciudadanas, correspondencia interinstitucional, solicitudes de juntas vecinales y expedientes de contratación, asignando un correlativo único anual (Hojas de Ruta CM, CDE1, CDE2, CDH1)."),
+  bullet("Audiencias Públicas y Participación Ciudadana", "Espacios democráticos oficiales del Pleno del Concejo para escuchar peticiones de la sociedad civil y canalizar sus demandas hacia las comisiones técnicas."),
+  pRuns([
+    { text: "Funciones Relevantes:", bold: true }
+  ]),
+  bullet("Función Legislativa", "Facultad exclusiva de debatir, aprobar, sancionar y promulgar Leyes Municipales Autonómicas."),
+  bullet("Función Deliberativa", "Espacio de debate democrático y toma de decisiones colegiadas en sesiones ordinarias y extraordinarias en el Palacio Consistorial."),
+  bullet("Función Fiscalizadora", "Supervisión permanente del destino y ejecución de los recursos públicos municipales, inspección técnica de obras del Ejecutivo Municipal y aprobación/rechazo de contratos y convenios interinstitucionales."),
 
   h2("1.2. CONTEXTO ESPECÍFICO"),
   h3("1.2.1. Unidad de trabajo asignada"),
   p(
-    "La Práctica Laboral se llevó a cabo en la Unidad de Sistemas e Informática (Unidad de Cómputo) del Concejo Municipal de Sucre, unidad técnica responsable de planificar, administrar, salvaguardar y modernizar la infraestructura de telecomunicaciones, servidores y plataformas informáticas de la entidad. Las actividades se desarrollaron en estrecha coordinación funcional con la Secretaría General del Concejo, la Secretaría Administrativa y los operadores de Ventanilla Única.",
+    "La Práctica Laboral se llevó a cabo en la Unidad de Sistemas e Informática (Unidad de Cómputo) del Concejo Municipal de Sucre, unidad técnica responsable de planificar, administrar, salvaguardar y modernizar la infraestructura de telecomunicaciones, servidores y plataformas informáticas de la entidad. Las actividades se desarrollaron en estrecha coordinación funcional con la Secretaría General del Concejo, la Secretaría Administrativa, la Dirección de la Gaceta y Archivo Municipal, y los operadores de Ventanilla Única.",
     { indent: true }
   ),
 
@@ -1244,4 +1239,3 @@ Packer.toBuffer(doc).then(buffer => {
   console.error("Error al generar el documento Word:", err);
   process.exit(1);
 });
-
