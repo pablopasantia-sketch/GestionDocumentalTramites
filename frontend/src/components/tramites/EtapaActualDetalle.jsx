@@ -106,6 +106,8 @@ export default function EtapaActualDetalle({
   const adjuntos = Array.isArray(tramite.adjuntos) ? tramite.adjuntos : [];
   const historial = Array.isArray(tramite.historial) ? tramite.historial : [];
   const ultimoMovimiento = [...historial].sort((a, b) => (a.orden || 0) - (b.orden || 0)).pop();
+  // Tras RF-10.2 el último movimiento de un trámite reabierto es la habilitación.
+  const reactivado = ultimoMovimiento?.tipo_movimiento === 'HABILITACION';
   const informeConcluido = Boolean(tramite.fecha_fin_informe);
   const vencido = paso === 3 && !informeConcluido && plazoVencido(tramite.fecha_limite_respuesta);
   // Solo la comisión destinataria recibe instrucciones operativas sobre el informe.
@@ -244,7 +246,9 @@ export default function EtapaActualDetalle({
             <Aviso tono={tramite.despacho_final_cite ? 'verde' : 'ambar'} icono={Stamp}>
               {tramite.despacho_final_cite
                 ? <><strong>Despacho final realizado.</strong> El circuito institucional quedó concluido.</>
-                : <>Etapa de <strong>Secretaría General</strong>: segunda firma y Despacho Final del expediente.</>}
+                : reactivado
+                  ? <><strong>Trámite reactivado en Secretaría General.</strong> Las firmas se conservaron y el despacho anterior fue limpiado. Registre el nuevo CITE y destinatario con la acción <strong>Despacho Final</strong>.</>
+                  : <>Etapa de <strong>Secretaría General</strong>: segunda firma y Despacho Final del expediente.</>}
             </Aviso>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
               <Dato etiqueta="FIRMA PRESIDENCIA" valor={tramite.firma_presidencia ? 'Validada' : 'Pendiente'} color={tramite.firma_presidencia ? '#15803D' : '#B45309'} />

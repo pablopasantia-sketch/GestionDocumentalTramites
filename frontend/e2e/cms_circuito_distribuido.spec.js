@@ -64,6 +64,37 @@ test.describe('Circuito externo distribuido CMS', () => {
     return token;
   };
 
+  const irASupervisionComoAdmin = async (page) => {
+    await page.goto('/login');
+    await page.evaluate(() => {
+      localStorage.removeItem('gestion_doc_token');
+      localStorage.removeItem('gestion_doc_user');
+      sessionStorage.clear();
+    });
+    await page.goto('/login');
+    await expect(page.locator('#username')).toBeVisible({ timeout: 15000 });
+    await page.fill('#username', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.click('button[type="submit"]');
+    await page.waitForURL('**/', { timeout: 20000 });
+
+    // El usuario admin es multi-rol: hay que seleccionar Administrador de Trámites.
+    await page.click('button[title="Opciones de perfil y sesión"]');
+    const rolAdminTramites = page.locator('button:has-text("Administrador de Trámites")');
+    await expect(rolAdminTramites).toBeVisible();
+    await rolAdminTramites.click();
+    await expect(page.locator('.user-tag-role')).toContainText('Administrador de Trámites');
+
+    const token = await page.evaluate(() => localStorage.getItem('gestion_doc_token'));
+    expect(token, 'El cambio de rol no persistió el token de ADMIN_TRAMITES').toBeTruthy();
+
+    await page.goto('/admin');
+    await expect(
+      page.locator('h1:has-text("Gestión de Procesos, Tiempos SLA y Supervisión de Trámites")')
+    ).toBeVisible({ timeout: 20000 });
+    return token;
+  };
+
   const esperarFila = async (page) => {
     await expect(fila(page)).toHaveCount(1, { timeout: 20000 });
     return fila(page);
@@ -466,5 +497,98 @@ test.describe('Circuito externo distribuido CMS', () => {
     expect(body.data.firma_presidencia).toBeTruthy();
     expect(body.data.firma_secretaria).toBeTruthy();
     expect(body.data.numero_correlativo).toBe(correlativo);
+  });
+
+  test('9. Supervisión reactiva el concluido en paso 7 y mavendano vuelve a despachar', async ({ page }) => {
+    test.setTimeout(120000);
+    const tokenAdmin = await irASupervisionComoAdmin(page);
+
+    await page.getByPlaceholder('Buscar correlativo, remitente, referencia...').fill(correlativo);
+    const rowAdmin = page.locator('tbody tr').filter({ hasText: correlativo });
+    await expect(rowAdmin).toHaveCount(1, { timeout: 20000 });
+    await expect(rowAdmin).toContainText('CONCLUIDO');
+    await rowAdmin.getByRole('button', { name: 'Habilitar' }).click();
+
+    const modalHabilitar = page.locator('div.card').filter({ hasText: 'Reactivación: Habilitar Trámite Concluido' });
+    await expect(modalHabilitar).toBeVisible();
+    await expect(modalHabilitar).toContainText('Secretaría General (paso 7)');
+    await modalHabilitar
+      .getByPlaceholder(/Explique el requerimiento técnico/)
+      .fill('Corrección del CITE de despacho final registrado por error.');
+
+    const respuestaHabilitar = page.waitForResponse(
+      (r) => r.url().includes('/habilitar') && r.request().method() === 'POST'
+    );
+    await modalHabilitar.getByRole('button', { name: 'Confirmar Habilitación' }).click();
+    const resHabilitar = await respuestaHabilitar;
+    expect(resHabilitar.ok(), await resHabilitar.text()).toBeTruthy();
+
+    // El backend reabre en paso 7, conserva firmas y limpia el despacho anterior.
+    const detalleReabierto = await page.request.get(`${API_BASE}/tramites/${tramiteId}`, {
+      headers: { Authorization: `Bearer ${tokenAdmin}` },
+    });
+    expect(detalleReabierto.ok()).toBeTruthy();
+    const cuerpoReabierto = await detalleReabierto.json();
+    expect(cuerpoReabierto.data.estado).toBe('EN_ATENCION');
+    expect(cuerpoReabierto.data.paso_actual).toBe(7);
+    expect(cuerpoReabierto.data.ubicacion_actual_id).toBe(4);
+    expect(cuerpoReabierto.data.firma_presidencia).toBeTruthy();
+    expect(cuerpoReabierto.data.firma_secretaria).toBeTruthy();
+    // La API omite los campos nulos al serializar (WhenWritingNull).
+    expect(cuerpoReabierto.data.fecha_conclusion).toBeUndefined();
+    expect(cuerpoReabierto.data.despacho_final_cite).toBeUndefined();
+    expect(cuerpoReabierto.data.despacho_final_destinatario).toBeUndefined();
+
+    // mavendano must have exactly one operative action: Despacho Final.
+    await irAEscritorio(page, 'mavendano');
+    const row = await esperarFila(page);
+    await expect(row).toContainText('EN ATENCIÓN');
+    await expect(row.getByTestId('btn-despacho-final')).toBeVisible({ timeout: 15000 });
+    await expect(row.getByTestId('btn-firmar-secretaria')).toHaveCount(0);
+    await expect(row.getByTestId('btn-recepcionar')).toHaveCount(0);
+    await expect(row.getByTestId('btn-derivar')).toHaveCount(0);
+
+    await row.getByTestId('btn-ver').click();
+    const modalDetalle = page
+      .locator('.modal-backdrop')
+      .filter({ has: page.getByTestId('panel-etapa-actual') });
+    await expect(modalDetalle.getByTestId('etapa-actual-paso')).toHaveText('PASO 7 DE 8');
+    await expect(modalDetalle).toContainText('Trámite reactivado en Secretaría General');
+    await expect(modalDetalle).not.toContainText('Despacho final realizado');
+    await modalDetalle.getByRole('button', { name: 'Cerrar' }).click();
+    await expect(modalDetalle).toBeHidden();
+
+    // Segundo despacho con el CITE corregido.
+    await row.getByTestId('btn-despacho-final').click();
+    const modalDespacho = page.getByTestId('modal-atender-despacho');
+    await expect(modalDespacho).toBeVisible();
+    const citeCorregido = `CMS-DESP-E2E-${sufijo}-R/${new Date().getFullYear()}`;
+    await page.getByTestId('despacho-cite').fill(citeCorregido);
+    await expect(page.getByTestId('despacho-destinatario')).toHaveValue(DESTINATARIO_FINAL_DEFAULT);
+    await page
+      .getByTestId('atender-proveido')
+      .fill('Reenvío correctivo del despacho final tras la habilitación.');
+
+    const respuestaDespacho = page.waitForResponse(
+      (r) => r.url().includes('/despacho-final') && r.request().method() === 'POST'
+    );
+    await page.getByTestId('atender-despacho').click();
+    const resDespacho = await respuestaDespacho;
+    expect(resDespacho.ok(), await resDespacho.text()).toBeTruthy();
+    await expect(modalDespacho).toBeHidden({ timeout: 20000 });
+
+    await expect(fila(page)).toContainText('CONCLUIDO', { timeout: 20000 });
+    await expect(fila(page).getByTestId('btn-despacho-final')).toHaveCount(0);
+
+    const tokenFinal = await page.evaluate(() => localStorage.getItem('gestion_doc_token'));
+    const detalleFinal = await page.request.get(`${API_BASE}/tramites/${tramiteId}`, {
+      headers: { Authorization: `Bearer ${tokenFinal}` },
+    });
+    expect(detalleFinal.ok()).toBeTruthy();
+    const cuerpoFinal = await detalleFinal.json();
+    expect(cuerpoFinal.data.estado).toBe('CONCLUIDO');
+    expect(cuerpoFinal.data.paso_actual).toBe(8);
+    expect(cuerpoFinal.data.despacho_final_cite).toBe(citeCorregido);
+    expect(cuerpoFinal.data.despacho_final_destinatario).toBe(DESTINATARIO_FINAL_DEFAULT);
   });
 });

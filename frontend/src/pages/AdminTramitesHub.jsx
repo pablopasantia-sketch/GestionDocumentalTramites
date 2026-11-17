@@ -1404,7 +1404,7 @@ export default function AdminTramitesHub() {
             </div>
 
             <p style={{ fontSize: '0.85rem', color: '#6C757D', marginBottom: '1rem' }}>
-              Esta acción reactivará el trámite devolviéndolo a estado <strong>EN ATENCIÓN</strong> y restablecerá la fecha de conclusión. Esta operación genera un registro inmutable en la bitácora de auditoría.
+              Esta acción reabrirá el trámite en la etapa de <strong>Secretaría General (paso 7)</strong> en estado <strong>EN ATENCIÓN</strong>, conservando las firmas ya registradas. Se limpian la fecha de conclusión y el CITE/destinatario del despacho anterior, de modo que la única acción pendiente será un nuevo <strong>Despacho Final</strong>. Esta operación genera un registro inmutable en la bitácora de auditoría.
             </p>
 
             <div style={{ background: '#F8F9FA', padding: '10px', borderRadius: '4px', marginBottom: '1rem', border: '1px solid #E2E8F0', fontSize: '0.82rem' }}>
