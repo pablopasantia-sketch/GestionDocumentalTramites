@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { tramitesService, adjuntosService } from '../../services/api';
 import {
+  DESTINATARIO_FINAL_DEFAULT,
   INSTRUMENTOS_CIRCUITO,
   RESULTADOS_PLENO,
 } from '../../utils/flujoExterno';
@@ -107,7 +108,7 @@ export default function ModalAtender({ open, mode, tramite, user, onClose, onSuc
   const [sesionResultado, setSesionResultado] = useState('APROBADO_UNANIMIDAD');
   const [instrumentoPleno, setInstrumentoPleno] = useState('MINUTA');
   const [citeDespacho, setCiteDespacho] = useState('');
-  const [destinatarioFinal, setDestinatarioFinal] = useState('Dr. Enrique Leaño Palenque - Alcalde Municipal de Sucre');
+  const [destinatarioFinal, setDestinatarioFinal] = useState(DESTINATARIO_FINAL_DEFAULT);
   const [observacionesFirma, setObservacionesFirma] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState(null);
@@ -139,7 +140,7 @@ export default function ModalAtender({ open, mode, tramite, user, onClose, onSuc
     setSesionResultado(tramite.sesion_pleno_resultado || 'APROBADO_UNANIMIDAD');
     setInstrumentoPleno(tramite.ultimo_instrumento_generado || 'MINUTA');
     setCiteDespacho(`CMS-DESP-${String(tramite.id).padStart(3, '0')}/${anioActual}`);
-    setDestinatarioFinal('Dr. Enrique Leaño Palenque - Alcalde Municipal de Sucre');
+    setDestinatarioFinal(DESTINATARIO_FINAL_DEFAULT);
     setObservacionesFirma('');
     setError(null);
   }, [open, mode, tramite?.id, anioActual]);

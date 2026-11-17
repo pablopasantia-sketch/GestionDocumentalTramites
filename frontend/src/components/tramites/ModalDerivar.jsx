@@ -194,6 +194,7 @@ export default function ModalDerivar({ open, tramite, user, onClose, onSuccess }
                       <button
                         key={plazo.dias}
                         type="button"
+                        data-testid={`plazo-${plazo.dias}`}
                         onClick={() => setDiasPlazo(plazo.dias)}
                         style={{
                           padding: '9px 8px',

@@ -14,10 +14,13 @@ import {
 import AccionesTramite from './AccionesTramite';
 import {
   PASOS_CIRCUITO,
+  esComision,
+  obtenerCodUnidadActual,
   obtenerModoAtencion,
   obtenerPaso,
   puedeDerivar,
   puedeRecepcionar,
+  tieneCustodia,
 } from '../../utils/flujoExterno';
 
 const formatearFecha = (valor) => {
@@ -105,6 +108,11 @@ export default function EtapaActualDetalle({
   const ultimoMovimiento = [...historial].sort((a, b) => (a.orden || 0) - (b.orden || 0)).pop();
   const informeConcluido = Boolean(tramite.fecha_fin_informe);
   const vencido = paso === 3 && !informeConcluido && plazoVencido(tramite.fecha_limite_respuesta);
+  // Solo la comisión destinataria recibe instrucciones operativas sobre el informe.
+  // Quien derivó el expediente (Presidencia) u otras unidades ven solo el estado.
+  const esComisionDestinataria = !enBandejaEnviados
+    && tieneCustodia(tramite)
+    && esComision(obtenerCodUnidadActual(tramite));
 
   const renderDetalle = () => {
     switch (paso) {
@@ -127,18 +135,38 @@ export default function EtapaActualDetalle({
         return (
           <div>
             {informeConcluido ? (
-              <Aviso tono="verde" icono={CheckCircle2}>
-                <strong>Informe de comisión concluido.</strong> La comisión ya cumplió su tarea y el expediente está habilitado para remitirse a Asesoría General del Pleno.
-              </Aviso>
+              esComisionDestinataria ? (
+                <Aviso tono="verde" icono={CheckCircle2}>
+                  <strong>Informe de comisión concluido.</strong> La comisión ya cumplió su tarea y el expediente está habilitado para remitirse a Asesoría General del Pleno.
+                </Aviso>
+              ) : (
+                <Aviso tono="azul" icono={Info}>
+                  El informe de comisión está concluido. El expediente continúa su trámite hacia Asesoría General del Pleno.
+                </Aviso>
+              )
             ) : vencido ? (
-              <Aviso tono="rojo" icono={AlertTriangle}>
-                <strong>Plazo de elaboración vencido.</strong> El plazo reglamentario para presentar el informe venció el{' '}
-                {formatearFecha(tramite.fecha_limite_respuesta)}. No se admiten informes extemporáneos.
+              esComisionDestinataria ? (
+                <Aviso tono="rojo" icono={AlertTriangle}>
+                  <strong>Plazo de elaboración vencido.</strong> El plazo reglamentario para presentar el informe venció el{' '}
+                  {formatearFecha(tramite.fecha_limite_respuesta)}. No se admiten informes extemporáneos.
+                </Aviso>
+              ) : (
+                <Aviso tono="rojo" icono={AlertTriangle}>
+                  El plazo reglamentario de la comisión venció el {formatearFecha(tramite.fecha_limite_respuesta)}.
+                </Aviso>
+              )
+            ) : esComisionDestinataria && mostrarRecepcionar ? (
+              <Aviso tono="ambar" icono={Info}>
+                <strong>Recepción pendiente.</strong> Confirme la recepción del expediente para iniciar el plazo reglamentario de elaboración del informe.
               </Aviso>
-            ) : (
+            ) : esComisionDestinataria ? (
               <Aviso tono="ambar" icono={Info}>
                 <strong>Informe pendiente.</strong> Suba el informe digital y concluya la tarea con la acción <strong>Atender / Informe</strong>.
                 La acción <strong>Derivar</strong> se habilitará recién cuando el informe esté concluido.
+              </Aviso>
+            ) : (
+              <Aviso tono="azul" icono={Info}>
+                El expediente fue derivado a la comisión y está a la espera de su recepción e informe.
               </Aviso>
             )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>

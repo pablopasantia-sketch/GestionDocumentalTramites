@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { DESTINATARIO_FINAL_DEFAULT } from '../src/utils/flujoExterno';
 
 // =============================================================================
 // E2E — Circuito externo distribuido del Concejo Municipal de Sucre
@@ -88,7 +89,7 @@ test.describe('Circuito externo distribuido CMS', () => {
     await expect(modal).toBeHidden({ timeout: 15000 });
   };
 
-  const derivar = async (page, { destino, funcionario, proveido, destinoFijo = false }) => {
+  const derivar = async (page, { destino, funcionario, proveido, plazo, destinoFijo = false }) => {
     const row = await esperarFila(page);
     await expect(row.getByTestId('btn-derivar')).toBeVisible({ timeout: 15000 });
     await row.getByTestId('btn-derivar').click();
@@ -101,6 +102,11 @@ test.describe('Circuito externo distribuido CMS', () => {
       // ni PDF: todo eso se registró en el modal Atender / Informe.
       await expect(page.getByTestId('derivar-pdf')).toHaveCount(0);
       await expect(page.locator('[data-testid^="instrumento-"]')).toHaveCount(0);
+    }
+
+    if (plazo) {
+      await expect(page.getByTestId(`plazo-${plazo}`)).toBeVisible();
+      await page.getByTestId(`plazo-${plazo}`).click();
     }
 
     if (destino) {
@@ -214,7 +220,7 @@ test.describe('Circuito externo distribuido CMS', () => {
     expect(body.message).toMatch(/custodia|pendiente de recepción|no tiene custodia/i);
   });
 
-  test('3. Presidencia recepciona y deriva a la Comisión COPPOT con plazo de 10 días', async ({ page }) => {
+  test('3. Presidencia recepciona y deriva a la Comisión COPPOT con plazo de 5 días', async ({ page }) => {
     test.setTimeout(90000);
     await irAEscritorio(page, 'jcervantes');
     await recepcionar(page, 'Recepcionado por Presidencia para análisis político.');
@@ -238,11 +244,26 @@ test.describe('Circuito externo distribuido CMS', () => {
 
     await derivar(page, {
       destino: '8',
+      plazo: 5,
       proveido: 'Se remite a la Comisión C.O.P.P.O.T. para su tratamiento técnico.',
     });
 
     // Al derivar, el expediente sale de la bandeja de Presidencia.
     await expect(fila(page)).toHaveCount(0, { timeout: 15000 });
+
+    // Quien derivó no debe recibir instrucciones de atención del informe:
+    // desde su bandeja de despachados solo ve el estado del expediente.
+    await page.getByRole('button', { name: /Bandeja de Despachados/ }).click();
+    const rowDespachado = await esperarFila(page);
+    await rowDespachado.getByTestId('btn-ver').click();
+    const modalDespachado = page
+      .locator('.modal-backdrop')
+      .filter({ has: page.getByTestId('panel-etapa-actual') });
+    await expect(modalDespachado).toBeVisible();
+    await expect(modalDespachado).not.toContainText('Informe pendiente');
+    await expect(modalDespachado).toContainText('a la espera de su recepción e informe');
+    await modalDespachado.getByRole('button', { name: 'Cerrar' }).click();
+    await expect(modalDespachado).toBeHidden();
   });
 
   test('4. COPPOT recepciona con plazo activo, emite informe y remite directo a AGP', async ({ page }) => {
@@ -250,7 +271,7 @@ test.describe('Circuito externo distribuido CMS', () => {
     const token = await irAEscritorio(page, 'cargo032');
     await recepcionar(page, 'Recepcionado por la Presidencia de la Comisión C.O.P.P.O.T.');
 
-    // El plazo elegido en Presidencia (10 días hábiles) arranca al recepcionar
+    // El plazo elegido en Presidencia (5 días hábiles) arranca al recepcionar
     // en comisión, no al derivar ni al concluir el informe.
     const detalleRecepcion = await page.request.get(`${API_BASE}/tramites/${tramiteId}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -258,7 +279,7 @@ test.describe('Circuito externo distribuido CMS', () => {
     expect(detalleRecepcion.ok()).toBeTruthy();
     const cuerpoRecepcion = await detalleRecepcion.json();
     expect(cuerpoRecepcion.data.paso_actual).toBe(3);
-    expect(cuerpoRecepcion.data.dias_plazo_informe).toBe(10);
+    expect(cuerpoRecepcion.data.dias_plazo_informe).toBe(5);
     expect(cuerpoRecepcion.data.fecha_inicio_informe).toBeTruthy();
     expect(cuerpoRecepcion.data.fecha_limite_respuesta).toBeTruthy();
 
@@ -266,6 +287,16 @@ test.describe('Circuito externo distribuido CMS', () => {
     await expect(rowComision.getByTestId('btn-atender-comision')).toBeVisible({ timeout: 15000 });
     // Sin informe concluido la acción de derivar no debe mostrarse.
     await expect(rowComision.getByTestId('btn-derivar')).toHaveCount(0);
+
+    // A la comisión destinataria sí se le muestra la instrucción de informe.
+    await rowComision.getByTestId('btn-ver').click();
+    const modalComision = page
+      .locator('.modal-backdrop')
+      .filter({ has: page.getByTestId('panel-etapa-actual') });
+    await expect(modalComision).toContainText('Informe pendiente');
+    await expect(modalComision).toContainText('Atender / Informe');
+    await modalComision.getByRole('button', { name: 'Cerrar' }).click();
+    await expect(modalComision).toBeHidden();
 
     // Aunque se llame a la API directamente, el backend debe rechazar la remisión.
     const intentoApi = await page.request.post(`${API_BASE}/tramites/${tramiteId}/derivar`, {
@@ -347,9 +378,16 @@ test.describe('Circuito externo distribuido CMS', () => {
   test('7. Presidencia recepciona, firma y remite a Secretaría General', async ({ page }) => {
     test.setTimeout(90000);
     await irAEscritorio(page, 'jcervantes');
+    const rowPendiente = await esperarFila(page);
+    // Antes de recepcionar solo se ofrece la recepción, nunca la firma.
+    await expect(rowPendiente.getByTestId('btn-recepcionar')).toBeVisible({ timeout: 15000 });
+    await expect(rowPendiente.getByTestId('btn-firmar-presidencia')).toHaveCount(0);
+    await expect(rowPendiente.getByTestId('btn-derivar')).toHaveCount(0);
+
     await recepcionar(page, 'Recepcionado por Presidencia para la primera firma reglamentaria.');
 
     let row = await esperarFila(page);
+    await expect(row.getByTestId('btn-firmar-presidencia')).toBeVisible({ timeout: 15000 });
     await row.getByTestId('btn-firmar-presidencia').click();
 
     const modalFirma = page.getByTestId('modal-atender-firma-presidencia');
@@ -371,9 +409,16 @@ test.describe('Circuito externo distribuido CMS', () => {
   test('8. Secretaría General recepciona, firma y ejecuta el Despacho Final CONCLUIDO', async ({ page }) => {
     test.setTimeout(120000);
     const token = await irAEscritorio(page, 'mavendano');
+    const rowPendiente = await esperarFila(page);
+    // Antes de recepcionar no se muestran ni la firma ni el despacho final.
+    await expect(rowPendiente.getByTestId('btn-recepcionar')).toBeVisible({ timeout: 15000 });
+    await expect(rowPendiente.getByTestId('btn-firmar-secretaria')).toHaveCount(0);
+    await expect(rowPendiente.getByTestId('btn-despacho-final')).toHaveCount(0);
+
     await recepcionar(page, 'Recepcionado por Secretaría General del Concejo Municipal.');
 
     let row = await esperarFila(page);
+    await expect(row.getByTestId('btn-firmar-secretaria')).toBeVisible({ timeout: 15000 });
     await row.getByTestId('btn-firmar-secretaria').click();
 
     const modalFirma = page.getByTestId('modal-atender-firma-secretaria');
@@ -392,10 +437,9 @@ test.describe('Circuito externo distribuido CMS', () => {
 
     const modalDespacho = page.getByTestId('modal-atender-despacho');
     await expect(modalDespacho).toBeVisible();
+    await expect(page.getByTestId('despacho-destinatario')).toHaveValue(DESTINATARIO_FINAL_DEFAULT);
     await page.getByTestId('despacho-cite').fill(`CMS-DESP-E2E-${sufijo}/${new Date().getFullYear()}`);
-    await page
-      .getByTestId('despacho-destinatario')
-      .fill('Dr. Enrique Leaño Palenque - Alcalde Municipal de Sucre');
+    await page.getByTestId('despacho-destinatario').fill(DESTINATARIO_FINAL_DEFAULT);
     await page
       .getByTestId('atender-proveido')
       .fill('Remisión formal del instrumento normativo aprobado para su promulgación.');

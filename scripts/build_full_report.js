@@ -575,7 +575,7 @@ docElements.push(
   h2("1.1. GENERALIDADES"),
   h3("1.1.1. Descripción de la empresa"),
   p(
-    "El Gobierno Autónomo Municipal de Sucre (GAMS), en su condición de entidad matriz de la capital constitucional del Estado Plurinacional de Bolivia, está constituido conforme al Artículo 4 de la Ley N° 482 de Gobiernos Autónomos Municipales por dos órganos fundamentales e independientes: el Concejo Municipal, como Órgano Legislativo, Deliberativo y Fiscalizador; y el Órgano Ejecutivo Municipal, encabezado por el Alcalde Municipal (presidido actualmente en el periodo constitucional 2021-2026 por el Dr. Enrique Leaño Palenque). La organización de la entidad municipal se fundamenta de manera indelegable en la independencia, separación, coordinación y cooperación entre ambos órganos, conforme a los mandatos de la Constitución Política del Estado y la Ley N° 031 Marco de Autonomías y Descentralización «Andrés Ibáñez».",
+    "El Gobierno Autónomo Municipal de Sucre (GAMS), en su condición de entidad matriz de la capital constitucional del Estado Plurinacional de Bolivia, está constituido conforme al Artículo 4 de la Ley N° 482 de Gobiernos Autónomos Municipales por dos órganos fundamentales e independientes: el Concejo Municipal, como Órgano Legislativo, Deliberativo y Fiscalizador; y el Órgano Ejecutivo Municipal, encabezado por el Alcalde Municipal en ejercicio del periodo constitucional 2021-2026. La organización de la entidad municipal se fundamenta de manera indelegable en la independencia, separación, coordinación y cooperación entre ambos órganos, conforme a los mandatos de la Constitución Política del Estado y la Ley N° 031 Marco de Autonomías y Descentralización «Andrés Ibáñez».",
     { indent: true }
   ),
   p(
@@ -604,7 +604,7 @@ docElements.push(
   bullet("Página oficial en redes sociales", "Concejo Municipal de Sucre (facebook.com/concejomunicipaldeSucre2022)."),
   bullet("Rubro principal", "Administración pública / Gestión legislativa, deliberativa y fiscalizadora municipal."),
   bullet("Rubro secundario", "Publicación oficial legislativa, desarrollo tecnológico, gobernanza electrónica y transparencia ciudadana."),
-  bullet("Autoridad Ejecutiva Municipal en ejercicio", "Dr. Enrique Leaño Palenque (Alcalde Municipal del Gobierno Autónomo Municipal de Sucre, Gestión 2021 – 2026)."),
+  bullet("Autoridad Ejecutiva Municipal en ejercicio", "Alcalde Municipal del Gobierno Autónomo Municipal de Sucre, Gestión 2021 – 2026."),
 
   h3("1.1.3. Misión y Visión (valores)"),
   p(

@@ -13,6 +13,10 @@ export const UNIDADES_CIRCUITO = {
   VENTANILLA_UNICA: 16,
 };
 
+// Destinatario final institucional del Despacho Final (login jcervantes).
+// Se define aquí para no repetir nombres históricos en los distintos formularios.
+export const DESTINATARIO_FINAL_DEFAULT = 'Juan Pablo Cervantes Zambrana - Presidente del Concejo Municipal';
+
 export const COMISIONES_CMS = [
   { codU: 6, sigla: 'C.A.L.M.', nombre: 'Comisión Autonómica y Legislativa Municipal' },
   { codU: 7, sigla: 'C.M.A.S.D.C.', nombre: 'Comisión de Medio Ambiente, Salubridad y Defensa del Consumidor' },
@@ -63,6 +67,7 @@ export const RESULTADOS_PLENO = [
 ];
 
 const ESTADOS_CONCLUIDOS = ['CONCLUIDO', 'ANULADO', 'BLOQUEADO', 'RECHAZADO_PLENO'];
+const ESTADOS_PENDIENTES_RECEPCION = ['CREADO', 'EN_TRANSITO', 'POR_RECIBIR'];
 
 export const normalizarCargo = (user) => {
   const valor = user?.cod_cargo ?? user?.codCargo ?? user?.codCargoUsuario;
@@ -99,11 +104,18 @@ export const esConcluido = (tramite) => ESTADOS_CONCLUIDOS.includes(String(trami
 
 export const tieneCustodia = (tramite) => Boolean(tramite?.puede_operar ?? tramite?.puedeOperar);
 
+// Las firmas y el despacho solo se habilitan después de confirmar la recepción.
+// El backend ya lo valida en las SP; esto evita mostrar acciones prematuras.
+export const yaRecepcionado = (tramite) => (
+  !ESTADOS_PENDIENTES_RECEPCION.includes(String(tramite?.estado || '').toUpperCase())
+);
+
 export const puedeFirmarPresidencia = (tramite, user) => {
   const cargo = normalizarCargo(user);
   return obtenerPaso(tramite) === 6
     && obtenerCodUnidadActual(tramite) === UNIDADES_CIRCUITO.PRESIDENCIA
     && (cargo === 0 || cargo === CARGOS_CIRCUITO.PRESIDENTE_CONCEJO)
+    && yaRecepcionado(tramite)
     && !tramite?.firma_presidencia;
 };
 
@@ -112,6 +124,7 @@ export const puedeFirmarSecretaria = (tramite, user) => {
   return obtenerPaso(tramite) === 7
     && obtenerCodUnidadActual(tramite) === UNIDADES_CIRCUITO.SECRETARIA_GENERAL
     && (cargo === 0 || cargo === CARGOS_CIRCUITO.SECRETARIO_GENERAL)
+    && yaRecepcionado(tramite)
     && tramite?.firma_presidencia
     && !tramite?.firma_secretaria;
 };
@@ -121,6 +134,7 @@ export const puedeDespachar = (tramite, user) => {
   return obtenerPaso(tramite) === 7
     && obtenerCodUnidadActual(tramite) === UNIDADES_CIRCUITO.SECRETARIA_GENERAL
     && (cargo === 0 || cargo === CARGOS_CIRCUITO.SECRETARIO_GENERAL)
+    && yaRecepcionado(tramite)
     && Boolean(tramite?.firma_presidencia)
     && Boolean(tramite?.firma_secretaria);
 };
