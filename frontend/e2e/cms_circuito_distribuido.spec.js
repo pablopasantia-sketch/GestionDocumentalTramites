@@ -100,6 +100,21 @@ test.describe('Circuito externo distribuido CMS', () => {
     return fila(page);
   };
 
+  // Tras el Despacho Final el concluido debe salir de Recibidos y aparecer en
+  // Despachados (migración 048), sin acciones ejecutables en ninguna de ellas.
+  const verificarConcluidoEnDespachados = async (page, cite) => {
+    await expect(fila(page)).toHaveCount(0, { timeout: 20000 });
+
+    await page.getByRole('button', { name: /Bandeja de Despachados/ }).click();
+    const rowDespachado = await esperarFila(page);
+    await expect(rowDespachado).toContainText('CONCLUIDO');
+    await expect(rowDespachado).toContainText(cite);
+    await expect(rowDespachado.getByTestId('btn-despacho-final')).toHaveCount(0);
+    await expect(rowDespachado.getByTestId('btn-firmar-secretaria')).toHaveCount(0);
+    await expect(rowDespachado.getByTestId('btn-recepcionar')).toHaveCount(0);
+    return rowDespachado;
+  };
+
   const recepcionar = async (page, proveido) => {
     const row = await esperarFila(page);
     await expect(row.getByTestId('btn-recepcionar')).toBeVisible({ timeout: 15000 });
@@ -469,7 +484,8 @@ test.describe('Circuito externo distribuido CMS', () => {
     const modalDespacho = page.getByTestId('modal-atender-despacho');
     await expect(modalDespacho).toBeVisible();
     await expect(page.getByTestId('despacho-destinatario')).toHaveValue(DESTINATARIO_FINAL_DEFAULT);
-    await page.getByTestId('despacho-cite').fill(`CMS-DESP-E2E-${sufijo}/${new Date().getFullYear()}`);
+    const cite = `CMS-DESP-E2E-${sufijo}/${new Date().getFullYear()}`;
+    await page.getByTestId('despacho-cite').fill(cite);
     await page.getByTestId('despacho-destinatario').fill(DESTINATARIO_FINAL_DEFAULT);
     await page
       .getByTestId('atender-proveido')
@@ -483,9 +499,9 @@ test.describe('Circuito externo distribuido CMS', () => {
     expect(resDespacho.ok(), await resDespacho.text()).toBeTruthy();
     await expect(modalDespacho).toBeHidden({ timeout: 20000 });
 
-    // Verificación final en UI y en backend.
-    await expect(fila(page)).toContainText('CONCLUIDO', { timeout: 20000 });
-    await expect(fila(page).getByTestId('btn-despacho-final')).toHaveCount(0);
+    // Verificación final en UI y en backend. El concluido ya no está en
+    // Recibidos: se consulta desde la bandeja de Despachados.
+    await verificarConcluidoEnDespachados(page, cite);
 
     const detalle = await page.request.get(`${API_BASE}/tramites/${tramiteId}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -577,8 +593,7 @@ test.describe('Circuito externo distribuido CMS', () => {
     expect(resDespacho.ok(), await resDespacho.text()).toBeTruthy();
     await expect(modalDespacho).toBeHidden({ timeout: 20000 });
 
-    await expect(fila(page)).toContainText('CONCLUIDO', { timeout: 20000 });
-    await expect(fila(page).getByTestId('btn-despacho-final')).toHaveCount(0);
+    await verificarConcluidoEnDespachados(page, citeCorregido);
 
     const tokenFinal = await page.evaluate(() => localStorage.getItem('gestion_doc_token'));
     const detalleFinal = await page.request.get(`${API_BASE}/tramites/${tramiteId}`, {
