@@ -164,7 +164,7 @@ test.describe('Sprint 5 E2E - Búsqueda por Proceso y Estado/Fechas (RF-12.2 / R
     await expect(page.locator('h3:has-text("Línea de Tiempo de Movimientos")')).toBeVisible();
   });
 
-  test('3. La Hoja de Ruta del resultado reutiliza el modal existente', async ({ page }) => {
+  test('3. La Hoja de Ruta del resultado se imprime sin abrir modal', async ({ page }) => {
     test.setTimeout(60000);
 
     await abrirBusqueda(page);
@@ -173,10 +173,22 @@ test.describe('Sprint 5 E2E - Búsqueda por Proceso y Estado/Fechas (RF-12.2 / R
     const fila = page.locator(`table tbody tr:has-text("${CORRELATIVO_BASE}")`).first();
     await expect(fila).toBeVisible({ timeout: 15000 });
 
+    await page.evaluate(() => {
+      window.__impresiones = 0;
+      window.print = () => { window.__impresiones += 1; };
+    });
+
     await fila.locator('button:has-text("Hoja de Ruta")').click();
-    await expect(
-      page.getByText('HOJA DE RUTA DE TRÁMITES Y CORRESPONDENCIA')
-    ).toBeVisible({ timeout: 15000 });
+
+    await expect.poll(() => page.evaluate(() => window.__impresiones)).toBe(1);
+    await expect(page.locator('.modal-overlay')).toHaveCount(0);
+    await expect(page.locator('.hoja-ruta-print-root')).toHaveCount(1);
+    await expect(page.locator('.hoja-ruta-print-root')).toContainText(
+      'HOJA DE RUTA DE TRÁMITES Y CORRESPONDENCIA'
+    );
+
+    await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+    await expect(page.locator('.hoja-ruta-print-root')).toHaveCount(0);
   });
 
   test('4. La pestaña no está disponible para el rol ADMIN_SISTEMA', async ({ page }) => {

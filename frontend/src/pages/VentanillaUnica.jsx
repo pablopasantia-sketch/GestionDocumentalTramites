@@ -8,7 +8,6 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  Printer,
   Search,
   Plus,
   ArrowRight,
@@ -35,7 +34,7 @@ import { useAuth } from '../context/AuthContext';
 import InstitucionalSelectors from '../components/institucional/InstitucionalSelectors';
 import EmpleadoSearchAutocomplete from '../components/institucional/EmpleadoSearchAutocomplete';
 import PdfUploader from '../components/common/PdfUploader';
-import HojaDeRutaModal from '../components/tramites/HojaDeRutaModal';
+import ImpresionHojaDeRuta from '../components/tramites/ImpresionHojaDeRuta';
 
 export const CANALES_CMS = {
   EXTERNA: {
@@ -104,7 +103,7 @@ export default function VentanillaUnica() {
   const [showEmittedModal, setShowEmittedModal] = useState(false);
 
   // Modal Hoja de Ruta
-  const [hojaDeRutaOpen, setHojaDeRutaOpen] = useState(false);
+  const [imprimirHojaRuta, setImprimirHojaRuta] = useState(false);
 
   // Historial de la jornada
   const [historialTramites, setHistorialTramites] = useState([]);
@@ -1968,18 +1967,8 @@ export default function VentanillaUnica() {
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   type="button"
-                  className="btn btn-outline-primary btn-sm"
-                  onClick={() => window.print()}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <Printer size={15} />
-                  <span>Imprimir Comprobante</span>
-                </button>
-
-                <button
-                  type="button"
                   className="btn btn-sm"
-                  onClick={() => setHojaDeRutaOpen(true)}
+                  onClick={() => setImprimirHojaRuta(true)}
                   style={{
                     backgroundColor: '#800000',
                     color: 'white',
@@ -1989,10 +1978,10 @@ export default function VentanillaUnica() {
                     gap: '6px',
                     fontWeight: 600
                   }}
-                  title="Ver e imprimir la Hoja de Ruta oficial del trámite registrado"
+                  title="Imprimir directamente la Hoja de Ruta oficial del trámite registrado"
                 >
                   <FileText size={15} />
-                  <span>Ver Hoja de Ruta</span>
+                  <span>Imprimir Hoja de Ruta</span>
                 </button>
 
                 <button
@@ -2013,13 +2002,14 @@ export default function VentanillaUnica() {
         </div>
       )}
 
-      {/* Modal de Hoja de Ruta Oficial */}
-      <HojaDeRutaModal
-        isOpen={hojaDeRutaOpen}
-        onClose={() => setHojaDeRutaOpen(false)}
-        tramiteId={emittedTramite?.id || null}
-        initialData={emittedTramite}
-      />
+      {/* Impresión directa de la Hoja de Ruta Oficial (sin modal) */}
+      {imprimirHojaRuta && (
+        <ImpresionHojaDeRuta
+          tramiteId={emittedTramite?.id || null}
+          initialData={emittedTramite}
+          onDone={() => setImprimirHojaRuta(false)}
+        />
+      )}
     </div>
   );
 }

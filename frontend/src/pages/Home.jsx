@@ -18,7 +18,7 @@ import {
   Users
 } from 'lucide-react';
 import { tramitesService } from '../services/api';
-import HojaDeRutaModal from '../components/tramites/HojaDeRutaModal';
+import ImpresionHojaDeRuta from '../components/tramites/ImpresionHojaDeRuta';
 import ConsultaTramiteModal from '../components/tramites/ConsultaTramiteModal';
 
 export default function Home() {
@@ -33,7 +33,7 @@ export default function Home() {
 
   // Modal Consulta Pública de Trámite y Modal Hoja de Ruta
   const [consultaModalOpen, setConsultaModalOpen] = useState(false);
-  const [hojaModalOpen, setHojaModalOpen] = useState(false);
+  const [imprimirHojaRuta, setImprimirHojaRuta] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
   // Leer parámetros de URL al cargar para búsqueda directa por link o código QR (RF-09.3)
@@ -554,20 +554,21 @@ export default function Home() {
         isOpen={consultaModalOpen}
         onClose={() => setConsultaModalOpen(false)}
         tramite={searchResult}
-        onOpenHojaDeRuta={() => setHojaModalOpen(true)}
+        onOpenHojaDeRuta={() => setImprimirHojaRuta(true)}
         onCopyLink={handleCopyShareLink}
         copiedLink={copiedLink}
         formatDuracion={formatDuracion}
         formatBytes={formatBytes}
       />
 
-      {/* Modal Hoja de Ruta Imprimible (RF-08.1, RF-08.4) */}
-      <HojaDeRutaModal
-        isOpen={hojaModalOpen}
-        onClose={() => setHojaModalOpen(false)}
-        tramiteId={searchResult?.id}
-        initialData={searchResult}
-      />
+      {/* Impresión directa de la Hoja de Ruta (RF-08.1, RF-08.4), sin modal */}
+      {imprimirHojaRuta && (
+        <ImpresionHojaDeRuta
+          tramiteId={searchResult?.id}
+          initialData={searchResult}
+          onDone={() => setImprimirHojaRuta(false)}
+        />
+      )}
     </div>
   );
 }

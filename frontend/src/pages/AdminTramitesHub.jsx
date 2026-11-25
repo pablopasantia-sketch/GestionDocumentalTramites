@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { tramitesService, tiposProcesoService, ubicacionesService, reportesService, usuariosService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import HojaDeRutaModal from '../components/tramites/HojaDeRutaModal';
+import ImpresionHojaDeRuta from '../components/tramites/ImpresionHojaDeRuta';
 import PendientesFuncionarioPanel from '../components/reportes/PendientesFuncionarioPanel';
 import BusquedaTramitesPanel from '../components/tramites/BusquedaTramitesPanel';
 
@@ -109,7 +109,7 @@ export default function AdminTramitesHub() {
   const [habilitarError, setHabilitarError] = useState(null);
 
   // Modal Hoja de Ruta Oficial
-  const [hojaDeRutaAdminOpen, setHojaDeRutaAdminOpen] = useState(false);
+  const [imprimirHojaRutaAdmin, setImprimirHojaRutaAdmin] = useState(false);
   const [hojaDeRutaAdminTramiteId, setHojaDeRutaAdminTramiteId] = useState(null);
 
   // Modal Crear / Editar Tipo de Proceso (RF-03)
@@ -265,7 +265,7 @@ export default function AdminTramitesHub() {
 
   const handlePrintHojaDeRuta = (tramiteId) => {
     setHojaDeRutaAdminTramiteId(tramiteId);
-    setHojaDeRutaAdminOpen(true);
+    setImprimirHojaRutaAdmin(true);
   };
 
   // ----------------------------------------------------
@@ -1265,7 +1265,7 @@ export default function AdminTramitesHub() {
               <button
                 onClick={() => {
                   setHojaDeRutaAdminTramiteId(selectedTramite?.id);
-                  setHojaDeRutaAdminOpen(true);
+                  setImprimirHojaRutaAdmin(true);
                 }}
                 className="btn btn-sm"
                 style={{
@@ -1779,12 +1779,13 @@ export default function AdminTramitesHub() {
         </div>
       )}
 
-      {/* Modal Hoja de Ruta Oficial (Admin) */}
-      <HojaDeRutaModal
-        isOpen={hojaDeRutaAdminOpen}
-        onClose={() => setHojaDeRutaAdminOpen(false)}
-        tramiteId={hojaDeRutaAdminTramiteId}
-      />
+      {/* Impresión directa de la Hoja de Ruta Oficial (Admin), sin modal */}
+      {imprimirHojaRutaAdmin && (
+        <ImpresionHojaDeRuta
+          tramiteId={hojaDeRutaAdminTramiteId}
+          onDone={() => setImprimirHojaRutaAdmin(false)}
+        />
+      )}
     </div>
   );
 }

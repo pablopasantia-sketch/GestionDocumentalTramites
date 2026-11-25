@@ -934,6 +934,46 @@ textarea::placeholder {
 }
 
 /* ==============================================================================
+   DOCUMENTO OFICIAL DE HOJA DE RUTA — ESTILO FORMAL BLANCO Y NEGRO
+   Aplica en pantalla y en impresión/PDF. Las reglas usan !important para
+   prevalecer sobre los estilos inline del componente.
+   ============================================================================== */
+.hoja-ruta-document,
+.hoja-ruta-document * {
+  color: #000000 !important;
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  border-color: #000000 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  font-family: 'Times New Roman', Georgia, serif !important;
+}
+
+.hoja-ruta-document svg {
+  stroke: #000000 !important;
+  fill: none !important;
+}
+
+.hoja-ruta-document .hoja-ruta-seccion {
+  background-color: #FFFFFF !important;
+  border: none !important;
+  border-bottom: 1px solid #000000 !important;
+  color: #000000 !important;
+  padding: 3px 0 !important;
+}
+
+.hoja-ruta-document .hoja-ruta-sello {
+  background-color: #FFFFFF !important;
+  border: 1px solid #000000 !important;
+  box-shadow: none !important;
+}
+
+/* El documento se monta solo para imprimir: invisible en pantalla, sin modal. */
+.hoja-ruta-print-root {
+  display: none;
+}
+
+/* ==============================================================================
    REGLAS DE IMPRESIÓN OFICIAL (HOJA DE RUTA Y REPORTES)
    ============================================================================== */
 @media print {
@@ -955,52 +995,56 @@ textarea::placeholder {
   .top-banner,
   .navbar-sucre,
   .footer-sucre,
-  .modal-overlay:not(.print-hoja-de-ruta),
+  .modal-overlay,
+  .modal-backdrop,
   .modal-close-btn,
   .modal-footer {
     display: none !important;
   }
 
-  /* Si se imprime desde el modal de Hoja de Ruta */
-  .modal-overlay.print-hoja-de-ruta {
-    position: static !important;
-    background: transparent !important;
-    padding: 0 !important;
+  /* Al imprimir, el root pasa a ser el único contenido de la página. */
+  body.imprimiendo-hoja-ruta .hoja-ruta-print-root {
     display: block !important;
-    z-index: auto !important;
-  }
-
-  .modal-overlay.print-hoja-de-ruta .modal-container,
-  .modal-overlay.print-hoja-de-ruta .card {
-    max-width: 100% !important;
+    position: static !important;
     width: 100% !important;
-    box-shadow: none !important;
-    border: none !important;
     margin: 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
-  }
-
-  .modal-overlay.print-hoja-de-ruta .modal-header,
-  .modal-overlay.print-hoja-de-ruta .hoja-ruta-toolbar {
-    display: none !important;
-  }
-
-  .modal-overlay.print-hoja-de-ruta .modal-body {
     padding: 0 !important;
     overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
   }
 
-  .hoja-ruta-document {
+  body.imprimiendo-hoja-ruta .hoja-ruta-print-root .hoja-ruta-document {
     box-shadow: none !important;
     border: none !important;
     margin: 0 !important;
     padding: 0 !important;
     max-width: 100% !important;
     width: 100% !important;
+  }
+
+  /* Aislamiento estricto: visibility no quita del flujo y dejaba páginas en
+     blanco delante del documento. En navegadores modernos se elimina del
+     layout todo lo que no sea el root de impresión ni sus contenedores. */
+  @supports selector(:has(*)) {
+    body.imprimiendo-hoja-ruta *:not(:has(.hoja-ruta-print-root)):not(.hoja-ruta-print-root):not(.hoja-ruta-print-root *) {
+      display: none !important;
+    }
+  }
+
+  @supports not selector(:has(*)) {
+    body.imprimiendo-hoja-ruta * {
+      visibility: hidden !important;
+    }
+
+    body.imprimiendo-hoja-ruta .hoja-ruta-print-root,
+    body.imprimiendo-hoja-ruta .hoja-ruta-print-root * {
+      visibility: visible !important;
+    }
   }
 
   tr, .print-avoid-break {
     page-break-inside: avoid !important;
   }
 }
+

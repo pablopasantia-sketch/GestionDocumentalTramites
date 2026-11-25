@@ -255,9 +255,6 @@ export const tramitesService = {
     const response = await api.post(`/tramites/${id}/habilitar`, { motivo });
     return response.data;
   },
-  getHojaDeRutaHtmlUrl: (id, autoprint = false) => {
-    return `${API_BASE_URL}/tramites/${id}/hoja-de-ruta/html${autoprint ? '?autoprint=true' : ''}`;
-  },
   getBusquedaAvanzada: async (params = {}) => {
     const response = await api.get('/tramites/busqueda-avanzada', { params });
     return response.data;

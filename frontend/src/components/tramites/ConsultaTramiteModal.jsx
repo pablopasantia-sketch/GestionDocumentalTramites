@@ -3,7 +3,6 @@ import {
   X,
   Printer,
   Share2,
-  ExternalLink,
   Check,
   Landmark,
   Clock,
@@ -590,19 +589,6 @@ export default function ConsultaTramiteModal({
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {tramite.id && (
-              <a
-                href={`/api/tramites/${tramite.id}/hoja-de-ruta/html`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-secondary btn-sm"
-                style={{ fontSize: '0.8rem', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}
-              >
-                <ExternalLink size={13} />
-                <span>Hoja de Ruta (HTML)</span>
-              </a>
-            )}
-
             <button
               type="button"
               onClick={onClose}

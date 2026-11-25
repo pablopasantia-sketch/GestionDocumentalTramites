@@ -244,7 +244,66 @@ test.describe('Sprint 2 E2E - Core del Proceso y Trámites Externos (DB_TRAMITES
     await expect(modalComprobante).toContainText('12'); // Fojas
     await expect(modalComprobante).toContainText('memorial_restauracion_patrimonial.pdf');
 
-    // Cerrar el modal de comprobante
+    // El botón "Imprimir Comprobante" fue retirado de todos lados.
+    await expect(modalComprobante.getByRole('button', { name: /Imprimir Comprobante/i })).toHaveCount(0);
+
+    // La impresión es DIRECTA: no se abre ningún modal ni pestaña nueva.
+    await page.evaluate(() => {
+      window.__impresiones = 0;
+      window.print = () => { window.__impresiones += 1; };
+    });
+    await modalComprobante.getByRole('button', { name: /Imprimir Hoja de Ruta/i }).click();
+
+    await expect.poll(() => page.evaluate(() => window.__impresiones)).toBe(1);
+    await expect(page.locator('.modal-overlay')).toHaveCount(0);
+    await expect(page.locator('.hoja-ruta-print-root')).toHaveCount(1);
+    await expect(page.locator('.hoja-ruta-print-root')).toBeHidden();
+
+    // No quedan botones de impresión redundantes ni salidas HTML/pestaña.
+    await expect(page.getByRole('button', { name: /Imprimir \/ PDF/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /Nueva Pestaña/i })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: /Versión HTML Directa/i })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: /Hoja de Ruta \(HTML\)/i })).toHaveCount(0);
+
+    await page.emulateMedia({ media: 'print' });
+    const estadoImpresion = await page.evaluate(() => {
+      const root = document.querySelector('.hoja-ruta-print-root');
+      const doc = root.querySelector('.hoja-ruta-document');
+      return {
+        claseActiva: document.body.classList.contains('imprimiendo-hoja-ruta'),
+        root: getComputedStyle(root).display,
+        documento: getComputedStyle(doc).display,
+        formulario: getComputedStyle(document.querySelector('form')).display,
+        comprobante: getComputedStyle(document.querySelector('.modal-backdrop')).display,
+        colorDocumento: getComputedStyle(doc).color,
+        fondoDocumento: getComputedStyle(doc).backgroundColor
+      };
+    });
+    expect(estadoImpresion.claseActiva).toBe(true);
+    expect(estadoImpresion.root).toBe('block');
+    expect(estadoImpresion.documento).toBe('block');
+    expect(estadoImpresion.formulario).toBe('none');
+    expect(estadoImpresion.comprobante).toBe('none');
+    expect(estadoImpresion.colorDocumento).toBe('rgb(0, 0, 0)');
+    expect(estadoImpresion.fondoDocumento).toBe('rgb(255, 255, 255)');
+
+    // El PDF contiene la Hoja de Ruta y no páginas en blanco delante de ella.
+    const pdfImpreso = await page.pdf({ format: 'Letter', printBackground: true });
+    expect(pdfImpreso.length).toBeGreaterThan(10000);
+    const paginasPdf = (pdfImpreso.toString('latin1').match(/\/Type\s*\/Page\b/g) || []).length;
+    expect(paginasPdf).toBeGreaterThan(0);
+    expect(paginasPdf).toBeLessThanOrEqual(3);
+
+    // La salida HTML directa del backend ya no existe.
+    const respuestaHtml = await page.request.get('http://localhost:5000/api/tramites/1/hoja-de-ruta/html');
+    expect(respuestaHtml.status()).toBe(404);
+
+    await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+    await expect(page.locator('.hoja-ruta-print-root')).toHaveCount(0);
+    await page.emulateMedia({ media: 'screen' });
+    expect(await page.evaluate(() => document.body.classList.contains('imprimiendo-hoja-ruta'))).toBe(false);
+
+    // El modal de emisión sigue abierto: la impresión no abrió ni cerró modales.
     await modalComprobante.locator('button:has-text("Cerrar")').click();
     await expect(modalComprobante).not.toBeVisible();
 
