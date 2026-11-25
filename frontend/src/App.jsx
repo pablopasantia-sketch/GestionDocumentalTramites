@@ -7,6 +7,7 @@ import SystemStatus from './pages/SystemStatus';
 import Login from './pages/Login';
 import { Landmark, ArrowLeft } from 'lucide-react';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import { obtenerRolesPermitidos } from './config/permissions';
 
 import AdminHub from './pages/AdminHub';
 import VentanillaUnica from './pages/VentanillaUnica';
@@ -63,14 +64,13 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/consulta" element={<Home />} />
             <Route path="/buscar" element={<Home />} />
-            <Route path="/status" element={<SystemStatus />} />
             <Route path="/login" element={<Login />} />
             
-            {/* Rutas de módulos protegidos según rol */}
+            {/* Rutas de módulos protegidos según la matriz de roles activos */}
             <Route 
               path="/ventanilla" 
               element={
-                <ProtectedRoute allowedRoles={['VENTANILLA_UNICA', 'ADMIN_SISTEMA', 'ADMIN_TRAMITES']}>
+                <ProtectedRoute allowedRoles={obtenerRolesPermitidos('/ventanilla')}>
                   <VentanillaUnica />
                 </ProtectedRoute>
               } 
@@ -78,7 +78,7 @@ export default function App() {
             <Route 
               path="/escritorio" 
               element={
-                <ProtectedRoute allowedRoles={['FUNCIONARIO', 'VENTANILLA_UNICA', 'ADMIN_SISTEMA', 'ADMIN_TRAMITES']}>
+                <ProtectedRoute allowedRoles={obtenerRolesPermitidos('/escritorio')}>
                   <EscritorioVirtual />
                 </ProtectedRoute>
               } 
@@ -86,8 +86,16 @@ export default function App() {
             <Route 
               path="/admin" 
               element={
-                <ProtectedRoute allowedRoles={['ADMIN_SISTEMA', 'ADMIN_TRAMITES']}>
+                <ProtectedRoute allowedRoles={obtenerRolesPermitidos('/admin')}>
                   <AdminHub />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/status" 
+              element={
+                <ProtectedRoute allowedRoles={obtenerRolesPermitidos('/status')}>
+                  <SystemStatus />
                 </ProtectedRoute>
               } 
             />

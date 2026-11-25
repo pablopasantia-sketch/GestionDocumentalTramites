@@ -2,6 +2,29 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Sprint 2 E2E - Core del Proceso y Trámites Externos (DB_TRAMITES_EXTERNOS)', () => {
 
+  const loginComo = async (page, username) => {
+    await page.goto('/login');
+    await page.evaluate(() => {
+      localStorage.removeItem('gestion_doc_token');
+      localStorage.removeItem('gestion_doc_user');
+      sessionStorage.clear();
+    });
+    await page.goto('/login');
+    await expect(page.locator('#username')).toBeVisible();
+    await page.fill('#username', username);
+    await page.fill('#password', 'admin123');
+    await page.click('button[type="submit"]');
+    await page.waitForURL('**/');
+  };
+
+  const cambiarRol = async (page, codigoRol, nombreRol) => {
+    await page.click('button[title="Opciones de perfil y sesión"]');
+    const botonRol = page.getByTestId(`cambiar-rol-${codigoRol}`);
+    await expect(botonRol).toBeVisible();
+    await botonRol.click();
+    await expect(page.locator('.user-tag-role')).toContainText(nombreRol);
+  };
+
   test.beforeEach(async ({ page }) => {
     // Configurar manejador automático para diálogos nativos window.confirm / alert
     page.on('dialog', async (dialog) => {
@@ -9,15 +32,8 @@ test.describe('Sprint 2 E2E - Core del Proceso y Trámites Externos (DB_TRAMITES
     });
 
     // Autenticación institucional con cuenta de Administrador de Sistema
-    await page.goto('/login');
-    await expect(page.locator('h1')).toContainText('Acceso Institucional');
-
-    await page.fill('#username', 'admin');
-    await page.fill('#password', 'admin123');
-    await page.click('button[type="submit"]');
-
-    // Esperar redirección tras login exitoso
-    await page.waitForURL('**/');
+    await loginComo(page, 'admin');
+    await expect(page.locator('h1')).toContainText('Portal Ciudadano de Trámites y Seguimiento Municipal');
   });
 
   test('1. Catálogo Institucional y Ciclo CRUD de Tipos de Trámite Externo (CM, CDE1, CDE2, CDH1)', async ({ page }) => {
@@ -174,6 +190,10 @@ test.describe('Sprint 2 E2E - Core del Proceso y Trámites Externos (DB_TRAMITES
 
   test('3. Flujo Completo en Ventanilla Única: Cascada Institucional, Adjunto PDF y Emisión con Correlativo Anual', async ({ page }) => {
     test.setTimeout(60000);
+
+    // Ventanilla solo admite el rol activo VENTANILLA_UNICA; `admin` no lo posee.
+    await loginComo(page, 'cargo054');
+    await cambiarRol(page, 'VENTANILLA_UNICA', 'Ventanilla Única');
 
     // 3.1 Navegar al módulo oficial de Ventanilla Única
     await page.goto('/ventanilla');

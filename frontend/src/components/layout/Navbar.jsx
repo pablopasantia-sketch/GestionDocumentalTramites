@@ -19,7 +19,17 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { MATRIZ_RUTAS_ROLES, puedeAccederPath } from '../../config/permissions';
 import ChangePasswordModal from '../auth/ChangePasswordModal';
+
+const ICONOS_NAV = {
+  home: Home,
+  inbox: Inbox,
+  layers: Layers,
+  shield: Shield,
+  gitBranch: GitBranch,
+  activity: Activity,
+};
 
 export default function Navbar() {
   const { user, activeRole, isAuthenticated, logout, switchRole } = useAuth();
@@ -54,10 +64,37 @@ export default function Navbar() {
     }
 
     setSwitchingRole(true);
-    await switchRole(r.rol_id, r.ubicacion_org_id);
+    const resultado = await switchRole(r.rol_id, r.ubicacion_org_id);
     setSwitchingRole(false);
     setDropdownOpen(false);
+
+    // Si el nuevo rol activo deja de habilitar la ruta actual, volver al inicio
+    // en lugar de dejar una pantalla de "Acceso restringido" tras el switch.
+    if (
+      resultado?.success &&
+      !puedeAccederPath(location.pathname, resultado.activeRole?.rol_codigo)
+    ) {
+      navigate('/', { replace: true });
+    }
   };
+
+  const rolCodigo = activeRole?.rol_codigo;
+  const enlacesNavegacion = Object.entries(MATRIZ_RUTAS_ROLES)
+    .filter(([, config]) => config.nav)
+    .map(([path, config]) => {
+      const iconClave =
+        typeof config.nav.icon === 'function'
+          ? config.nav.icon(rolCodigo)
+          : config.nav.icon;
+      return {
+        path,
+        label:
+          typeof config.nav.label === 'function'
+            ? config.nav.label(rolCodigo)
+            : config.nav.label,
+        Icon: ICONOS_NAV[iconClave] || Home,
+      };
+    });
 
   return (
     <header>
@@ -90,67 +127,20 @@ export default function Navbar() {
               </Link>
             </li>
 
-            {isAuthenticated && (
-              <>
-                {(activeRole?.rol_codigo === 'VENTANILLA_UNICA' || activeRole?.rol_codigo === 'ADMIN_TRAMITES') && (
-                  <li>
+            {isAuthenticated &&
+              enlacesNavegacion
+                .filter(({ path }) => puedeAccederPath(path, rolCodigo))
+                .map(({ path, label, Icon }) => (
+                  <li key={path}>
                     <Link 
-                      to="/ventanilla" 
-                      className={`nav-link ${location.pathname === '/ventanilla' ? 'active' : ''}`}
+                      to={path} 
+                      className={`nav-link ${location.pathname === path ? 'active' : ''}`}
                     >
-                      <Inbox size={16} />
-                      <span>Ventanilla Única</span>
+                      <Icon size={16} />
+                      <span>{label}</span>
                     </Link>
                   </li>
-                )}
-
-                {(activeRole?.rol_codigo === 'FUNCIONARIO' || activeRole?.rol_codigo === 'VENTANILLA_UNICA' || activeRole?.rol_codigo === 'ADMIN_TRAMITES') && (
-                  <li>
-                    <Link 
-                      to="/escritorio" 
-                      className={`nav-link ${location.pathname === '/escritorio' ? 'active' : ''}`}
-                    >
-                      <Layers size={16} />
-                      <span>Escritorio Virtual</span>
-                    </Link>
-                  </li>
-                )}
-
-                {activeRole?.rol_codigo === 'ADMIN_SISTEMA' && (
-                  <li>
-                    <Link 
-                      to="/admin" 
-                      className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}
-                    >
-                      <Shield size={16} />
-                      <span>Admin. Sistemas</span>
-                    </Link>
-                  </li>
-                )}
-
-                {activeRole?.rol_codigo === 'ADMIN_TRAMITES' && (
-                  <li>
-                    <Link 
-                      to="/admin" 
-                      className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}
-                    >
-                      <GitBranch size={16} />
-                      <span>Supervisión de Trámites</span>
-                    </Link>
-                  </li>
-                )}
-
-                <li>
-                  <Link 
-                    to="/status" 
-                    className={`nav-link ${location.pathname === '/status' ? 'active' : ''}`}
-                  >
-                    <Activity size={16} />
-                    <span>Diagnóstico BD</span>
-                  </Link>
-                </li>
-              </>
-            )}
+                ))}
           </ul>
 
           <div className="nav-user-area" ref={dropdownRef} style={{ position: 'relative' }}>
@@ -242,6 +232,7 @@ export default function Navbar() {
                             return (
                               <button
                                 key={`${r.rol_id}-${r.ubicacion_org_id}`}
+                                data-testid={`cambiar-rol-${r.rol_codigo}`}
                                 onClick={() => handleRoleSwitch(r)}
                                 disabled={switchingRole}
                                 style={{

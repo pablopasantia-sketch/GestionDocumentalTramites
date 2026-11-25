@@ -55,6 +55,14 @@ test.describe('Circuito externo distribuido CMS', () => {
     return token;
   };
 
+  const cambiarRol = async (page, codigoRol, nombreRol) => {
+    await page.click('button[title="Opciones de perfil y sesión"]');
+    const botonRol = page.getByTestId(`cambiar-rol-${codigoRol}`);
+    await expect(botonRol).toBeVisible();
+    await botonRol.click();
+    await expect(page.locator('.user-tag-role')).toContainText(nombreRol);
+  };
+
   const irAEscritorio = async (page, username) => {
     const token = await login(page, username);
     await page.goto('/escritorio');
@@ -214,6 +222,8 @@ test.describe('Circuito externo distribuido CMS', () => {
   test('1. Ventanilla Única emite la Hoja de Ruta externa hacia Presidencia', async ({ page }) => {
     test.setTimeout(90000);
     await login(page, 'cargo054');
+    // El rol activo por defecto es FUNCIONARIO; Ventanilla exige VENTANILLA_UNICA.
+    await cambiarRol(page, 'VENTANILLA_UNICA', 'Ventanilla Única');
     await page.goto('/ventanilla');
 
     await expect(
